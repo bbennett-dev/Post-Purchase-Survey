@@ -1,0 +1,17 @@
+# Learn more about configuring your Customer account UI extension:
+# https://shopify.dev/api/customer-account-ui-extensions/unstable/configuration
+
+api_version = "2026-07"
+
+[[extensions]]
+name = "order-status-survey"
+handle = "order-status-survey"
+type = "ui_extension"
+uid = "47dc5576-827b-917a-6223-7c68db326d526075dfb3"
+
+[[extensions.targeting]]
+module = "./src/OrderStatusBlock.jsx"
+target = "customer-account.order-status.block.render"
+
+[extensions.capabilities]
+network_access = true

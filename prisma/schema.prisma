@@ -1,34 +1,98 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
-// enough when changing adapters.
-// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
+/// Shopify session storage. Do not rename this model.
 model Session {
-  id            String    @id
-  shop          String
-  state         String
-  isOnline      Boolean   @default(false)
-  scope         String?
-  expires       DateTime?
-  accessToken   String
-  userId        BigInt?
-  firstName     String?
-  lastName      String?
-  email         String?
-  accountOwner  Boolean   @default(false)
-  locale        String?
-  collaborator  Boolean?  @default(false)
-  emailVerified Boolean?  @default(false)
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
+
+  @@index([shop])
+}
+
+/// One HDYHAU config per merchant shop.
+model SurveyConfig {
+  id         String   @id @default(cuid())
+  shop       String   @unique
+  heading    String   @default("How did you hear about us?")
+  isEnabled  Boolean  @default(true)
+  allowOther Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  options   SurveyOption[]
+  responses SurveyResponse[]
+}
+
+model SurveyOption {
+  id             String   @id @default(cuid())
+  surveyConfigId String
+  label          String
+  position       Int
+  isOther        Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  surveyConfig SurveyConfig               @relation(fields: [surveyConfigId], references: [id], onDelete: Cascade)
+  selections   SurveyResponseSelection[]
+
+  @@unique([surveyConfigId, label])
+  @@index([surveyConfigId, position])
+}
+
+/// One submission per order, per shop.
+model SurveyResponse {
+  id                 String   @id @default(cuid())
+  shop               String
+  shopifyOrderGid    String
+  shopifyOrderNumber String?
+  shopifyCustomerGid String?
+  checkoutToken      String?
+  surveyConfigId     String
+  otherText          String?
+  source             String
+  createdAt          DateTime @default(now())
+
+  surveyConfig SurveyConfig               @relation(fields: [surveyConfigId], references: [id], onDelete: Cascade)
+  selections   SurveyResponseSelection[]
+
+  @@unique([shop, shopifyOrderGid])
+  @@index([shop, createdAt])
+  @@index([shop, shopifyCustomerGid])
+  @@index([surveyConfigId])
+}
+
+model SurveyResponseSelection {
+  id               String @id @default(cuid())
+  surveyResponseId String
+  surveyOptionId   String?
+  optionLabel      String
+
+  surveyResponse SurveyResponse @relation(fields: [surveyResponseId], references: [id], onDelete: Cascade)
+  surveyOption   SurveyOption?  @relation(fields: [surveyOptionId], references: [id], onDelete: SetNull)
+
+  @@unique([surveyResponseId, surveyOptionId])
+  @@index([surveyOptionId])
 }

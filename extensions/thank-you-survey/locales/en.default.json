@@ -1,0 +1,9 @@
+{
+  "headingFallback": "How did you hear about us?",
+  "otherLabel": "Please tell us more",
+  "submit": "Submit",
+  "thanks": "Thanks — that helps us a lot.",
+  "loadError": "The survey is unavailable right now.",
+  "submitError": "We couldn't save your answer. Please try again.",
+  "selectOne": "Select at least one option."
+}

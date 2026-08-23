@@ -1,0 +1,9 @@
+{
+  "headingFallback": "Comment avez-vous entendu parler de nous ?",
+  "otherLabel": "Dites-nous en plus",
+  "submit": "Envoyer",
+  "thanks": "Merci — cela nous aide beaucoup.",
+  "loadError": "Le sondage est indisponible pour le moment.",
+  "submitError": "Impossible d'enregistrer votre réponse. Réessayez.",
+  "selectOne": "Choisissez au moins une option."
+}

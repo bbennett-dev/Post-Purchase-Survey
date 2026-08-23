@@ -21,9 +21,10 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>SnapPlux Post-Purchase Survey</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          A lightweight How did you hear about us? survey on Thank you and Order
+          status pages, built for DTC merchants running paid traffic.
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
@@ -39,16 +40,16 @@ export default function App() {
         )}
         <ul className={styles.list}>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Zero-bloat checkout block</strong>. Ask HDYHAU on the Thank
+            you and Order status pages without slowing confirmation.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Merchant-owned answers</strong>. Edit the question and
+            options in the app. Buyers can choose more than one source.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>One response per order</strong>. Duplicate submits are
+            ignored so attribution stays clean.
           </li>
         </ul>
       </div>
