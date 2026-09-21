@@ -1,0 +1,29 @@
+---
+description: Mandatory development protocol enforcing feature-by-feature stabilization and validation
+globs: *
+alwaysApply: true
+---
+# Feature Stabilization & Validation Loop
+
+## 1. Single-Feature Rule
+- Never work on more than ONE task or feature at a time.
+- Do NOT jump to the next step, create unrelated routes, or scaffold secondary models until the current feature is fully functional, stabilized, and verified.
+
+## 2. Mandatory Step-by-Step Gate
+For every feature or bug fix, you must follow this exact 4-phase cycle:
+1. **Plan & Scaffold**: Define the single file or component modification.
+2. **Implement**: Write clean, enterprise TypeScript code.
+3. **Verify & Stabilize (Crucial Gate)**:
+   - Run type-checking (`npm run typecheck` or verify `tsc --noEmit`).
+   - Verify that all dependencies and imports resolve without implicit `any` errors.
+   - For backend routes, ensure error boundaries and error status codes (400, 404, 500) are handled.
+   - For UI changes, verify loading/empty states are present.
+4. **Halt for User Verification**:
+   - Explicitly summarize the changes made.
+   - Provide exact steps for the developer to test in their browser/terminal.
+   - **Do NOT proceed** to the next feature until the user gives explicit confirmation that the current feature behaves as expected.
+
+## 3. Code Hygiene & Comments
+- Add clean JSDoc comments to all public loaders, actions, and custom hooks.
+- Explain *why* a pattern is used (e.g., "Shopify token exchange requirement", "App Store review compliance").
+- Never leave unhandled `catch` blocks or empty promises.

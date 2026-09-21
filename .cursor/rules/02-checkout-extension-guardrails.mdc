@@ -1,0 +1,23 @@
+---
+description: Rules and sandbox constraints for Shopify Checkout UI Extensions
+globs: extensions/**
+alwaysApply: false
+---
+# Checkout UI Extension Guardrails
+
+## 1. Sandboxed Web Worker Constraints
+- The checkout extension environment does NOT have a DOM.
+- **NEVER use standard HTML/DOM elements**: Do not use `<div>`, `<span>`, `<input>`, `<button>`, or CSS/Tailwind files. Using them crashes the extension sandbox instantly.
+- **NEVER use browser APIs**: Do not use `window`, `document`, or `localStorage`.
+
+## 2. Allowed Primitives
+- Exclusively import and use components from `@shopify/ui-extensions-react/checkout`:
+  - Containers: `<BlockStack>`, `<InlineStack>`, `<View>`, `<Divider>`
+  - Form elements: `<ChoiceList>`, `<TextField>`, `<Checkbox>`
+  - Text & Status: `<Text>`, `<Heading>`, `<Banner>`, `<Spinner>`, `<Button>`
+
+## 3. Thank You Page Architecture (`purchase.thank-you.block.render`)
+- **Idempotency**: Always verify if an answer has already been submitted for the current `orderId` to prevent duplicate entries on page refresh.
+- **State Handling**:
+  - While submitting: disable inputs and display a spinner or loading button.
+  - After submission: replace the form with a success `<Banner status="success">Thank you for your feedback!</Banner>`.

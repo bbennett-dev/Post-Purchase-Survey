@@ -1,0 +1,25 @@
+---
+description: Built for Shopify standards, App Store compliance, and Polaris layout rules
+globs: app/routes/**, app/components/**
+alwaysApply: false
+---
+# Built for Shopify & App Store Review Standards
+
+## 1. Polaris UI & Design Standards
+- **Zero Raw HTML**: Never render raw HTML tags (`<div>`, `<p>`, `<span>`, `<h1>`, `<button>`) in the admin interface. Exclusively use `@shopify/polaris` primitives:
+  - Page wrapper: `<Page title="..." backAction={...} primaryAction={...}>`
+  - Columns: `<Layout><Layout.Section>...</Layout.Section></Layout>`
+  - Layout & Stacks: `<BlockStack gap="400">`, `<InlineStack align="space-between">`
+  - Content & Actions: `<Card>`, `<Text>`, `<Button>`, `<TextField>`, `<Banner>`, `<Badge>`
+- **Loading & Empty States (Required for App Store Review)**:
+  - Every table or list MUST implement an `<EmptyState>` when no data exists (e.g., before the merchant receives their first survey response).
+  - Every mutation must reflect loading feedback via `<Button loading={...}>` or Polaris `<Spinner>`.
+- **Skeleton Page Wrappers**:
+  - When loading data asynchronously, wrap loading views in `<SkeletonPage>` and `<SkeletonBodyText>` to prevent layout shift.
+
+## 2. App Bridge v4 Standards
+- Top-level merchant alerts and feedback must use `@shopify/app-bridge-react`:
+  ```typescript
+  import { useAppBridge } from "@shopify/app-bridge-react";
+  const shopify = useAppBridge();
+  shopify.toast.show("Changes saved successfully");
