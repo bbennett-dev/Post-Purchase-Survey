@@ -13,6 +13,8 @@ interface EditorLoaderData {
   sourceLabel: string;
 }
 
+const DISCARD_MODAL_ID = "discard-survey-changes";
+
 const TEMPLATE_NAMES: Record<string, string> = {
   blank: "Blank survey",
   hdyhau: "How did you hear about us?",
@@ -63,10 +65,30 @@ export const loader = async ({
   };
 };
 
+function discardMessage(mode: EditorMode): string {
+  if (mode === "edit") {
+    return "Your latest edits will be lost. The last saved version of this survey stays as it is.";
+  }
+
+  return "This survey hasn't been saved. Discarding closes the editor and removes what you started.";
+}
+
+/**
+ * Opens the discard confirmation from the title-bar button.
+ * Title-bar actions are projected into the admin chrome, so this uses the
+ * modal method instead of commandFor.
+ */
+function openDiscardModal(): void {
+  const modal = document.getElementById(DISCARD_MODAL_ID) as
+    | (HTMLElement & { showOverlay?: () => void })
+    | null;
+  modal?.showOverlay?.();
+}
+
 /**
  * Fullscreen survey editor shell.
  * Left outline, center Thank You preview, and right settings are placeholders
- * until those sections are built. Save and discard do not persist yet.
+ * until those sections are built. Save does not persist yet.
  */
 export default function SurveyEditorPage() {
   const data = useLoaderData<typeof loader>();
@@ -74,12 +96,7 @@ export default function SurveyEditorPage() {
 
   return (
     <s-page heading={data.heading} inlineSize="large">
-      <s-button
-        slot="secondary-actions"
-        onClick={() => {
-          closeSurveyEditor();
-        }}
-      >
+      <s-button slot="secondary-actions" onClick={openDiscardModal}>
         Discard
       </s-button>
       <s-button
@@ -118,6 +135,35 @@ export default function SurveyEditorPage() {
           </s-section>
         </s-grid>
       </s-query-container>
+
+      <s-modal
+        id={DISCARD_MODAL_ID}
+        heading="Discard unsaved changes?"
+        size="small"
+        accessibilityLabel="Discard unsaved survey changes"
+      >
+        <s-paragraph>{discardMessage(data.mode)}</s-paragraph>
+        <s-button
+          slot="secondary-actions"
+          variant="secondary"
+          commandFor={DISCARD_MODAL_ID}
+          command="--hide"
+        >
+          Continue editing
+        </s-button>
+        <s-button
+          slot="primary-action"
+          variant="primary"
+          tone="critical"
+          commandFor={DISCARD_MODAL_ID}
+          command="--hide"
+          onClick={() => {
+            closeSurveyEditor();
+          }}
+        >
+          Discard changes
+        </s-button>
+      </s-modal>
     </s-page>
   );
 }
