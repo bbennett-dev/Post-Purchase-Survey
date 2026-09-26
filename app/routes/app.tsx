@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useRouteError } from "react-router";
+import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
@@ -14,13 +14,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
+  const location = useLocation();
+  const isEditor = location.pathname.startsWith("/app/surveys/editor");
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      <s-app-nav>
-        <s-link href="/app">Home</s-link>
-        <s-link href="/app/additional">Additional page</s-link>
-      </s-app-nav>
+      {isEditor ? null : (
+        <s-app-nav>
+          <s-link href="/app">Dashboard</s-link>
+          <s-link href="/app/surveys">Surveys</s-link>
+          <s-link href="/app/responses">Responses</s-link>
+          <s-link href="/app/analytics">Analytics</s-link>
+          <s-link href="/app/integrations">Integrations</s-link>
+          <s-link href="/app/settings">Settings</s-link>
+        </s-app-nav>
+      )}
+      {isEditor ? null : (
+        <s-app-window id="survey-editor" src="/app/surveys/editor" />
+      )}
       <Outlet />
     </AppProvider>
   );
