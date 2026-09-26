@@ -17,6 +17,9 @@ alwaysApply: false
 - **Skeleton Page Wrappers**:
   - When loading data asynchronously, wrap loading views in `<SkeletonPage>` and `<SkeletonBodyText>` to prevent layout shift.
 
+## Page shell
+Follow the App Home page migration. Put the route title on `s-page` `heading`, the parent link on `slot="breadcrumb-actions"`, and the one page-level action on `slot="primary-action"` with `variant="primary"`. Put the subtitle in the page body as a paragraph. Do not put badges on the page shell; `s-page` has no accessory slot.
+
 ## 2. App Bridge v4 Standards
 - Top-level merchant alerts and feedback must use `@shopify/app-bridge-react`:
   ```typescript
