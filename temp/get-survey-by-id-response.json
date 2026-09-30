@@ -1,0 +1,710 @@
+{
+    "success": true,
+    "data": {
+        "sections": [],
+        "advancedLogicEnabled": true,
+        "surveyType": "survey",
+        "thankYou": {
+            "type": "thank_you",
+            "thankYouType": "default",
+            "heading": "Thank you for doing our survey",
+            "description": "If you have any question, please feel free to ask us",
+            "link": "samplelink.shopify.com",
+            "enableButton": true,
+            "buttonText": "Discover more",
+            "buttonLink": "",
+            "closingText": "Closing in {seconds}s",
+            "unlockedText": "You unlocked",
+            "copyText": "Copy",
+            "copiedText": "Copied!",
+            "discountCodeLabel": "Your discount code"
+        },
+        "name": "Survey #2",
+        "isActive": false,
+        "thankYouCards": [
+            {
+                "type": "thank_you",
+                "thankYouType": "default",
+                "heading": "Thank you for doing our survey",
+                "description": "If you have any question, please feel free to ask us",
+                "link": "samplelink.shopify.com",
+                "enableButton": true,
+                "buttonText": "Discover more",
+                "buttonLink": "",
+                "closingText": "Closing in {seconds}s",
+                "unlockedText": "You unlocked",
+                "copyText": "Copy",
+                "copiedText": "Copied!",
+                "discountCodeLabel": "Your discount code",
+                "id": "card_default",
+                "isDefault": true,
+                "name": ""
+            }
+        ],
+        "templateType": "blank",
+        "shopId": "h3blsQjLTM7KMkla36f9",
+        "totalResponses": 0,
+        "createdAt": "2026-09-22T05:33:10.344Z",
+        "channels": {
+            "dedicatedPageSurvey": {
+                "type": "dedicatedPageSurvey",
+                "link": "",
+                "allowMultiSubmit": false,
+                "enabledHeaderLogo": false,
+                "enabledSideLogo": false,
+                "headerLogo": {
+                    "url": "",
+                    "alignment": "center",
+                    "enabled": true
+                },
+                "sideLogo": {
+                    "url": "",
+                    "enabled": true
+                },
+                "button": {
+                    "color": "#FFFFFF",
+                    "backgroundColor": "#1C1C1C",
+                    "backgroundHover": "#1C1C1CE6"
+                },
+                "section": {
+                    "primaryTextColor": "#1C1C1C",
+                    "secondaryTextColor": "#585858",
+                    "accentColor": "#1C1C1C",
+                    "backgroundColor": "#FFFFFF"
+                },
+                "enabledSectionBackground": true,
+                "background": {
+                    "type": "solid",
+                    "colorSolid": "#FFFFFF",
+                    "gradientStart": "#FFFFFF",
+                    "gradientEnd": "#000000",
+                    "gradientDirection": 70,
+                    "image": {
+                        "url": ""
+                    }
+                },
+                "enabledCustomCss": false,
+                "customCss": "",
+                "enabled": true
+            },
+            "siteWidget": {
+                "type": "siteWidget",
+                "position": "left",
+                "button": {
+                    "color": "#FFFFFF",
+                    "backgroundColor": "#1C1C1C",
+                    "backgroundHover": "#1C1C1CE6"
+                },
+                "section": {
+                    "primaryTextColor": "#1C1C1C",
+                    "secondaryTextColor": "#585858",
+                    "accentColor": "#1C1C1C",
+                    "backgroundColor": "#FFFFFF"
+                },
+                "pageTargeting": {
+                    "type": "all_pages",
+                    "includeExclude": "include",
+                    "enabledExcludePages": false,
+                    "enabledExcludeUrls": false,
+                    "excludeUrls": [],
+                    "enabledSpecificUrls": false,
+                    "specificUrls": [],
+                    "pages": [],
+                    "productPageType": "all_product_pages",
+                    "specificProducts": [],
+                    "collectionPageType": "all_collection_pages",
+                    "specificCollections": []
+                },
+                "timing": "10_seconds_after_page_load",
+                "userTargeting": {
+                    "type": "all_users",
+                    "customerSegment": []
+                },
+                "widgetRecurrence": "every_time_survey_not_completed",
+                "enabledCustomCss": false,
+                "customCss": "",
+                "enabled": false
+            },
+            "postPurchasePage": {
+                "type": "postPurchasePage",
+                "displayType": "blockType",
+                "announcementBar": {
+                    "modalTitle": "Survey",
+                    "content": "We'd love to hear your feedback!",
+                    "buttonText": "Take a quick survey"
+                },
+                "userTargeting": {
+                    "type": "all_users",
+                    "customerSegment": []
+                },
+                "widgetRecurrence": "once_per_customer",
+                "enabled": true
+            },
+            "postPurchaseEmail": {
+                "type": "postPurchaseEmail",
+                "duplicateTime": 2,
+                "emailLayout": "ctaButton",
+                "userTargeting": {
+                    "type": "all_users",
+                    "customerSegment": []
+                },
+                "emailSetting": {
+                    "fromType": "default"
+                },
+                "enabledHeaderLogo": false,
+                "headerLogo": {
+                    "url": "",
+                    "sizePercentage": 88
+                },
+                "content": {
+                    "subject": "How was your experience with {{shop.name}}?",
+                    "body": "<h1>Thank you for your visiting!</h1><p>Dear {{customer.displayName}},</p><p><br></p><p><span style=\"white-space:pre-wrap;\">At {{shop.name}}, we value your feedback. That's why we would like to invite you to participate in a short survey about your recent experience.</span></p><p><span style=\"white-space:pre-wrap;\"><br></span></p><p><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\">Please click the button below to complete the survey, and it will only take a few minutes to complete.<br>We appreciate your time and effort in providing us with this valuable feedback.</span></span></p><p><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\"><br></span></span></p><p><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\">You could explore more products in our store for the next season here: {{shop.url}}.</span></span></span></p><p><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\"><br></span></span></span></p><p><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\"><span style=\"white-space:pre-wrap;\">Warm regards,<br>{{shop.name}}.</span></span></span></span></p>"
+                },
+                "text": {
+                    "primaryColor": "#1C1C1C",
+                    "secondaryColor": "#585858"
+                },
+                "background": {
+                    "outerBackground": "#F5F5F5",
+                    "innerBackground": "#FFFFFF"
+                },
+                "button": {
+                    "color": "#FFFFFF",
+                    "backgroundColor": "#15378B",
+                    "backgroundHover": "#0E255D",
+                    "text": "Start your survey"
+                },
+                "enabledCustomCss": false,
+                "customCss": "",
+                "enabled": false
+            },
+            "exitIntent": {
+                "type": "exitIntent",
+                "enabled": false,
+                "enableEmptyCart": false,
+                "enableHasProducts": false,
+                "widgetRecurrence": "only_once",
+                "position": "center",
+                "button": {
+                    "color": "#FFFFFF",
+                    "backgroundColor": "#1C1C1C",
+                    "backgroundHover": "#1C1C1CE6"
+                },
+                "section": {
+                    "primaryTextColor": "#1C1C1C",
+                    "secondaryTextColor": "#585858",
+                    "accentColor": "#1C1C1C",
+                    "backgroundColor": "#FFFFFF"
+                },
+                "enabledCustomCss": false,
+                "customCss": ""
+            },
+            "embedSurvey": {
+                "type": "embedSurvey",
+                "embedType": "block",
+                "button": {
+                    "color": "#FFFFFF",
+                    "backgroundColor": "#1C1C1C",
+                    "backgroundHover": "#1C1C1CE6"
+                },
+                "section": {
+                    "primaryTextColor": "#1C1C1C",
+                    "secondaryTextColor": "#585858",
+                    "accentColor": "#1C1C1C",
+                    "backgroundColor": "#FFFFFF"
+                },
+                "allowMultiSubmit": false,
+                "enabled": false
+            },
+            "embedEmail": {
+                "type": "embedEmail",
+                "enabled": false
+            },
+            "surveyForm": {
+                "type": "surveyForm",
+                "enabled": false,
+                "template": "compact_card",
+                "promotionalImage": {
+                    "enabled": false,
+                    "url": "",
+                    "altText": "",
+                    "heading": "",
+                    "subheading": ""
+                },
+                "emailField": {
+                    "enabled": false,
+                    "label": "Email address",
+                    "required": false
+                },
+                "heading": "We value your feedback!",
+                "subheading": "Answer a quick question and get a special offer.",
+                "submitButtonText": "Submit & Get Discount",
+                "button": {
+                    "color": "#FFFFFF",
+                    "backgroundColor": "#1C1C1C",
+                    "backgroundHover": "#1C1C1CE6"
+                },
+                "section": {
+                    "primaryTextColor": "#1C1C1C",
+                    "secondaryTextColor": "#585858",
+                    "accentColor": "#1C1C1C",
+                    "backgroundColor": "#FFFFFF"
+                },
+                "trigger": {
+                    "type": "page_load_delay",
+                    "delay": 5,
+                    "scrollDepth": 50
+                },
+                "frequency": "once_per_visitor",
+                "pageTargeting": {
+                    "type": "all_pages",
+                    "urls": [],
+                    "pages": [],
+                    "includeExclude": "include",
+                    "productPageType": "all_product_pages",
+                    "specificProducts": [],
+                    "collectionPageType": "all_collection_pages",
+                    "specificCollections": []
+                },
+                "userTargeting": {
+                    "type": "all_users",
+                    "customerSegment": []
+                },
+                "enabledCustomCss": false,
+                "customCss": ""
+            },
+            "posPage": {
+                "type": "posPage",
+                "enabled": false,
+                "showOnPostSale": true,
+                "showOnCustomerDetail": false,
+                "userTargeting": {
+                    "type": "all_users",
+                    "customerSegment": []
+                }
+            }
+        },
+        "channelTypes": [
+            "dedicatedPageSurvey",
+            "postPurchasePage"
+        ],
+        "questions": [
+            {
+                "type": "single",
+                "heading": "single choice question",
+                "description": "test single choice 1",
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f.jpg?v=1790053113",
+                    "alignment": "right",
+                    "sizePercentage": 50
+                },
+                "skippable": false,
+                "position": 0,
+                "answers": [
+                    {
+                        "content": "ans 1",
+                        "id": "answer_1790052921404_0_0"
+                    },
+                    {
+                        "content": "ans 2",
+                        "id": "answer_1790052921404_0_1"
+                    },
+                    {
+                        "content": "ans 3",
+                        "id": "answer_1790052921404_0_2"
+                    }
+                ],
+                "enabledCustomAnswer": true,
+                "showWhen": "when_customer_select_answers",
+                "showCustomAnswerWhen": [
+                    "answer_1790052921404_0_0"
+                ],
+                "customAnswerPlaceholder": "Please add more informationb",
+                "customAnswerRequired": true,
+                "shuffleAnswer": true,
+                "id": "question_1790052921404",
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "multiple",
+                "heading": "multiple choice qstn",
+                "description": "Multiple choice qstn desc",
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_77469847-051c-4e21-8ef1-37c8abfc7094.jpg?v=1790053431",
+                    "alignment": "center",
+                    "sizePercentage": 50
+                },
+                "skippable": false,
+                "position": 1,
+                "answers": [
+                    {
+                        "id": "answer_1790053288693",
+                        "content": "ans1"
+                    },
+                    {
+                        "id": "answer_1790053288694",
+                        "content": "ans2"
+                    }
+                ],
+                "enabledCustomAnswer": true,
+                "showWhen": "when_customer_select_answers",
+                "showCustomAnswerWhen": [
+                    "answer_1790053288693"
+                ],
+                "customAnswerPlaceholder": "Please add more information multi",
+                "customAnswerRequired": false,
+                "shuffleAnswer": false,
+                "id": "question_1790053288693",
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "number_scale",
+                "heading": "number scale qstn",
+                "description": "number scale qstn descr",
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_67209d8c-0490-4eb2-b382-9b6e13606046.jpg?v=1790053647",
+                    "alignment": "left",
+                    "sizePercentage": 51
+                },
+                "skippable": true,
+                "position": 2,
+                "leftLabel": "Not likely",
+                "rightLabel": "Very likely",
+                "id": "question_1790052921405",
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "star_rating",
+                "heading": "star rating qstn",
+                "description": "star rating qstn desc",
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_5afdfca9-3c5a-4cd9-b050-9930966b2d20.jpg?v=1790053751",
+                    "alignment": "center",
+                    "sizePercentage": "100"
+                },
+                "skippable": false,
+                "position": 3,
+                "leftLabel": "Hate it",
+                "rightLabel": "Love it",
+                "id": "question_1790053701391",
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "satisfaction",
+                "heading": "satisfaction qstn ",
+                "description": "satisfaction qstn  desc",
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_0ae2ae73-6044-4edc-80f6-b7e2582f4d8a.jpg?v=1790053827",
+                    "alignment": "left",
+                    "sizePercentage": "100"
+                },
+                "skippable": true,
+                "position": 4,
+                "leftLabel": "Not satisfied",
+                "rightLabel": "Very satisfied",
+                "id": "question_1790053777207",
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "short_answer",
+                "heading": "short answer qstn",
+                "description": "short answer qstn desc",
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_e1990bd3-a854-4789-8310-6d8140deea29.jpg?v=1790053897",
+                    "alignment": "right",
+                    "sizePercentage": "100"
+                },
+                "skippable": false,
+                "position": 5,
+                "placeholder": "Please add more information short answer",
+                "id": "question_1790053855896",
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "date",
+                "heading": "date qstn",
+                "description": "date qstn desc",
+                "skippable": false,
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_6bd8a4c7-b348-47a1-8992-343dbe602995.jpg?v=1790053993",
+                    "alignment": "left",
+                    "sizePercentage": 100
+                },
+                "dateFormat": "MM/d/YYYY",
+                "id": "question_1790053936877",
+                "position": 6,
+                "sectionId": null,
+                "minDate": "2026-08-31T18:30:00.000Z",
+                "maxDate": "2026-10-29T18:30:00.000Z",
+                "maxDateIsCurrentDay": false,
+                "positionInSection": null
+            },
+            {
+                "type": "consent_email",
+                "heading": "consent email qstn ",
+                "description": "By selecting \"I agree\", you have agreed to receive emails from our stores following to Privacy Policy of Shopify.",
+                "skippable": true,
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_52855a36-ea09-498a-bc37-98cb32adf450.jpg?v=1790054300",
+                    "alignment": "left",
+                    "sizePercentage": 100
+                },
+                "agreeDescriptionEmail": "I agree h",
+                "id": "question_1790054271003",
+                "position": 7,
+                "sectionId": null,
+                "showCustomerAlready": false,
+                "positionInSection": null
+            },
+            {
+                "type": "text_image",
+                "heading": "text & image qstn #9",
+                "description": "text & image qstn desc",
+                "skippable": true,
+                "image": {
+                    "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/4d3b8278-f34c-4aa1-b931-d3cd9d6d8d9f_5991918b-ca62-4c0f-b445-a0c49c037c15.jpg?v=1790054677",
+                    "alignment": "center",
+                    "sizePercentage": 100
+                },
+                "id": "question_1790054460509",
+                "position": 8,
+                "sectionId": null,
+                "positionInSection": null
+            },
+            {
+                "type": "single",
+                "heading": "single choice withot image question #10",
+                "description": "single choice withot image question desc",
+                "image": {
+                    "url": "",
+                    "alignment": "center",
+                    "sizePercentage": "100"
+                },
+                "skippable": true,
+                "position": 9,
+                "answers": [
+                    {
+                        "id": "answer_1790055238030",
+                        "content": ""
+                    },
+                    {
+                        "id": "answer_1790055238031",
+                        "content": ""
+                    },
+                    {
+                        "id": "answer_1790055238032",
+                        "content": ""
+                    }
+                ],
+                "enabledCustomAnswer": false,
+                "showWhen": "always_show",
+                "showCustomAnswerWhen": [],
+                "customAnswerPlaceholder": "Please add more information",
+                "customAnswerRequired": false,
+                "shuffleAnswer": true,
+                "id": "question_1790055238030",
+                "sectionId": null
+            }
+        ],
+        "discount": {
+            "enabled": false,
+            "code": "",
+            "displayOn": "email",
+            "limitOnePerEmail": false,
+            "card": {
+                "heading": "Earn your discount code",
+                "description": "Enter your preferred shopping email to receive the coupon.",
+                "placeholder": "Enter your email",
+                "buttonText": "Get coupon"
+            },
+            "email": {
+                "subject": "Thank you for taking the survey for {{shop.name}}. Here is your coupon reward.",
+                "fromName": "",
+                "fromEmail": "survey@seagroup.com",
+                "sendType": "default",
+                "body": "\n<h2 style=\"font-size: 20px; font-weight: bold; margin: 0 0 24px 0; color: #000;\">Congratulations! Here is your coupon reward</h2>\n<p>Hi {{customer.displayName}},</p>\n<br>\n<p>We truly appreciate you taking the time to complete our survey—your insights mean a lot to us.</p>\n<p>As a thank-you, enjoy a special reward to use on your next purchase.</p>\n<br>\n<p>Your coupon code is:</p>\n<br>\n<div style=\"padding: 16px;word-break: break-word; background-color: #f6f6f7; border-radius: 8px; text-align: center;\">\n  <span style=\"font-size: 20px; font-weight: bold; color: #202223; letter-spacing: 4px;\">{{discount.code}}</span>\n</div>\n<br>\n<p>Warm regards,</p>\n<p>{{shop.name}}.</p>"
+            },
+            "banner": {
+                "heading": "Earn DISCOUNT CODE",
+                "description": "Finish this survey and earn discount for your next purchase!",
+                "text": {
+                    "color": "#FFFFFF"
+                },
+                "background": {
+                    "type": "solid",
+                    "color": "#1C1C1C",
+                    "colorSolid": "#1C1C1C",
+                    "gradientStart": "#1C1C1C",
+                    "gradientEnd": "#637381",
+                    "gradientDirection": 70,
+                    "image": {
+                        "url": ""
+                    }
+                }
+            },
+            "template": "\n <div class=\"Avada-Email\">\n   <div class=\"Avada-Email__Content\">\n      {{email.content}}\n    </div>\n  </div>\n",
+            "discountType": "fixed",
+            "displayText": "Get 15% off!",
+            "mysteryDisplayText": "Unlock your mystery discount!",
+            "mystery": {
+                "codes": [
+                    {
+                        "label": "5%",
+                        "code": ""
+                    },
+                    {
+                        "label": "10%",
+                        "code": ""
+                    },
+                    {
+                        "label": "15%",
+                        "code": ""
+                    },
+                    {
+                        "label": "20%",
+                        "code": ""
+                    }
+                ],
+                "revealAnimation": "bounce"
+            }
+        },
+        "translation": {
+            "hi": {
+                "questions": [
+                    {
+                        "heading": "एकल विकल्प प्रश्न",
+                        "description": "एकल विकल्प परीक्षण 1",
+                        "customAnswerPlaceholder": "कृपया और जानकारी जोड़ें।",
+                        "answers": [
+                            {
+                                "content": "वर्ष 1",
+                                "id": "answer_1790052921404_0_0"
+                            },
+                            {
+                                "content": "2 साल",
+                                "id": "answer_1790052921404_0_1"
+                            },
+                            {
+                                "content": "3 वर्ष",
+                                "id": "answer_1790052921404_0_2"
+                            }
+                        ]
+                    },
+                    {
+                        "heading": "बहुविकल्पीय प्रश्न",
+                        "description": "बहुविकल्पीय प्रश्न विवरण",
+                        "customAnswerPlaceholder": "कृपया और अधिक जानकारी जोड़ें।",
+                        "answers": [
+                            {
+                                "id": "answer_1790053288693",
+                                "content": "वर्ष 1"
+                            },
+                            {
+                                "id": "answer_1790053288694",
+                                "content": "उत्तर 2"
+                            }
+                        ]
+                    },
+                    {
+                        "heading": "संख्या पैमाने प्रश्न",
+                        "description": "संख्या पैमाने प्रश्न विवरण",
+                        "leftLabel": "संभावना नहीं",
+                        "rightLabel": "बहुत संभावना है"
+                    },
+                    {
+                        "heading": "star rating qstn",
+                        "description": "स्टार रेटिंग प्रश्न विवरण",
+                        "leftLabel": "घृणा करता हूं",
+                        "rightLabel": "इसे प्यार करना"
+                    },
+                    {
+                        "heading": "संतुष्टि प्रश्न",
+                        "description": "संतुष्टि प्रश्न विवरण",
+                        "leftLabel": "संतुष्ट नहीं",
+                        "rightLabel": "बहुत संतुष्ट"
+                    },
+                    {
+                        "heading": "संक्षिप्त उत्तर प्रश्न",
+                        "description": "संक्षिप्त उत्तर प्रश्न विवरण",
+                        "placeholder": "कृपया संक्षिप्त उत्तर में और अधिक जानकारी जोड़ें।"
+                    },
+                    {
+                        "heading": "दिनांक प्रश्न",
+                        "description": "डेटा प्रश्न विवरण"
+                    },
+                    {
+                        "heading": "सहमति ईमेल प्रश्न",
+                        "description": "\"मैं सहमत हूँ\" का चयन करके, आप Shopify की गोपनीयता नीति के अनुसार हमारे स्टोर से ईमेल प्राप्त करने के लिए सहमत हो गए हैं।",
+                        "agreeDescriptionEmail": "मैं सहमत हूँ"
+                    },
+                    {
+                        "heading": "पाठ और छवि प्रश्न #9",
+                        "description": "पाठ और छवि प्रश्न विवरण"
+                    },
+                    {
+                        "heading": "चित्र रहित एकल विकल्प प्रश्न #10",
+                        "description": "बिना चित्र वाले एकल विकल्प प्रश्न का विवरण",
+                        "customAnswerPlaceholder": "कृपया और जानकारी जोड़ें",
+                        "answers": [
+                            {
+                                "id": "answer_1790055238030"
+                            },
+                            {
+                                "id": "answer_1790055238031"
+                            },
+                            {
+                                "id": "answer_1790055238032"
+                            }
+                        ]
+                    }
+                ],
+                "thankYou": {
+                    "heading": "हमारे सर्वेक्षण में भाग लेने के लिए धन्यवाद।",
+                    "description": "यदि आपके कोई प्रश्न हों, तो कृपया बेझिझक हमसे पूछें।",
+                    "buttonText": "और ढूंढें",
+                    "closingText": "{seconds}s में समापन",
+                    "unlockedText": "आपने अनलॉक कर दिया",
+                    "copyText": "प्रतिलिपि",
+                    "copiedText": "कॉपी हो गया!",
+                    "discountCodeLabel": "आपका डिस्काउंट कोड"
+                },
+                "discount": {},
+                "announcementBar": {
+                    "modalTitle": "सर्वे",
+                    "content": "हमें आपकी प्रतिक्रिया सुनकर खुशी होगी!",
+                    "buttonText": "त्वरित सर्वेक्षण करें"
+                },
+                "popupForm": {
+                    "heading": "हम आपकी प्रतिक्रिया को महत्व देते हैं!",
+                    "subheading": "एक छोटे से सवाल का जवाब दें और एक विशेष ऑफर पाएं।",
+                    "submitButtonText": "जमा करें और छूट प्राप्त करें",
+                    "emailFieldLabel": "मेल पता",
+                    "discountDisplayText": "15% की छूट पाएं!",
+                    "mysteryDisplayText": "अपने रहस्यमय डिस्काउंट को अनलॉक करें!"
+                }
+            }
+        },
+        "updatedAt": "2026-09-22T05:34:46.852Z",
+        "id": "4MG44hDVohOOnFq9r4w1"
+    },
+    "activeAbTest": null,
+    "pageInfo": {
+        "emailQueue": 0
+    },
+    "totalPerChannel": {
+        "totalSurveys": 2,
+        "totalHyperLinkSurveys": 0,
+        "totalDedicatedPageSurveys": 2,
+        "totalWidgetSurveys": 0,
+        "totalPostPurchasePageSurveys": 2,
+        "totalExitIntentSurveys": 0,
+        "totalPostPurchaseEmailSurveys": 0,
+        "totalEmbedSurveys": 0
+    }
+}
