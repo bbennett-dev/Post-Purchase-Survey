@@ -1,0 +1,41 @@
+.preview {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  min-inline-size: 220px;
+  max-inline-size: 280px;
+  opacity: 0.92;
+  transform: rotate(1.5deg);
+  filter: drop-shadow(0 8px 16px rgb(0 0 0 / 18%));
+}
+
+.row {
+  min-block-size: 1px;
+}
+
+.rowSelected {
+  background: var(--p-color-bg-fill-brand, #005bd3);
+  border-radius: var(--p-border-radius-200, 8px);
+}
+
+.rowSelected :global(s-box) {
+  background: transparent;
+  background-color: transparent;
+}
+
+.selectedTone {
+  color: #fff;
+  filter: brightness(0) invert(1);
+}
+
+.dropLine {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--p-color-bg-fill-brand, #005bd3);
+}
+
+:global(body.survey-question-dragging),
+:global(body.survey-question-dragging *) {
+  cursor: grabbing !important;
+  user-select: none;
+}

@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
+import { SurveyEditorChrome } from "../components/survey-editor/SurveyEditorChrome";
 import { closeSurveyEditor } from "../lib/open-survey-editor";
+import { createSampleSurvey } from "../lib/survey/questions";
+import type { SurveyDocument } from "../lib/survey/types";
 import { authenticate } from "../shopify.server";
 
 type EditorMode = "create" | "template" | "edit";
@@ -86,16 +90,19 @@ function openDiscardModal(): void {
 }
 
 /**
- * Fullscreen survey editor shell.
- * Left outline, center Thank You preview, and right settings are placeholders
- * until those sections are built. Save does not persist yet.
+ * Survey editor.
+ * The document matches the get-survey response. Content can be edited in
+ * memory. Save does not call the backend yet.
  */
 export default function SurveyEditorPage() {
   const data = useLoaderData<typeof loader>();
   const shopify = useAppBridge();
+  const [survey, setSurvey] = useState<SurveyDocument>(() =>
+    createSampleSurvey(),
+  );
 
   return (
-    <s-page heading={data.heading} inlineSize="large">
+    <s-page heading={survey.name} inlineSize="large">
       <s-button slot="secondary-actions" onClick={openDiscardModal}>
         Discard
       </s-button>
@@ -110,31 +117,7 @@ export default function SurveyEditorPage() {
         Save
       </s-button>
 
-      <s-query-container>
-        <s-grid
-          gridTemplateColumns="@container (inline-size <= 900px) 1fr, 220px minmax(0, 1fr) 260px"
-          gap="base"
-        >
-          <s-section heading="Content" accessibilityLabel="Survey outline">
-            <s-paragraph color="subdued">
-              Questions and endings will be listed here.
-            </s-paragraph>
-          </s-section>
-          <s-section
-            heading="Preview"
-            accessibilityLabel="Thank you page preview"
-          >
-            <s-paragraph color="subdued">
-              The Thank You page preview will appear here.
-            </s-paragraph>
-          </s-section>
-          <s-section heading="Question" accessibilityLabel="Question settings">
-            <s-paragraph color="subdued">
-              Settings for the selected question will appear here.
-            </s-paragraph>
-          </s-section>
-        </s-grid>
-      </s-query-container>
+      <SurveyEditorChrome survey={survey} onSurveyChange={setSurvey} />
 
       <s-modal
         id={DISCARD_MODAL_ID}
