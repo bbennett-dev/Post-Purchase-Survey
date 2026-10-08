@@ -1,5 +1,6 @@
 import type { QuestionType, SurveyDocument } from "../../../../lib/survey/types";
 import styles from "../../question-drag.module.css";
+import { SectionLabel } from "../SectionLabel";
 import { EndingsList } from "./EndingsList";
 import { QuestionList } from "./QuestionList";
 
@@ -41,9 +42,7 @@ export function ContentPanel({
 }: ContentPanelProps) {
   return (
     <s-stack gap="small-200">
-      <s-text type="strong" color="subdued">
-        Content
-      </s-text>
+      <SectionLabel>Content</SectionLabel>
       <QuestionList
         questions={survey.questions}
         selectedQuestionId={selectedQuestionId}
@@ -66,9 +65,9 @@ export function ContentPanel({
 
       <s-divider direction="inline" color="base" />
 
-      <s-text type="strong" color="subdued">
-        Endings
-      </s-text>
+      <s-box paddingBlockStart="small-200" paddingBlockEnd="small-200">
+        <SectionLabel>Endings</SectionLabel>
+      </s-box>
       <EndingsList
         cards={survey.thankYouCards}
         selectedEndingId={selectedEndingId}

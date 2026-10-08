@@ -1,0 +1,15 @@
+/*
+ * Eyebrow label. App Home s-text / s-heading have no text-transform,
+ * and their shadow root ignores a class on the host, so the label is a
+ * span styled with Polaris tokens (same approach as the best-practice tip).
+ */
+.sectionLabel {
+  display: block;
+  margin: 0;
+  font-size: var(--p-font-size-275, 0.75rem);
+  font-weight: var(--p-font-weight-medium, 550);
+  letter-spacing: 0.06em;
+  line-height: var(--p-font-line-height-300, 1.25);
+  text-transform: uppercase;
+  color: var(--p-color-text-secondary, #616161);
+}
