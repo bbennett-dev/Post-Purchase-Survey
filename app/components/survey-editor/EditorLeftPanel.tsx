@@ -540,9 +540,18 @@ function ContentList({
         onReorderQuestion={onReorderQuestion}
         onAddQuestion={onAddQuestion}
       />
-      <s-paragraph color="subdued">
-        Best practice: keep this survey to a few questions.
-      </s-paragraph>
+      <s-grid
+        gridTemplateColumns="auto minmax(0, 1fr)"
+        gap="small-100"
+        alignItems="center"
+      >
+        <s-icon type="lightbulb" color="subdued" size="small" />
+        <span className={styles.tip}>
+          Best practice: keep this survey to a few questions.
+        </span>
+      </s-grid>
+
+      <s-divider direction="inline" color="base" />
 
       <s-text type="strong" color="subdued">
         Endings

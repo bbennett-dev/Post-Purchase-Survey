@@ -126,9 +126,11 @@ export function EndingRow({
               <s-icon type="cursor" />
             </SelectedTone>
           </s-box>
-          <SelectedTone selected={selected}>
-            <s-text>{label}</s-text>
-          </SelectedTone>
+          <span className={styles.title}>
+            <SelectedTone selected={selected}>
+              <s-text>{label}</s-text>
+            </SelectedTone>
+          </span>
           {isMain ? (
             <SelectedTone selected={selected}>
               <s-badge>Main</s-badge>
