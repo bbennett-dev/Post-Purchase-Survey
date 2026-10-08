@@ -10,17 +10,17 @@ import {
   endingTitle,
   QUESTION_TYPES,
 } from "../../lib/survey/questions";
-import type { SurveyQuestion } from "../../lib/survey/types";
 import type {
   EditorPanel,
   QuestionType,
   SurveyDocument,
+  SurveyQuestion,
 } from "../../lib/survey/types";
 import { EndingRow } from "./EndingRow";
 import { fieldValue } from "./field-value";
+import styles from "./question-drag.module.css";
 import { QuestionDragPreview } from "./QuestionDragPreview";
 import { QuestionRow } from "./QuestionRow";
-import styles from "./question-drag.module.css";
 
 interface EditorLeftPanelProps {
   survey: SurveyDocument;
@@ -79,46 +79,18 @@ export function EditorLeftPanel({
       minBlockSize="720px"
     >
       <s-stack gap="base">
-        {renaming ? (
-          <s-text-field
-            label="Survey name"
-            labelAccessibilityVisibility="exclusive"
-            value={survey.name}
-            onInput={(event) => onRename(fieldValue(event))}
-            onBlur={() => onRenaming(false)}
-          />
-        ) : (
-          <s-stack direction="inline" gap="small-200" alignItems="center">
-            <s-heading>{survey.name}</s-heading>
-            <s-button
-              icon="edit"
-              variant="tertiary"
-              accessibilityLabel="Rename survey"
-              onClick={() => onRenaming(true)}
-            />
-          </s-stack>
-        )}
+        <SurveyNameEditor
+          name={survey.name}
+          renaming={renaming}
+          onRenaming={onRenaming}
+          onRename={onRename}
+        />
 
-        <s-grid gridTemplateColumns="1fr 1fr 1fr" gap="small-200">
-          <s-button
-            variant={panel === "content" ? "primary" : "secondary"}
-            onClick={() => onPanel("content")}
-          >
-            Content
-          </s-button>
-          <s-button
-            variant={panel === "channel" ? "primary" : "secondary"}
-            onClick={() => onPanel("channel")}
-          >
-            Channel
-          </s-button>
-          <s-button
-            variant={panel === "discount" ? "primary" : "secondary"}
-            onClick={() => onPanel("discount")}
-          >
-            Discount
-          </s-button>
-        </s-grid>
+        <s-divider direction="inline" color="base" />
+
+        <PanelTabs panel={panel} onPanel={onPanel} />
+
+        <s-divider direction="inline" color="base" />
 
         {panel === "content" ? (
           <ContentList
@@ -145,6 +117,99 @@ export function EditorLeftPanel({
   );
 }
 
+/**
+ * Survey title with inline rename.
+ * Polaris has no autofocus prop for App Home fields; after a user click,
+ * call focus() on the s-text-field host (Shopify’s recommended approach).
+ */
+function SurveyNameEditor({
+  name,
+  renaming,
+  onRenaming,
+  onRename,
+}: {
+  name: string;
+  renaming: boolean;
+  onRenaming: (renaming: boolean) => void;
+  onRename: (name: string) => void;
+}) {
+  const focusField = useCallback((field: HTMLElement | null) => {
+    field?.focus();
+  }, []);
+
+  if (renaming) {
+    return (
+      <s-text-field
+        label="Survey name"
+        labelAccessibilityVisibility="exclusive"
+        value={name}
+        onInput={(event) => onRename(fieldValue(event))}
+        onBlur={() => onRenaming(false)}
+        ref={focusField}
+      />
+    );
+  }
+
+  return (
+    <s-stack direction="inline" gap="small-200" alignItems="center">
+      <s-heading>{name}</s-heading>
+      <s-button
+        icon="edit"
+        variant="tertiary"
+        accessibilityLabel="Rename survey"
+        onClick={() => onRenaming(true)}
+      />
+    </s-stack>
+  );
+}
+
+const PANEL_TABS: { id: EditorPanel; label: string }[] = [
+  { id: "content", label: "Content" },
+  { id: "channel", label: "Channel" },
+  { id: "discount", label: "Discount" },
+];
+
+/**
+ * Content / Channel / Discount switcher.
+ * App Home has no s-tabs. Official pattern: segmented s-button-group
+ * (gap="none"). Active state uses s-press-button pressed for the native
+ * pressed look; check icon reinforces the selected panel.
+ * @see https://shopify.dev/docs/apps/build/app-home/migrate-from-polaris-react/tabs
+ * @see https://shopify.dev/docs/api/app-home/v1.0/web-components/actions/button-group
+ */
+function PanelTabs({
+  panel,
+  onPanel,
+}: {
+  panel: EditorPanel;
+  onPanel: (panel: EditorPanel) => void;
+}) {
+  return (
+    // <s-box paddingBlockEnd="">
+    <s-stack alignItems="stretch">
+      <s-button-group gap="none" accessibilityLabel="Survey sections">
+        {PANEL_TABS.map((tab) => {
+          const active = panel === tab.id;
+          return (
+            <s-press-button
+              key={tab.id}
+              slot="secondary-actions"
+              variant="secondary"
+              pressed={active}
+              icon={active ? "check" : ""}
+              inlineSize="fill"
+              onClick={() => onPanel(tab.id)}
+            >
+              {tab.label}
+            </s-press-button>
+          );
+        })}
+      </s-button-group>
+    </s-stack>
+    // </s-box>
+  );
+}
+
 const DRAG_THRESHOLD = 5;
 
 interface DragSession {
@@ -158,7 +223,11 @@ function questionOrder(questions: SurveyQuestion[]): string[] {
   return questions.map((question) => question.id);
 }
 
-function orderWithInsert(order: string[], dragId: string, insertAt: number): string[] {
+function orderWithInsert(
+  order: string[],
+  dragId: string,
+  insertAt: number,
+): string[] {
   const others = order.filter((id) => id !== dragId);
   const index = Math.max(0, Math.min(insertAt, others.length));
   return [...others.slice(0, index), dragId, ...others.slice(index)];
@@ -456,10 +525,7 @@ function QuestionList({
           );
 
           if (dropBeforeId === question.id) {
-            return [
-              <QuestionDropLine key={`drop-${question.id}`} />,
-              row,
-            ];
+            return [<QuestionDropLine key={`drop-${question.id}`} />, row];
           }
 
           return [row];
@@ -605,7 +671,9 @@ function ChannelSummary({ survey }: { survey: SurveyDocument }) {
           alignItems="center"
         >
           <s-text>{CHANNEL_LABELS[name] ?? name}</s-text>
-          <s-badge tone={survey.channels[name]?.enabled ? "success" : "warning"}>
+          <s-badge
+            tone={survey.channels[name]?.enabled ? "success" : "warning"}
+          >
             {survey.channels[name]?.enabled ? "On" : "Off"}
           </s-badge>
         </s-stack>
