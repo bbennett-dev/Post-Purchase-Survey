@@ -158,7 +158,11 @@ export function SurveyEditorChrome({
                 });
               }}
               onDeleteEnding={(id) => {
-                if (survey.thankYouCards.length < 2) {
+                const target = survey.thankYouCards.find(
+                  (card) => card.id === id,
+                );
+                // Main ending cannot be deleted; keep exactly one Main.
+                if (!target || target.isDefault || survey.thankYouCards.length < 2) {
                   return;
                 }
                 const cards = survey.thankYouCards.filter(

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   CHANNEL_LABELS,
   endingTitle,
@@ -10,7 +16,7 @@ import type {
   QuestionType,
   SurveyDocument,
 } from "../../lib/survey/types";
-import { truncateText } from "../../lib/truncate";
+import { EndingRow } from "./EndingRow";
 import { fieldValue } from "./field-value";
 import { QuestionDragPreview } from "./QuestionDragPreview";
 import { QuestionRow } from "./QuestionRow";
@@ -201,20 +207,27 @@ function QuestionDropLine() {
 }
 
 /**
- * Last row in the question list. Same icon + label layout as a
- * question, using clickable + info tone so it stays blue text, not a button.
+ * Last row in a content list. Same icon + label layout as a question,
+ * using clickable + info tone so it stays blue text, not a button.
  */
-function AddContentRow({
-  onAddQuestion,
+function AddListRow({
+  label,
+  commandFor,
+  onClick,
+  menu,
 }: {
-  onAddQuestion: (type: QuestionType) => void;
+  label: string;
+  commandFor?: string;
+  onClick?: () => void;
+  menu?: ReactNode;
 }) {
   return (
     <>
       <s-clickable
         padding="none small-300 none none"
         borderRadius="base"
-        commandFor="add-question-menu"
+        commandFor={commandFor}
+        onClick={onClick}
       >
         <s-grid
           gridTemplateColumns="auto minmax(0, 1fr)"
@@ -224,20 +237,10 @@ function AddContentRow({
           <s-box padding="small-200">
             <s-icon type="plus" tone="info" />
           </s-box>
-          <s-text tone="info">Add content</s-text>
+          <s-text tone="info">{label}</s-text>
         </s-grid>
       </s-clickable>
-      <s-menu id="add-question-menu" accessibilityLabel="Add a question">
-        {QUESTION_TYPES.map((item) => (
-          <s-button
-            key={item.type}
-            icon={item.icon}
-            onClick={() => onAddQuestion(item.type)}
-          >
-            {item.label}
-          </s-button>
-        ))}
-      </s-menu>
+      {menu}
     </>
   );
 }
@@ -400,7 +403,23 @@ function QuestionList({
     return (
       <s-stack gap="small-200">
         <s-paragraph color="subdued">No questions yet.</s-paragraph>
-        <AddContentRow onAddQuestion={onAddQuestion} />
+        <AddListRow
+          label="Add content"
+          commandFor="add-question-menu"
+          menu={
+            <s-menu id="add-question-menu" accessibilityLabel="Add a question">
+              {QUESTION_TYPES.map((item) => (
+                <s-button
+                  key={item.type}
+                  icon={item.icon}
+                  onClick={() => onAddQuestion(item.type)}
+                >
+                  {item.label}
+                </s-button>
+              ))}
+            </s-menu>
+          }
+        />
       </s-stack>
     );
   }
@@ -446,7 +465,23 @@ function QuestionList({
           return [row];
         })}
         {drag && dropBeforeId === null ? <QuestionDropLine /> : null}
-        <AddContentRow onAddQuestion={onAddQuestion} />
+        <AddListRow
+          label="Add content"
+          commandFor="add-question-menu"
+          menu={
+            <s-menu id="add-question-menu" accessibilityLabel="Add a question">
+              {QUESTION_TYPES.map((item) => (
+                <s-button
+                  key={item.type}
+                  icon={item.icon}
+                  onClick={() => onAddQuestion(item.type)}
+                >
+                  {item.label}
+                </s-button>
+              ))}
+            </s-menu>
+          }
+        />
       </s-stack>
       {drag && draggingQuestion ? (
         <QuestionDragPreview
@@ -512,50 +547,24 @@ function ContentList({
       <s-text type="strong" color="subdued">
         Endings
       </s-text>
-      {survey.thankYouCards.map((card, index) => {
-        const id = card.id ?? `ending-${index}`;
-        const menuId = `ending-menu-${id}`;
-        const name = endingTitle(card, index);
-        return (
-          <s-grid
-            key={id}
-            gridTemplateColumns="minmax(0, 1fr) auto auto"
-            gap="small-200"
-            alignItems="center"
-          >
-            <s-button
-              variant={id === selectedEndingId ? "primary" : "tertiary"}
-              icon="check-circle"
-              onClick={() => onSelectEnding(id)}
-            >
-              {truncateText(name)}
-            </s-button>
-            {card.isDefault ? <s-badge tone="info">Main</s-badge> : null}
-            <s-button
-              icon="menu-horizontal"
-              variant="tertiary"
-              accessibilityLabel={`Actions for ${name}`}
-              commandFor={menuId}
+      <s-stack gap="small-200">
+        {survey.thankYouCards.map((card, index) => {
+          const id = card.id ?? `ending-${index}`;
+          return (
+            <EndingRow
+              key={id}
+              card={card}
+              index={index}
+              selected={id === selectedEndingId}
+              title={endingTitle(card, index)}
+              onSelect={onSelectEnding}
+              onSetMain={onSetMain}
+              onDelete={onDeleteEnding}
             />
-            <s-menu id={menuId} accessibilityLabel="Ending actions">
-              <s-button icon="star" onClick={() => onSetMain(id)}>
-                Set as main
-              </s-button>
-              <s-button
-                icon="delete"
-                tone="critical"
-                disabled={survey.thankYouCards.length < 2}
-                onClick={() => onDeleteEnding(id)}
-              >
-                Delete ending
-              </s-button>
-            </s-menu>
-          </s-grid>
-        );
-      })}
-      <s-button icon="plus" variant="tertiary" onClick={onAddEnding}>
-        Add ending
-      </s-button>
+          );
+        })}
+        <AddListRow label="Add ending" onClick={onAddEnding} />
+      </s-stack>
 
       {showTranslationTip ? (
         <s-banner
