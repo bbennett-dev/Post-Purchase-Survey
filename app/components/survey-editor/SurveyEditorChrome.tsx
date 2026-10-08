@@ -14,7 +14,7 @@ import type {
   SurveyQuestion,
 } from "../../lib/survey/types";
 import { EditorInspector } from "./EditorInspector";
-import { EditorLeftPanel } from "./EditorLeftPanel";
+import { EditorLeftPanel } from "./LeftPanel";
 import { EditorPreview } from "./EditorPreview";
 import { EditorToolbar } from "./EditorToolbar";
 
