@@ -1,28 +1,37 @@
 ---
-description: Built for Shopify standards, App Store compliance, and Polaris layout rules
+description: Built for Shopify standards, App Store compliance, and Polaris React layout rules
 globs: app/routes/**, app/components/**
 alwaysApply: false
 ---
 # Built for Shopify & App Store Review Standards
 
-## 1. Polaris UI & Design Standards
-- **Zero Raw HTML**: Never render raw HTML tags (`<div>`, `<p>`, `<span>`, `<h1>`, `<button>`) in the admin interface. Exclusively use `@shopify/polaris` primitives:
-  - Page wrapper: `<Page title="..." backAction={...} primaryAction={...}>`
-  - Columns: `<Layout><Layout.Section>...</Layout.Section></Layout>`
-  - Layout & Stacks: `<BlockStack gap="400">`, `<InlineStack align="space-between">`
-  - Content & Actions: `<Card>`, `<Text>`, `<Button>`, `<TextField>`, `<Banner>`, `<Badge>`
-- **Loading & Empty States (Required for App Store Review)**:
-  - Every table or list MUST implement an `<EmptyState>` when no data exists (e.g., before the merchant receives their first survey response).
-  - Every mutation must reflect loading feedback via `<Button loading={...}>` or Polaris `<Spinner>`.
-- **Skeleton Page Wrappers**:
-  - When loading data asynchronously, wrap loading views in `<SkeletonPage>` and `<SkeletonBodyText>` to prevent layout shift.
+## 1. Polaris UI & Design Standards (React first)
 
-## Page shell
-Follow the App Home page migration. Put the route title on `s-page` `heading`, the parent link on `slot="breadcrumb-actions"`, and the one page-level action on `slot="primary-action"` with `variant="primary"`. Put the subtitle in the page body as a paragraph. Do not put badges on the page shell; `s-page` has no accessory slot.
+This embedded admin app uses **`@shopify/polaris` React** as the default UI. Reference [Polaris React Storybook](https://storybook.polaris.shopify.dev/).
+
+- Page wrapper: `<Page title="..." backAction={...} primaryAction={...}>`
+- Columns: `<Layout><Layout.Section>...</Layout.Section></Layout>`
+- Layout & stacks: `<BlockStack gap="400">`, `<InlineStack align="space-between" blockAlign="center">`
+- Content & actions: `<Card>`, `<Text>`, `<Button>`, `<TextField>`, `<Banner>`, `<Badge>`
+- Prefer Polaris primitives over raw HTML. Raw HTML/`div`/`button` is allowed only for editor chrome, drag handles, or when Polaris has no equivalent (`RangeSlider` for 0–100% size).
+- **Do not** build new merchant screens entirely with Polaris Web Components (`s-page`, `s-stack`, `s-text-field`).
+
+### Loading & empty states (required for App Store review)
+
+- Every table or list MUST implement an `<EmptyState>` when no data exists.
+- Every mutation must reflect loading feedback via `<Button loading={...}>` or Polaris `<Spinner>`.
+- When loading data asynchronously, wrap views in `<SkeletonPage>` and `<SkeletonBodyText>`.
+
+### Page shell
+
+Use React Polaris `Page`: `title`, `backAction`, `primaryAction`, `secondaryActions`. Put the subtitle in the page body as `Text`.
 
 ## 2. App Bridge v4 Standards
-- Top-level merchant alerts and feedback must use `@shopify/app-bridge-react`:
-  ```typescript
-  import { useAppBridge } from "@shopify/app-bridge-react";
-  const shopify = useAppBridge();
-  shopify.toast.show("Changes saved successfully");
+
+Top-level merchant alerts and feedback must use `@shopify/app-bridge-react`:
+
+```typescript
+import { useAppBridge } from "@shopify/app-bridge-react";
+const shopify = useAppBridge();
+shopify.toast.show("Changes saved successfully");
+```

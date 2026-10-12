@@ -1,0 +1,31 @@
+---
+description: Hybrid admin UI — React Polaris default, Web Components only as documented exceptions
+globs: app/**
+alwaysApply: true
+---
+# Admin UI hybrid policy
+
+## Default (required)
+
+New and changed merchant admin UI in `app/` uses **`@shopify/polaris` React**:
+
+- `Page`, `Layout`, `Card`, `BlockStack`, `InlineStack`, `InlineGrid`, `Box`
+- `Text`, `Button`, `ButtonGroup`, `TextField`, `Select`, `Checkbox`, `ChoiceList`
+- `Modal`, `Popover`, `ActionList`, `Banner`, `Badge`, `IndexTable`, `EmptyState`
+- App Bridge React: `NavMenu`, `TitleBar`, `Modal` (`variant="max"` for the survey editor), `useAppBridge()` toasts
+
+Source of truth: [Polaris React Storybook](https://storybook.polaris.shopify.dev/) and [npm `@shopify/polaris`](https://www.npmjs.com/package/@shopify/polaris).
+
+## Allowed Web Components (opt-in only)
+
+Keep `@shopify/polaris-types` and App Home / App Bridge web components installed. Use `s-*` **only** when React Polaris or App Bridge React has no equivalent (platform shell APIs). Document each leftover with:
+
+```tsx
+// App Home WC: reason
+```
+
+Do **not** mix WC and React Polaris in the same form or card. Editor dense layouts use React Polaris + CSS modules (`editor-chrome.module.css`), not WC + custom CSS overrides.
+
+## Out of scope
+
+Checkout UI extensions (`extensions/thank-you-survey/`) stay on `@shopify/ui-extensions`. Never import `@shopify/polaris` there.
