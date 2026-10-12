@@ -1,34 +1,62 @@
+import type { CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { truncateText } from "../../lib/truncate";
-import styles from "./question-drag.module.css";
+import { Box } from "@shopify/polaris";
+import type { QuestionType } from "../../lib/survey/types";
+import { QuestionRowInner } from "./QuestionRowInner";
 
 interface QuestionDragPreviewProps {
   title: string;
-  x: number;
+  questionType: QuestionType;
+  selected: boolean;
+  /** Left edge of the source row — keeps ghost aligned with the list column. */
+  anchorLeft: number;
   y: number;
+  width: number;
 }
 
-/**
- * Ghost of the question that follows the pointer during reorder.
- * Offset from the cursor so the list under the pointer can still rearrange.
- */
-export function QuestionDragPreview({ title, x, y }: QuestionDragPreviewProps) {
+/** Ghost row: same inner layout as {@link QuestionRow}, Y follows pointer, X locked to list. */
+const floatingPosition = (
+  anchorLeft: number,
+  y: number,
+  width: number,
+): CSSProperties => ({
+  position: "fixed",
+  left: anchorLeft,
+  top: y,
+  width,
+  transform: "translateY(-50%)",
+  pointerEvents: "none",
+  zIndex: 1000,
+  boxSizing: "border-box",
+});
+
+export function QuestionDragPreview({
+  title,
+  questionType,
+  selected,
+  anchorLeft,
+  y,
+  width,
+}: QuestionDragPreviewProps) {
   return createPortal(
-    <div
-      className={styles.preview}
-      style={{ left: `${x + 16}px`, top: `${y + 8}px` }}
-    >
-      <s-box
-        padding="small-200"
-        background="base"
-        border="base"
-        borderRadius="base"
+    <div style={floatingPosition(anchorLeft, y, width)}>
+      <Box
+        paddingInline="200"
+        paddingBlock="150"
+        background="bg-fill-brand"
+        color="text-brand-on-bg-fill"
+        borderRadius="200"
+        shadow="400"
       >
-        <s-stack direction="inline" gap="small-200" alignItems="center">
-          <s-icon type="drag-handle" />
-          <s-text>{truncateText(title)}</s-text>
-        </s-stack>
-      </s-box>
+        <QuestionRowInner
+          title={title}
+          showHandle
+          questionType={questionType}
+          selected={selected}
+          interactive
+          dragging
+        />
+      </Box>
     </div>,
     document.body,
   );

@@ -1,16 +1,23 @@
-import type { ReactNode } from "react";
-import styles from "./editor-scroll-panel.module.css";
+import type { CSSProperties, ReactNode } from "react";
+import { Box } from "@shopify/polaris";
 
 interface EditorScrollRegionProps {
   accessibilityLabel: string;
   children: ReactNode;
-  /** When true, omit top padding (content sits under a pinned header). */
   compactTop?: boolean;
 }
 
+const regionScroll: CSSProperties = {
+  flex: "1 1 auto",
+  minHeight: 0,
+  height: "100%",
+  overflowY: "auto",
+  overflowX: "hidden",
+  WebkitOverflowScrolling: "touch",
+};
+
 /**
- * Bounded scroll area for App Home. Padding lives on an inner wrapper so the
- * scrollbar sits on the panel edge with a transparent track (thumb only).
+ * Scrollable region inside a flex column parent (e.g. advanced-logic placeholder).
  */
 export function EditorScrollRegion({
   accessibilityLabel,
@@ -18,19 +25,13 @@ export function EditorScrollRegion({
   compactTop = false,
 }: EditorScrollRegionProps) {
   return (
-    <div
-      className={styles.scrollRegion}
-      role="region"
-      aria-label={accessibilityLabel}
-      tabIndex={0}
-    >
-      <div
-        className={
-          compactTop ? styles.scrollRegionInnerCompactTop : styles.scrollRegionInner
-        }
+    <div role="region" aria-label={accessibilityLabel} style={regionScroll}>
+      <Box
+        padding="400"
+        paddingBlockStart={compactTop ? "0" : "400"}
       >
         {children}
-      </div>
+      </Box>
     </div>
   );
 }

@@ -1,0 +1,47 @@
+/**
+ * Compact ⋯ control aligned to bodySm row height; hover pill matches competitor.
+ */
+.menuButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: var(--p-border-radius-150);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/**
+ * Neutral (grey hover row): darker pill than `bg-surface-secondary` — surface-hover
+ * was nearly identical and looked like no hover.
+ */
+.menuButton:not(.menuButtonSelected):hover,
+.menuButton:not(.menuButtonSelected)[aria-expanded="true"] {
+  background: color-mix(
+    in srgb,
+    var(--p-color-text) 11%,
+    var(--p-color-bg-surface-secondary)
+  );
+}
+
+.menuButtonSelected:hover,
+.menuButtonSelected[aria-expanded="true"] {
+  background: color-mix(
+    in srgb,
+    var(--p-color-text-brand-on-bg-fill) 18%,
+    transparent
+  );
+}
+
+.menuButton:focus-visible {
+  outline: var(--p-border-width-050) solid var(--p-color-border-focus);
+  outline-offset: var(--p-space-050);
+}

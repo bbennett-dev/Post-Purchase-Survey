@@ -1,89 +1,158 @@
+import { useState } from "react";
+import {
+  ActionList,
+  Box,
+  Button,
+  ButtonGroup,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Popover,
+  Select,
+} from "@shopify/polaris";
+import {
+  ConnectIcon,
+  DesktopIcon,
+  EditIcon,
+  ExternalIcon,
+  MaximizeIcon,
+  MobileIcon,
+  StoreIcon,
+} from "@shopify/polaris-icons";
+import type { CheckoutEditorLinks } from "../../lib/shopify/checkout-editor-url.server";
+import { openShopifyAdminUrl } from "../../lib/open-checkout-editor";
 import type { EditorWorkspace, PreviewDevice } from "../../lib/survey/types";
 
 interface EditorToolbarProps {
   workspace: EditorWorkspace;
   device: PreviewDevice;
   isActive: boolean;
+  checkoutEditor: CheckoutEditorLinks;
   onWorkspace: (workspace: EditorWorkspace) => void;
   onDevice: (device: PreviewDevice) => void;
   onActive: (isActive: boolean) => void;
 }
 
 /**
- * Editor top bar: build or logic, preview surface and device, then status.
+ * Editor control row: workspace tabs, preview surface + device, preview link, status.
  */
 export function EditorToolbar({
   workspace,
   device,
   isActive,
+  checkoutEditor,
   onWorkspace,
   onDevice,
   onActive,
 }: EditorToolbarProps) {
+  const [statusOpen, setStatusOpen] = useState(false);
+
+  const statusLabel = isActive ? "Active" : "Inactive";
+
   return (
-    <s-box padding="small" background="base" border="base" borderRadius="base">
-      <s-grid gridTemplateColumns="1fr auto 1fr" gap="base" alignItems="center">
-        <s-button-group gap="none">
-          <s-button
-            variant={workspace === "build" ? "primary" : "secondary"}
-            icon="edit"
+    <Box
+      padding="300"
+      paddingBlock="200"
+      background="bg-surface"
+      borderBlockEndWidth="025"
+      borderColor="border"
+    >
+      <InlineGrid columns="auto 1fr auto" gap="400" alignItems="center">
+        <ButtonGroup variant="segmented">
+          <Button
+            icon={EditIcon}
+            pressed={workspace === "build"}
             onClick={() => onWorkspace("build")}
           >
             Build survey
-          </s-button>
-          <s-button
-            variant={workspace === "logic" ? "primary" : "secondary"}
-            icon="automation"
+          </Button>
+          <Button
+            icon={ConnectIcon}
+            pressed={workspace === "logic"}
             onClick={() => onWorkspace("logic")}
           >
             Advanced logic
-          </s-button>
-        </s-button-group>
-        <s-stack direction="inline" gap="small-200" alignItems="center">
-          <s-button
-            icon="cart"
-            variant="tertiary"
-            commandFor="preview-surface-menu"
+          </Button>
+        </ButtonGroup>
+
+        <InlineStack gap="300" blockAlign="center" align="center">
+          <InlineStack gap="200" blockAlign="center">
+            <Icon source={StoreIcon} tone="subdued" />
+            <Box minWidth="160px">
+              <Select
+                label="Survey surface"
+                labelHidden
+                options={[{ label: "On-site survey", value: "onsite" }]}
+                value="onsite"
+                onChange={() => {}}
+              />
+            </Box>
+          </InlineStack>
+          <ButtonGroup variant="segmented">
+            <Button
+              icon={DesktopIcon}
+              pressed={device === "desktop"}
+              accessibilityLabel="Desktop preview"
+              onClick={() => onDevice("desktop")}
+            />
+            <Button
+              icon={MobileIcon}
+              pressed={device === "mobile"}
+              accessibilityLabel="Mobile preview"
+              onClick={() => onDevice("mobile")}
+            />
+            <Button
+              icon={MaximizeIcon}
+              pressed={device === "fullscreen"}
+              accessibilityLabel="Fullscreen preview"
+              onClick={() => onDevice("fullscreen")}
+            />
+          </ButtonGroup>
+        </InlineStack>
+
+        <InlineStack gap="300" blockAlign="center" align="end">
+          <Button
+            icon={ExternalIcon}
+            variant="plain"
+            onClick={() => openShopifyAdminUrl(checkoutEditor.thankYou)}
           >
-            Thank you page
-          </s-button>
-          <s-menu id="preview-surface-menu" accessibilityLabel="Preview surface">
-            <s-button icon="cart">Thank you page</s-button>
-            <s-button icon="order">Order status</s-button>
-          </s-menu>
-          <s-button
-            icon="desktop"
-            variant={device === "desktop" ? "primary" : "tertiary"}
-            accessibilityLabel="Desktop view"
-            onClick={() => onDevice("desktop")}
-          />
-          <s-button
-            icon="mobile"
-            variant={device === "mobile" ? "primary" : "tertiary"}
-            accessibilityLabel="Mobile view"
-            onClick={() => onDevice("mobile")}
-          />
-          <s-button
-            icon="maximize"
-            variant={device === "fullscreen" ? "primary" : "tertiary"}
-            accessibilityLabel="Fullscreen"
-            onClick={() => onDevice("fullscreen")}
-          />
-        </s-stack>
-        <s-stack direction="inline" gap="none" justifyContent="end">
-          <s-button
-            icon="caret-down"
-            variant="secondary"
-            commandFor="survey-status-menu"
+            Preview
+          </Button>
+          <Popover
+            active={statusOpen}
+            activator={
+              <Button
+                disclosure={statusOpen ? "up" : "down"}
+                onClick={() => setStatusOpen((open) => !open)}
+              >
+                {statusLabel}
+              </Button>
+            }
+            onClose={() => setStatusOpen(false)}
           >
-            {isActive ? "Active" : "Inactive"}
-          </s-button>
-          <s-menu id="survey-status-menu" accessibilityLabel="Survey status">
-            <s-button onClick={() => onActive(true)}>Active</s-button>
-            <s-button onClick={() => onActive(false)}>Inactive</s-button>
-          </s-menu>
-        </s-stack>
-      </s-grid>
-    </s-box>
+            <ActionList
+              items={[
+                {
+                  content: "Active",
+                  active: isActive,
+                  onAction: () => {
+                    onActive(true);
+                    setStatusOpen(false);
+                  },
+                },
+                {
+                  content: "Inactive",
+                  active: !isActive,
+                  onAction: () => {
+                    onActive(false);
+                    setStatusOpen(false);
+                  },
+                },
+              ]}
+            />
+          </Popover>
+        </InlineStack>
+      </InlineGrid>
+    </Box>
   );
 }

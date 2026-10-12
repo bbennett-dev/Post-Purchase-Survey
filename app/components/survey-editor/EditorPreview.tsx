@@ -1,161 +1,312 @@
+import { useState } from "react";
+import {
+  BlockStack,
+  Box,
+  Button,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  ProgressBar,
+  Scrollable,
+  Text,
+  Thumbnail,
+} from "@shopify/polaris";
+import { ArrowRightIcon, CartIcon, SearchIcon } from "@shopify/polaris-icons";
 import type {
+  ImageAlignment,
   PreviewDevice,
   SurveyQuestion,
   ThankYouContent,
 } from "../../lib/survey/types";
-import styles from "./editor-scroll-panel.module.css";
+import { EditorFillBox } from "./EditorFlexLayout";
 
 interface EditorPreviewProps {
   question: SurveyQuestion | null;
   ending: ThankYouContent | null;
   device: PreviewDevice;
+  questionIndex: number;
+  questionCount: number;
+  shopLabel: string;
 }
 
 /**
- * Center canvas. Shows the selected question or ending on a Thank You page.
+ * Center canvas — on-site survey popup over a storefront mock (reference layout).
  */
 export function EditorPreview({
   question,
   ending,
   device,
+  questionIndex,
+  questionCount,
+  shopLabel,
 }: EditorPreviewProps) {
-  const narrow = device !== "desktop";
+  const [demoStep, setDemoStep] = useState(0);
+  const frameWidth =
+    device === "desktop" ? "100%" : device === "mobile" ? "375px" : "100%";
+  const maxWidth = device === "desktop" ? "960px" : frameWidth;
 
   return (
-    <div className={styles.previewColumn}>
-      <div className={styles.previewFrame}>
-        <div
-          className={styles.previewScroll}
-          role="region"
-          aria-label="Survey preview"
-          tabIndex={0}
-        >
-          <s-stack gap="base" alignItems="center">
-            <s-box
-              padding="base"
-              background="base"
-              border="base"
-              borderRadius="base"
-              inlineSize={narrow ? "360px" : "100%"}
-            >
-              {ending ? (
-                <EndingPreview ending={ending} />
-              ) : (
-                <CheckoutPreview
-                  question={question}
-                  showSummary={device === "desktop"}
-                />
-              )}
-            </s-box>
-          </s-stack>
-        </div>
-      </div>
-    </div>
+    <EditorFillBox>
+      <Box
+        width="100%"
+        minHeight="100%"
+        padding="400"
+        background="bg-surface-secondary"
+        borderRadius="200"
+        overflowX="hidden"
+        overflowY="hidden"
+      >
+        <Scrollable shadow focusable style={{ height: "100%", maxHeight: "100%" }}>
+          <BlockStack gap="500" inlineAlign="center">
+            <Box width={maxWidth} maxWidth="100%">
+              <BlockStack gap="0">
+                <StorefrontChrome shopLabel={shopLabel} width={frameWidth} />
+                <Box
+                  padding="600"
+                  background="bg-surface-secondary"
+                  borderWidth="025"
+                  borderColor="border"
+                  borderBlockStartWidth="0"
+                  borderRadius="0"
+                >
+                  <BlockStack gap="400" inlineAlign="center">
+                    <SurveyPopupCard
+                      question={question}
+                      ending={ending}
+                      questionIndex={questionIndex}
+                      questionCount={questionCount}
+                      demoStep={demoStep}
+                    />
+                  </BlockStack>
+                </Box>
+              </BlockStack>
+            </Box>
+
+            <BlockStack gap="200" inlineAlign="center">
+              <InlineStack gap="100" blockAlign="center">
+                <Text as="span" tone="subdued">
+                  Want to hide the SEA logo?
+                </Text>
+                <Button variant="plain">Let us help</Button>
+              </InlineStack>
+              <Button onClick={() => setDemoStep(0)}>Start demo again</Button>
+            </BlockStack>
+          </BlockStack>
+        </Scrollable>
+      </Box>
+    </EditorFillBox>
   );
 }
 
-function CheckoutPreview({
+function StorefrontChrome({
+  shopLabel,
+  width,
+}: {
+  shopLabel: string;
+  width: string;
+}) {
+  const title = shopLabel.trim().length > 0 ? shopLabel : "SHOP NAME";
+
+  return (
+    <Box
+      width={width}
+      maxWidth="100%"
+      background="bg-surface"
+      borderWidth="025"
+      borderColor="border"
+      borderRadius="200"
+      overflowX="hidden"
+      overflowY="hidden"
+    >
+      <Box padding="300" borderBlockEndWidth="025" borderColor="border">
+        <InlineGrid columns="auto 1fr auto" alignItems="center">
+          <Text as="span" tone="subdued">
+            ☰
+          </Text>
+          <Text as="p" fontWeight="bold" alignment="center">
+            {title.toUpperCase()}
+          </Text>
+          <InlineStack gap="200" blockAlign="center">
+            <Icon source={SearchIcon} tone="subdued" />
+            <Icon source={CartIcon} tone="subdued" />
+          </InlineStack>
+        </InlineGrid>
+      </Box>
+    </Box>
+  );
+}
+
+function SurveyPopupCard({
   question,
-  showSummary,
+  ending,
+  questionIndex,
+  questionCount,
+  demoStep,
 }: {
   question: SurveyQuestion | null;
-  showSummary: boolean;
+  ending: ThankYouContent | null;
+  questionIndex: number;
+  questionCount: number;
+  demoStep: number;
 }) {
+  if (ending) {
+    return (
+      <Box
+        padding="500"
+        background="bg-surface"
+        borderRadius="300"
+        shadow="300"
+        width="100%"
+        maxWidth="420px"
+      >
+        <BlockStack gap="300">
+          <Text as="h2" variant="headingMd">
+            {ending.heading}
+          </Text>
+          <Text as="p">{ending.description}</Text>
+          {ending.enableButton ? (
+            <Button variant="primary">{ending.buttonText || "Continue"}</Button>
+          ) : null}
+        </BlockStack>
+      </Box>
+    );
+  }
+
+  if (!question) {
+    return (
+      <Box
+        padding="500"
+        background="bg-surface"
+        borderRadius="300"
+        shadow="300"
+        width="100%"
+        maxWidth="420px"
+      >
+        <Text as="p" tone="subdued" alignment="center">
+          Select a question to preview it.
+        </Text>
+      </Box>
+    );
+  }
+
+  const stepLabel = `${questionIndex + 1} of ${questionCount}`;
+  const progress = ((questionIndex + 1) / questionCount) * 100;
+
   return (
-    <s-grid
-      gridTemplateColumns={showSummary ? "1fr 220px" : "1fr"}
-      gap="base"
+    <Box
+      padding="500"
+      background="bg-surface"
+      borderRadius="300"
+      shadow="300"
+      width="100%"
+      maxWidth="420px"
     >
-      <s-stack gap="base">
-        <s-heading>Store name</s-heading>
-        <s-stack direction="inline" gap="small-200" alignItems="center">
-          <s-icon type="check-circle" tone="success" />
-          <s-text type="strong">Thank you, Jordan!</s-text>
-        </s-stack>
-        {question ? (
-          <QuestionPreview question={question} />
-        ) : (
-          <s-paragraph color="subdued">
-            Select a question to preview it.
-          </s-paragraph>
-        )}
-      </s-stack>
-      {showSummary ? (
-        <s-stack gap="small-200">
-          <s-text type="strong">Your order</s-text>
-          <s-text>Monstera plant · $59.00</s-text>
-          <s-text>Snake plant · $59.00</s-text>
-          <s-text>Watering can · $39.00</s-text>
-          <s-text type="strong">Total $162.00</s-text>
-        </s-stack>
-      ) : (
-        <s-text color="subdued">$74.00</s-text>
-      )}
-    </s-grid>
-  );
-}
+      <BlockStack gap="400">
+        <BlockStack gap="200">
+          <InlineStack align="space-between" blockAlign="center">
+            <Text as="span" variant="bodySm" tone="subdued">
+              {stepLabel}
+            </Text>
+          </InlineStack>
+          <ProgressBar progress={progress} size="small" />
+        </BlockStack>
 
-function QuestionPreview({ question }: { question: SurveyQuestion }) {
-  return (
-    <s-box padding="base" border="base" borderRadius="base">
-      <s-stack gap="small-200">
-        <s-text type="strong">{question.heading || "Untitled question"}</s-text>
-        {question.description ? (
-          <s-paragraph>{question.description}</s-paragraph>
-        ) : null}
+        <BlockStack gap="200">
+          <Text as="h2" variant="headingMd">
+            {question.heading || "Untitled question"}
+          </Text>
+          {question.description ? (
+            <Text as="p" tone="subdued">
+              {question.description}
+            </Text>
+          ) : null}
+        </BlockStack>
+
         {question.image?.url ? (
-          <s-image src={question.image.url} alt="" aspectRatio="16/9" />
+          <AlignedPreviewImage
+            url={question.image.url}
+            alignment={question.image.alignment ?? "center"}
+            sizePercent={parseSizePercent(question.image.sizePercentage)}
+          />
         ) : null}
-        {question.answers ? (
-          <s-choice-list
-            label={question.heading}
-            labelAccessibilityVisibility="exclusive"
-            name={question.id}
-          >
-            {question.answers.map((answer) => (
-              <s-choice key={answer.id} value={answer.id}>
-                {answer.content || "Option"}
-              </s-choice>
+
+        {question.answers && question.answers.length > 0 ? (
+          <BlockStack gap="200">
+            {question.answers.map((answer, index) => (
+              <Box
+                key={answer.id}
+                padding="300"
+                borderWidth="025"
+                borderColor={
+                  index === demoStep ? "border-emphasis" : "border"
+                }
+                borderRadius="200"
+                background={
+                  index === demoStep ? "bg-surface-secondary" : "bg-surface"
+                }
+              >
+                <InlineStack gap="200" blockAlign="center">
+                  <Box
+                    minWidth="16px"
+                    minHeight="16px"
+                    borderWidth="025"
+                    borderColor="border-emphasis"
+                    borderRadius="100"
+                    background={
+                      index === demoStep ? "bg-fill-brand" : undefined
+                    }
+                  />
+                  <Text as="span">{answer.content || "Option"}</Text>
+                </InlineStack>
+              </Box>
             ))}
-          </s-choice-list>
+          </BlockStack>
         ) : null}
-        {question.leftLabel || question.rightLabel ? (
-          <s-stack
-            direction="inline"
-            gap="base"
-            justifyContent="space-between"
-          >
-            <s-text color="subdued">{question.leftLabel}</s-text>
-            <s-text color="subdued">{question.rightLabel}</s-text>
-          </s-stack>
-        ) : null}
-        {question.type === "short_answer" ? (
-          <s-text-field
-            label="Answer"
-            labelAccessibilityVisibility="exclusive"
-            placeholder={question.placeholder || "Your answer"}
-            readOnly
-          />
-        ) : null}
-        {question.type === "consent_email" ? (
-          <s-checkbox
-            label={question.agreeDescriptionEmail || "I agree"}
-            checked={false}
-          />
-        ) : null}
-      </s-stack>
-    </s-box>
+
+        <InlineGrid columns="1fr auto auto" gap="200" alignItems="center">
+          <Text as="span" variant="bodySm" tone="subdued">
+            sea
+          </Text>
+          <Button variant="plain">Back</Button>
+          <Button icon={ArrowRightIcon}>Next</Button>
+        </InlineGrid>
+      </BlockStack>
+    </Box>
   );
 }
 
-function EndingPreview({ ending }: { ending: ThankYouContent }) {
+function AlignedPreviewImage({
+  url,
+  alignment,
+  sizePercent,
+}: {
+  url: string;
+  alignment: ImageAlignment;
+  sizePercent: number;
+}) {
+  const align =
+    alignment === "left"
+      ? "start"
+      : alignment === "right"
+        ? "end"
+        : "center";
+
   return (
-    <s-stack gap="small-200">
-      <s-heading>{ending.heading}</s-heading>
-      <s-paragraph>{ending.description}</s-paragraph>
-      {ending.enableButton ? (
-        <s-button variant="primary">{ending.buttonText || "Continue"}</s-button>
-      ) : null}
-    </s-stack>
+    <InlineStack align={align}>
+      <Box maxWidth={`${sizePercent}%`}>
+        <Thumbnail source={url} alt="" size="large" />
+      </Box>
+    </InlineStack>
   );
+}
+
+function parseSizePercent(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.min(100, Math.max(0, Math.round(value)));
+  }
+  const parsed = Number.parseInt(String(value), 10);
+  if (Number.isFinite(parsed)) {
+    return Math.min(100, Math.max(0, parsed));
+  }
+  return 50;
 }

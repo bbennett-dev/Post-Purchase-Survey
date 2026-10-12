@@ -1,11 +1,24 @@
-import { useRef, type ChangeEvent, type CSSProperties } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
+import {
+  ActionList,
+  BlockStack,
+  Box,
+  Button,
+  ButtonGroup,
+  DropZone,
+  InlineGrid,
+  Popover,
+  RangeSlider,
+  Text,
+  TextField,
+  Thumbnail,
+} from "@shopify/polaris";
+import { ChevronDownIcon } from "@shopify/polaris-icons";
 import {
   ACCEPTED_IMAGE_EXTENSIONS,
   readImageAsDataUrl,
 } from "../../../lib/images/read-image-as-data-url";
 import type { ImageAlignment, SurveyImage } from "../../../lib/survey/types";
-import imageStyles from "./image-upload.module.css";
-import styles from "./question-image-section.module.css";
 
 const ALIGNMENTS: { id: ImageAlignment; label: string }[] = [
   { id: "left", label: "Left" },
@@ -14,8 +27,6 @@ const ALIGNMENTS: { id: ImageAlignment; label: string }[] = [
 ];
 
 export interface QuestionImageSectionProps {
-  /** Unique id for the change-image menu (one section per question). */
-  menuId: string;
   image: SurveyImage;
   onChange: (image: SurveyImage) => void;
   /** Shows image size slider + percent readout (choice questions). */
@@ -37,12 +48,12 @@ function parseSizePercent(value: SurveyImage["sizePercentage"]): number {
  * Reusable question image block: preview, upload/change menu, alignment, optional size.
  */
 export function QuestionImageSection({
-  menuId,
   image,
   onChange,
   showSize = true,
 }: QuestionImageSectionProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const url = image.url?.trim() ?? "";
   const sizePercent = parseSizePercent(image.sizePercentage);
 
@@ -52,6 +63,7 @@ export function QuestionImageSection({
 
   const pickImage = () => {
     inputRef.current?.click();
+    setMenuOpen(false);
   };
 
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -69,129 +81,126 @@ export function QuestionImageSection({
     }
   };
 
-  const setSizePercent = (raw: number) => {
-    patch({
-      sizePercentage: Math.min(100, Math.max(0, Math.round(raw))),
-    });
+  const onDrop = async (_dropFiles: File[], acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) {
+      return;
+    }
+    try {
+      const dataUrl = await readImageAsDataUrl(file);
+      patch({ url: dataUrl });
+    } catch {
+      // Unsupported type.
+    }
   };
 
   return (
-    <s-stack gap="small-200">
-      <s-text type="strong">Image</s-text>
+    <BlockStack gap="300">
+      <Text as="p" fontWeight="semibold">
+        Image
+      </Text>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPTED_IMAGE_EXTENSIONS}
-        className={imageStyles.hiddenInput}
-        onChange={onFileChange}
-      />
+      <Box visuallyHidden as="span">
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED_IMAGE_EXTENSIONS}
+          onChange={onFileChange}
+        />
+      </Box>
 
       {url ? (
-        <s-stack gap="small-200">
-          <div className={imageStyles.previewFrame}>
-            <img
-              src={url}
-              alt=""
-              className={imageStyles.previewImage}
-            />
-          </div>
-          <s-button
-            variant="secondary"
-            inlineSize="fill"
-            icon="chevron-down"
-            commandFor={menuId}
+        <BlockStack gap="200">
+          <Box
+            padding="400"
+            background="bg-surface-secondary"
+            borderRadius="200"
           >
-            Change
-          </s-button>
-          <s-menu id={menuId} accessibilityLabel="Question image actions">
-            <s-button icon="image-add" onClick={pickImage}>
-              Change image
-            </s-button>
-            <s-button
-              icon="delete"
-              tone="critical"
-              onClick={() => patch({ url: "" })}
-            >
-              Remove image
-            </s-button>
-          </s-menu>
-        </s-stack>
+            <InlineGrid columns="1fr" alignItems="center">
+              <Thumbnail source={url} alt="" size="large" />
+            </InlineGrid>
+          </Box>
+          <Popover
+            active={menuOpen}
+            activator={
+              <Button
+                fullWidth
+                icon={ChevronDownIcon}
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                Change
+              </Button>
+            }
+            onClose={() => setMenuOpen(false)}
+          >
+            <ActionList
+              items={[
+                { content: "Change image", onAction: pickImage },
+                {
+                  content: "Remove image",
+                  destructive: true,
+                  onAction: () => {
+                    patch({ url: "" });
+                    setMenuOpen(false);
+                  },
+                },
+              ]}
+            />
+          </Popover>
+        </BlockStack>
       ) : (
-        <div className={imageStyles.uploadZone}>
-          <s-button variant="secondary" onClick={pickImage}>
-            Add image
-          </s-button>
-          <s-text color="subdued">Accepts .svg, .jpg, .jpeg, and .png</s-text>
-        </div>
+        <DropZone accept="image/*" onDrop={onDrop}>
+          <DropZone.FileUpload
+            actionTitle="Add image"
+            actionHint="Accepts .svg, .jpg, .jpeg, and .png"
+          />
+        </DropZone>
       )}
 
-      <s-stack gap="small-200" alignItems="stretch">
-        <s-text>Image alignment</s-text>
-        <div
-          className={styles.alignmentGroup}
-          role="radiogroup"
-          aria-label="Image alignment"
-        >
-          {ALIGNMENTS.map((item) => {
-            const active = image.alignment === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                className={
-                  active
-                    ? `${styles.alignmentOption} ${styles.alignmentOptionActive}`
-                    : styles.alignmentOption
-                }
-                onClick={() => patch({ alignment: item.id })}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      </s-stack>
+      <BlockStack gap="200">
+        <Text as="p">Image alignment</Text>
+        <ButtonGroup variant="segmented" fullWidth>
+          {ALIGNMENTS.map((item) => (
+            <Button
+              key={item.id}
+              pressed={image.alignment === item.id}
+              onClick={() => patch({ alignment: item.id })}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </BlockStack>
 
       {showSize && url ? (
-        <s-stack gap="small-200">
-          <s-text>Image size</s-text>
-          <div className={styles.sizeRow}>
-            <input
-              type="range"
+        <BlockStack gap="200">
+          <Text as="p">Image size</Text>
+          <InlineGrid columns="1fr 72px" gap="300" alignItems="center">
+            <RangeSlider
+              label="Image size"
+              labelHidden
               min={0}
               max={100}
-              step={1}
               value={sizePercent}
-              className={styles.sizeSlider}
-              style={
-                {
-                  "--size-percent": `${sizePercent}%`,
-                } as CSSProperties
-              }
-              aria-label="Image size"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={sizePercent}
-              aria-valuetext={`${sizePercent} percent`}
-              onChange={(event) =>
-                setSizePercent(Number(event.currentTarget.value))
-              }
+              onChange={(value) => {
+                const next = Array.isArray(value) ? value[0] : value;
+                patch({
+                  sizePercentage: Math.min(100, Math.max(0, Math.round(next))),
+                });
+              }}
             />
-            <div
-              className={styles.sizePercentBox}
-              role="status"
-              aria-live="polite"
-              aria-label={`${sizePercent} percent`}
-            >
-              <span className={styles.sizePercentValue}>{sizePercent}</span>
-              <span className={styles.sizePercentSuffix}>%</span>
-            </div>
-          </div>
-        </s-stack>
+            <TextField
+              label="Image size percent"
+              labelHidden
+              value={String(sizePercent)}
+              suffix="%"
+              readOnly
+              autoComplete="off"
+              onChange={() => {}}
+            />
+          </InlineGrid>
+        </BlockStack>
       ) : null}
-    </s-stack>
+    </BlockStack>
   );
 }

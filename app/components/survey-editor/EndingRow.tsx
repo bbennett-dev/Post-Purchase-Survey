@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ActionList, Box, Popover } from "@shopify/polaris";
+import { DeleteIcon, StarIcon } from "@shopify/polaris-icons";
 import type { ThankYouContent } from "../../lib/survey/types";
-import { truncateText } from "../../lib/truncate";
-import styles from "./question-drag.module.css";
+import { endingTitle } from "../../lib/survey/questions";
+import { EndingRowInner } from "./EndingRowInner";
+import { QuestionRowMenuButton } from "./QuestionRowMenuButton";
 
 interface EndingRowProps {
   card: ThankYouContent;
@@ -13,46 +16,8 @@ interface EndingRowProps {
   onDelete: (id: string) => void;
 }
 
-function SelectedTone({
-  selected,
-  children,
-}: {
-  selected: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <span
-      className={selected ? styles.selectedTone : undefined}
-      style={
-        selected
-          ? { color: "#fff", filter: "brightness(0) invert(1)" }
-          : undefined
-      }
-    >
-      {children}
-    </span>
-  );
-}
-
-function rowBackground(
-  selected: boolean,
-  hovered: boolean,
-  isMain: boolean,
-): "subdued" | "transparent" {
-  if (selected) {
-    return "transparent";
-  }
-  if (hovered || isMain) {
-    return "subdued";
-  }
-  return "transparent";
-}
-
 /**
- * Ending row for the content list.
- * Matches the question row layout: type icon, truncated title, optional
- * Main badge, and hover actions. Only one ending is Main; that ending has
- * no delete action. Non-main endings can Set as main or Delete.
+ * Ending list row — same shell and hover/selection as {@link QuestionRow}.
  */
 export function EndingRow({
   card,
@@ -64,12 +29,12 @@ export function EndingRow({
   onDelete,
 }: EndingRowProps) {
   const [hovered, setHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const id = card.id ?? `ending-${index}`;
-  const menuId = `ending-menu-${id}`;
   const isMain = card.isDefault === true;
-  const showChrome = hovered || selected;
-  const label = truncateText(title);
+  const showChrome = hovered || menuOpen;
+  const heading = title || endingTitle(card, index);
 
   useEffect(() => {
     const row = rowRef.current;
@@ -81,7 +46,7 @@ export function EndingRow({
     const leave = () => setHovered(false);
     const selectRow = (event: Event) => {
       const target = event.target as HTMLElement | null;
-      if (target?.closest("s-button, s-menu")) {
+      if (target?.closest("[data-stop-row-click]")) {
         return;
       }
       onSelect(id);
@@ -99,71 +64,70 @@ export function EndingRow({
   }, [id, onSelect]);
 
   return (
-    <div
-      className={selected ? `${styles.row} ${styles.rowSelected}` : styles.row}
-      data-ending-id={id}
-      ref={(element) => {
-        rowRef.current = element;
-      }}
-    >
-      <s-box
-        padding="none small-300 none none"
-        background={rowBackground(selected, hovered, isMain)}
-        borderRadius="base"
-        overflow="hidden"
+    <div data-ending-id={id} ref={rowRef}>
+      <Box
+        paddingInline="200"
+        paddingBlock="150"
+        borderRadius="200"
+        background={
+          selected
+            ? "bg-fill-brand"
+            : showChrome
+              ? "bg-surface-secondary"
+              : undefined
+        }
+        color={selected ? "text-brand-on-bg-fill" : undefined}
+        overflowX="hidden"
+        overflowY="hidden"
       >
-        <s-grid
-          gridTemplateColumns={
-            isMain
-              ? "auto minmax(0, 1fr) auto auto"
-              : "auto minmax(0, 1fr) auto"
-          }
-          gap="small-200"
-          alignItems="center"
-        >
-          <s-box padding="small-200" accessibilityLabel={title}>
-            <SelectedTone selected={selected}>
-              <s-icon type="cursor" />
-            </SelectedTone>
-          </s-box>
-          <span className={styles.title}>
-            <SelectedTone selected={selected}>
-              <s-text>{label}</s-text>
-            </SelectedTone>
-          </span>
-          {isMain ? (
-            <SelectedTone selected={selected}>
-              <s-badge>Main</s-badge>
-            </SelectedTone>
-          ) : null}
-          {showChrome && !isMain ? (
-            <SelectedTone selected={selected}>
-              <s-button
-                icon="menu-horizontal"
-                variant="tertiary"
-                accessibilityLabel={`Actions for ${title}`}
-                commandFor={menuId}
-              />
-            </SelectedTone>
-          ) : (
-            <s-text />
-          )}
-        </s-grid>
-        {!isMain ? (
-          <s-menu id={menuId} accessibilityLabel={`${title} actions`}>
-            <s-button icon="star" onClick={() => onSetMain(id)}>
-              Set as main
-            </s-button>
-            <s-button
-              icon="delete"
-              tone="critical"
-              onClick={() => onDelete(id)}
+        <EndingRowInner
+          title={heading}
+          selected={selected}
+          isMain={isMain}
+          menuVisible={showChrome && !isMain}
+          menu={
+            <div
+              data-stop-row-click
+              onPointerDown={(event) => event.stopPropagation()}
             >
-              Delete ending
-            </s-button>
-          </s-menu>
-        ) : null}
-      </s-box>
+              <Popover
+                active={menuOpen}
+                activator={
+                  <QuestionRowMenuButton
+                    selected={selected}
+                    pressed={menuOpen}
+                    accessibilityLabel={`Actions for ${heading}`}
+                    onClick={() => setMenuOpen((open) => !open)}
+                  />
+                }
+                onClose={() => setMenuOpen(false)}
+              >
+                <ActionList
+                  items={[
+                    {
+                      content: "Set as main",
+                      icon: StarIcon,
+                      onAction: () => {
+                        onSetMain(id);
+                        setMenuOpen(false);
+                      },
+                    },
+                    {
+                      content: "Delete ending",
+                      icon: DeleteIcon,
+                      destructive: true,
+                      onAction: () => {
+                        onDelete(id);
+                        setMenuOpen(false);
+                      },
+                    },
+                  ]}
+                />
+              </Popover>
+            </div>
+          }
+        />
+      </Box>
     </div>
   );
 }
