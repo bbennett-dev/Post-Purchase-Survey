@@ -228,7 +228,8 @@ Shopify:
 - [Shopify App React Router docs](https://shopify.dev/docs/api/shopify-app-react-router)
 - [Shopify CLI](https://shopify.dev/docs/apps/tools/cli)
 - [Shopify App Bridge](https://shopify.dev/docs/api/app-bridge-library).
-- [Polaris Web Components](https://shopify.dev/docs/api/app-home/polaris-web-components).
+- [Polaris React](https://www.npmjs.com/package/@shopify/polaris) (primary admin UI) and [Storybook](https://storybook.polaris.shopify.dev/).
+- [Polaris Web Components](https://shopify.dev/docs/api/app-home/polaris-web-components) (secondary — App Home / App Bridge shell APIs only).
 - [App extensions](https://shopify.dev/docs/apps/app-extensions/list)
 - [Shopify Functions](https://shopify.dev/docs/api/functions)
 

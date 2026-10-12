@@ -11,7 +11,7 @@
 
 ## 2. Technical Stack & Current Status
 - **Framework**: Official Shopify React Router App Template (`@shopify/shopify-app-react-router` running React Router v7 on Vite)[cite: 1].
-- **Admin UI System**: `@shopify/polaris` design components + `@shopify/app-bridge-react` v4[cite: 1].
+- **Admin UI System**: `@shopify/polaris` React (primary) + `@shopify/app-bridge-react` v4. Polaris Web Components (`s-*`, typed via `@shopify/polaris-types`) stay available for opt-in App Home / shell APIs only — not for bulk page UI.
 - **Storefront Block**: Shopify Checkout UI Extension (`@shopify/ui-extensions-react/checkout`) targeting `purchase.thank-you.block.render`[cite: 1].
 - **Backend Routing**: Node.js & TypeScript full-stack routes (`loader` and `action` architecture)[cite: 1].
 - **Current State**: App template is scaffolded, authenticated via Shopify CLI, and connected to the Partner Development Dashboard[cite: 1]. Core template authentication (`shopify.server.ts` and `app/routes/app.tsx`) is operational and untouched[cite: 1].
@@ -53,7 +53,7 @@
 ---
 
 ## 5. Development Invariants & Engineering Standards
-1. **Polaris UI Strictly in Admin**: Never render standard HTML primitives (`<div>`, `<span>`, `<p>`, `<button>`) inside `app/routes/app.*.tsx`. Always use Polaris layout components (`Page`, `Layout`, `Card`, `BlockStack`, `InlineStack`, `Text`, `Button`, `TextField`)[cite: 1].
+1. **Polaris React in Admin**: Prefer `@shopify/polaris` layout components (`Page`, `Layout`, `Card`, `BlockStack`, `InlineStack`, `Text`, `Button`, `TextField`) in `app/`. Raw HTML is allowed for editor chrome (drag handles, custom scroll). Web Components (`s-*`) only for documented platform APIs.
 2. **App Bridge Integration**: Use `@shopify/app-bridge-react` for merchant alerts and native toast notifications[cite: 1].
 3. **TypeScript Strictness**: Use clean TypeScript interfaces for all mock states, component props, and loaders. Avoid `any`.
 4. **Single-Feature Cadence**: Stabilize each UI section with clean loading and empty states before moving to the next.
