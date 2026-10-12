@@ -1,0 +1,27 @@
+# Single post-purchase survey extension for Thank you + Order status.
+# https://shopify.dev/docs/apps/build/checkout/thank-you-order-status/add-survey
+
+api_version = "2026-07"
+
+[[extensions]]
+name = "Post Purchase Survey"
+handle = "post-purchase-survey"
+type = "ui_extension"
+uid = "36589f62-9892-39cb-2f34-f27a46d18b634b74a298"
+
+[[extensions.targeting]]
+module = "./src/ThankYouPage.jsx"
+target = "purchase.thank-you.block.render"
+
+[[extensions.targeting]]
+module = "./src/OrderStatusPage.jsx"
+target = "customer-account.order-status.block.render"
+
+[extensions.capabilities]
+api_access = true
+# Enable when the submit API is wired (Phase 5 follow-up).
+# network_access = true
+
+[[extensions.metafields]]
+namespace = "$app"
+key = "checkout_surveys"

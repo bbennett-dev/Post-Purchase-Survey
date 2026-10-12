@@ -1,0 +1,5 @@
+{
+  "surveyHeading": "Quick survey",
+  "emptySurvey": "This survey has no questions yet.",
+  "orderRef": "Order: {{orderId}}"
+}

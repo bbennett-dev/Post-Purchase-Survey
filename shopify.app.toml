@@ -7,7 +7,7 @@ embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products,write_metaobjects,write_metaobject_definitions"
+scopes = "write_products,write_metaobjects,write_metaobject_definitions,read_checkout_branding_settings"
 
 [product.metafields.app.demo_info]
 type = "single_line_text_field"
@@ -32,6 +32,48 @@ required = true
 [metaobjects.app.example.fields.description]
 name = "Description"
 type = "multi_line_text_field"
+
+# Published survey for theme / branded / embed channels (Liquid + Storefront API).
+# Values are written on Save via metaobjectUpsert; handle = survey id.
+[metaobjects.app.survey]
+name = "Survey"
+description = "Published survey render payload for storefront channels"
+display_name_field = "title"
+
+  [metaobjects.app.survey.access]
+  admin = "merchant_read"
+  storefront = "public_read"
+
+[metaobjects.app.survey.fields.title]
+name = "Title"
+type = "single_line_text_field"
+required = true
+
+[metaobjects.app.survey.fields.payload]
+name = "Payload"
+type = "json"
+required = true
+
+# Which survey handles are enabled per channel key (not the full surveys).
+[shop.metafields.app.channel_index]
+type = "json"
+name = "Channel index"
+description = "Enabled survey handles keyed by channel for theme app embeds"
+
+  [shop.metafields.app.channel_index.access]
+  admin = "merchant_read"
+  storefront = "public_read"
+
+# Compact JSON for Thank you + Order status (+ later POS) checkout extensions.
+# Declared again in the post-purchase extension.toml [[extensions.metafields]].
+[shop.metafields.app.checkout_surveys]
+type = "json"
+name = "Checkout surveys"
+description = "Published surveys for Thank you and Order status page extensions"
+
+  [shop.metafields.app.checkout_surveys.access]
+  admin = "merchant_read"
+  storefront = "none"
 
 [webhooks]
 api_version = "2026-10"
