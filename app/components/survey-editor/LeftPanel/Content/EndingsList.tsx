@@ -1,3 +1,4 @@
+import { BlockStack } from "@shopify/polaris";
 import { endingTitle } from "../../../../lib/survey/questions";
 import type { ThankYouContent } from "../../../../lib/survey/types";
 import { EndingRow } from "../../EndingRow";
@@ -13,7 +14,7 @@ interface EndingsListProps {
 }
 
 /**
- * Thank-you / ending cards list with one Main ending and add row.
+ * Thank-you / ending cards — compact list matching question row spacing.
  */
 export function EndingsList({
   cards,
@@ -24,7 +25,7 @@ export function EndingsList({
   onDeleteEnding,
 }: EndingsListProps) {
   return (
-    <s-stack gap="small-200">
+    <BlockStack gap="050">
       {cards.map((card, index) => {
         const id = card.id ?? `ending-${index}`;
         return (
@@ -41,6 +42,6 @@ export function EndingsList({
         );
       })}
       <AddListRow label="Add ending" onClick={onAddEnding} />
-    </s-stack>
+    </BlockStack>
   );
 }

@@ -1,3 +1,4 @@
+import { Badge, BlockStack, Text } from "@shopify/polaris";
 import type { SurveyDocument } from "../../../../lib/survey/types";
 
 interface DiscountPanelProps {
@@ -9,20 +10,20 @@ interface DiscountPanelProps {
  */
 export function DiscountPanel({ survey }: DiscountPanelProps) {
   return (
-    <s-stack gap="small-200">
-      <s-text type="strong" color="subdued">
+    <BlockStack gap="200">
+      <Text as="p" variant="bodySm" tone="subdued" fontWeight="semibold">
         Reward
-      </s-text>
-      <s-badge tone={survey.discount.enabled ? "success" : "warning"}>
+      </Text>
+      <Badge tone={survey.discount.enabled ? "success" : "warning"}>
         {survey.discount.enabled ? "Discount on" : "Discount off"}
-      </s-badge>
+      </Badge>
       {survey.discount.displayText ? (
-        <s-text>{survey.discount.displayText}</s-text>
+        <Text as="p">{survey.discount.displayText}</Text>
       ) : (
-        <s-paragraph color="subdued">
+        <Text as="p" tone="subdued">
           Configure the discount on the right.
-        </s-paragraph>
+        </Text>
       )}
-    </s-stack>
+    </BlockStack>
   );
 }

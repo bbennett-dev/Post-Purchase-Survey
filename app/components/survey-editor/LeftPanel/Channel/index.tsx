@@ -1,3 +1,4 @@
+import { Badge, BlockStack, InlineStack, Text } from "@shopify/polaris";
 import { CHANNEL_DEFINITIONS } from "../../../../lib/survey/channels";
 import type {
   PostPurchasePageChannel,
@@ -24,15 +25,15 @@ export function ChannelPanel({
   onChannelChange,
 }: ChannelPanelProps) {
   return (
-    <s-stack gap="small">
-      <s-stack direction="inline" gap="small-200" alignItems="center">
-        <s-text type="strong" color="subdued">
+    <BlockStack gap="300">
+      <InlineStack gap="200" blockAlign="center">
+        <Text as="p" variant="bodySm" tone="subdued" fontWeight="semibold">
           Distribution channels
-        </s-text>
-        <s-badge tone="neutral">{CHANNEL_DEFINITIONS.length}</s-badge>
-      </s-stack>
+        </Text>
+        <Badge>{String(CHANNEL_DEFINITIONS.length)}</Badge>
+      </InlineStack>
 
-      <s-stack gap="small-200">
+      <BlockStack gap="200">
         {CHANNEL_DEFINITIONS.map((definition) => {
           const channel = survey.channels[definition.key] ?? {};
           const enabled = channel.enabled === true;
@@ -59,14 +60,14 @@ export function ChannelPanel({
                   }
                 />
               ) : (
-                <s-paragraph color="subdued">
+                <Text as="p" tone="subdued">
                   Core settings for this channel come next.
-                </s-paragraph>
+                </Text>
               )}
             </ChannelRow>
           );
         })}
-      </s-stack>
-    </s-stack>
+      </BlockStack>
+    </BlockStack>
   );
 }

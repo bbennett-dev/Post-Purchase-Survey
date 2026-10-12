@@ -1,5 +1,37 @@
 import type { ReactNode } from "react";
+import {
+  Box,
+  Checkbox,
+  Divider,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Text,
+  UnstyledButton,
+} from "@shopify/polaris";
+import {
+  CartIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CodeIcon,
+  EmailIcon,
+  ExitIcon,
+  PageIcon,
+  PointOfSaleIcon,
+  StarFilledIcon,
+} from "@shopify/polaris-icons";
 import type { ChannelDefinition } from "../../../../lib/survey/channels";
+
+const CHANNEL_ICONS: Record<string, typeof CartIcon> = {
+  cart: CartIcon,
+  page: PageIcon,
+  "layout-popup": PageIcon,
+  email: EmailIcon,
+  exit: ExitIcon,
+  code: CodeIcon,
+  "email-newsletter": EmailIcon,
+  "point-of-sale": PointOfSaleIcon,
+};
 
 interface ChannelRowProps {
   definition: ChannelDefinition;
@@ -23,86 +55,68 @@ export function ChannelRow({
   children,
 }: ChannelRowProps) {
   const hasToggle = definition.hasToggle !== false;
-
-  const outerCols = [
-    "minmax(0, 1fr)",
-    definition.recommended ? "auto" : null,
-    hasToggle ? "auto" : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const ChannelIcon = CHANNEL_ICONS[definition.icon] ?? PageIcon;
 
   return (
-    <s-box border="base" borderRadius="base" overflow="hidden">
-      <s-box
-        paddingBlock="small-200"
-        paddingInline="small-200"
-        background={expanded ? "subdued" : "base"}
+    <Box borderWidth="025" borderColor="border" borderRadius="200" overflowX="hidden" overflowY="hidden">
+      <Box
+        padding="200"
+        background={expanded ? "bg-surface-secondary" : "bg-surface"}
       >
-        <s-grid
-          gridTemplateColumns={outerCols}
-          gap="small-200"
+        <InlineGrid
+          columns={
+            hasToggle && definition.recommended
+              ? "1fr auto auto"
+              : hasToggle || definition.recommended
+                ? "1fr auto"
+                : "1fr"
+          }
+          gap="200"
           alignItems="center"
         >
-          <s-clickable
-            padding="none"
-            borderRadius="base"
+          <UnstyledButton
+            onClick={onToggleExpand}
             accessibilityLabel={
               expanded
                 ? `Collapse ${definition.label}`
                 : `Expand ${definition.label}`
             }
-            onClick={onToggleExpand}
           >
-            <s-grid
-              gridTemplateColumns="auto auto minmax(0, 1fr)"
-              gap="small-200"
-              alignItems="center"
-            >
-              <s-icon
-                type={expanded ? "chevron-up" : "chevron-down"}
-                color="subdued"
+            <InlineStack gap="200" blockAlign="center">
+              <Icon
+                source={expanded ? ChevronUpIcon : ChevronDownIcon}
+                tone="subdued"
               />
-              <s-icon
-                type={definition.icon}
-                color={enabled ? undefined : "subdued"}
-              />
-              <s-text type={enabled ? "strong" : undefined}>
+              <Icon source={ChannelIcon} tone={enabled ? undefined : "subdued"} />
+              <Text as="span" fontWeight={enabled ? "semibold" : "regular"}>
                 {definition.label}
-              </s-text>
-            </s-grid>
-          </s-clickable>
+              </Text>
+            </InlineStack>
+          </UnstyledButton>
 
           {definition.recommended ? (
-            <s-icon type="star-filled" tone="info" />
+            <Icon source={StarFilledIcon} tone="info" />
           ) : null}
 
           {hasToggle ? (
-            <s-switch
+            <Checkbox
               label={`Enable ${definition.label}`}
-              labelAccessibilityVisibility="exclusive"
+              labelHidden
               checked={enabled}
-              onChange={(event) => {
-                onEnabledChange(
-                  Boolean(
-                    (event.currentTarget as HTMLElement & { checked?: boolean })
-                      .checked,
-                  ),
-                );
-              }}
+              onChange={onEnabledChange}
             />
           ) : null}
-        </s-grid>
-      </s-box>
+        </InlineGrid>
+      </Box>
 
       {expanded ? (
         <>
-          <s-divider direction="inline" color="base" />
-          <s-box padding="small" background="subdued">
+          <Divider />
+          <Box padding="300" background="bg-surface-secondary">
             {children}
-          </s-box>
+          </Box>
         </>
       ) : null}
-    </s-box>
+    </Box>
   );
 }

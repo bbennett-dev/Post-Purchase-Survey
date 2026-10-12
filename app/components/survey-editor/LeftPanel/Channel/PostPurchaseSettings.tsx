@@ -1,4 +1,4 @@
-import { fieldValue } from "../../field-value";
+import { BlockStack, Button, ButtonGroup, Select, Text } from "@shopify/polaris";
 import type { PostPurchasePageChannel } from "../../../../lib/survey/types";
 
 interface PostPurchaseSettingsProps {
@@ -7,14 +7,14 @@ interface PostPurchaseSettingsProps {
 }
 
 const TARGETING_OPTIONS = [
-  { id: "all_users", label: "All users" },
-  { id: "segment", label: "A segment of users" },
-] as const;
+  { id: "all_users" as const, label: "All users" },
+  { id: "segment" as const, label: "A segment of users" },
+];
 
 const RECURRENCE_OPTIONS = [
   { value: "once_per_customer", label: "Once per customer" },
   { value: "every_order", label: "Every order" },
-] as const;
+];
 
 /**
  * Core Thank you / Order status settings shown in the left accordion body.
@@ -27,48 +27,39 @@ export function PostPurchaseSettings({
   const recurrence = channel.widgetRecurrence ?? "once_per_customer";
 
   return (
-    <s-stack gap="base">
-      <s-stack gap="small-200">
-        <s-text type="strong">User targeting</s-text>
-        <s-button-group gap="none" accessibilityLabel="User targeting">
-          {TARGETING_OPTIONS.map((option) => {
-            const active = targetingType === option.id;
-            return (
-              <s-press-button
-                key={option.id}
-                slot="secondary-actions"
-                variant="secondary"
-                pressed={active}
-                inlineSize="fill"
-                onClick={() =>
-                  onChange({
-                    userTargeting: {
-                      ...channel.userTargeting,
-                      type: option.id,
-                      customerSegment:
-                        channel.userTargeting?.customerSegment ?? [],
-                    },
-                  })
-                }
-              >
-                {option.label}
-              </s-press-button>
-            );
-          })}
-        </s-button-group>
-      </s-stack>
+    <BlockStack gap="400">
+      <BlockStack gap="200">
+        <Text as="p" fontWeight="semibold">
+          User targeting
+        </Text>
+        <ButtonGroup variant="segmented" fullWidth>
+          {TARGETING_OPTIONS.map((option) => (
+            <Button
+              key={option.id}
+              pressed={targetingType === option.id}
+              onClick={() =>
+                onChange({
+                  userTargeting: {
+                    ...channel.userTargeting,
+                    type: option.id,
+                    customerSegment:
+                      channel.userTargeting?.customerSegment ?? [],
+                  },
+                })
+              }
+            >
+              {option.label}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </BlockStack>
 
-      <s-select
+      <Select
         label="Widget recurrence"
+        options={RECURRENCE_OPTIONS}
         value={recurrence}
-        onChange={(event) => onChange({ widgetRecurrence: fieldValue(event) })}
-      >
-        {RECURRENCE_OPTIONS.map((opt) => (
-          <s-option key={opt.value} value={opt.value}>
-            {opt.label}
-          </s-option>
-        ))}
-      </s-select>
-    </s-stack>
+        onChange={(widgetRecurrence) => onChange({ widgetRecurrence })}
+      />
+    </BlockStack>
   );
 }

@@ -1,6 +1,7 @@
+import { Banner, BlockStack, Box, Divider, Text } from "@shopify/polaris";
 import type { QuestionType, SurveyDocument } from "../../../../lib/survey/types";
-import styles from "../../question-drag.module.css";
 import { SectionLabel } from "../SectionLabel";
+import { BestPracticeTip } from "./BestPracticeTip";
 import { EndingsList } from "./EndingsList";
 import { QuestionList } from "./QuestionList";
 
@@ -41,8 +42,8 @@ export function ContentPanel({
   onDeleteEnding,
 }: ContentPanelProps) {
   return (
-    <s-stack gap="small-200">
-      <SectionLabel>Content</SectionLabel>
+    <BlockStack gap="0">
+      <SectionLabel variant="content">Content</SectionLabel>
       <QuestionList
         questions={survey.questions}
         selectedQuestionId={selectedQuestionId}
@@ -52,22 +53,13 @@ export function ContentPanel({
         onReorderQuestion={onReorderQuestion}
         onAddQuestion={onAddQuestion}
       />
-      <s-grid
-        gridTemplateColumns="auto minmax(0, 1fr)"
-        gap="small-100"
-        alignItems="center"
-      >
-        <s-icon type="lightbulb" color="subdued" size="small" />
-        <span className={styles.tip}>
-          Best practice: keep this survey to a few questions.
-        </span>
-      </s-grid>
+      <BestPracticeTip />
 
-      <s-divider direction="inline" color="base" />
+      <Box paddingBlockStart="100">
+        <Divider />
+      </Box>
 
-      <s-box paddingBlockStart="small-200" paddingBlockEnd="small-200">
-        <SectionLabel>Endings</SectionLabel>
-      </s-box>
+      <SectionLabel variant="endings">Endings</SectionLabel>
       <EndingsList
         cards={survey.thankYouCards}
         selectedEndingId={selectedEndingId}
@@ -78,17 +70,18 @@ export function ContentPanel({
       />
 
       {showTranslationTip ? (
-        <s-banner
-          heading="Surveys work better in the customer's language"
-          tone="info"
-          dismissible
-          onDismiss={onDismissTranslation}
-        >
-          <s-paragraph>
-            Translations for this survey are stored on the document.
-          </s-paragraph>
-        </s-banner>
+        <Box paddingBlockStart="400">
+          <Banner
+            title="Surveys work better in the customer's language"
+            tone="info"
+            onDismiss={onDismissTranslation}
+          >
+            <Text as="p">
+              Translations for this survey are stored on the document.
+            </Text>
+          </Banner>
+        </Box>
       ) : null}
-    </s-stack>
+    </BlockStack>
   );
 }

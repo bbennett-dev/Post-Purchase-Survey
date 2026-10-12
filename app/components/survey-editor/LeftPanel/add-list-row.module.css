@@ -1,0 +1,54 @@
+/** Reset — outer hit target matches question row width. */
+.addButton {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.addButton:focus-visible {
+  outline: 2px solid var(--p-color-border-focus, #005bd3);
+  outline-offset: 2px;
+  border-radius: var(--p-border-radius-200);
+}
+
+/** Same flex grid as question rows (icon · title · menu slot). */
+.addRowInner {
+  display: flex;
+  align-items: center;
+  gap: var(--p-space-200);
+  width: 100%;
+  min-width: 0;
+}
+
+.addIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.addLabel {
+  min-width: 0;
+  flex: 1 1 auto;
+  color: var(--p-color-text-interactive, #005bd3);
+  font-family: var(--p-font-family-sans, inherit);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.addMenuSpacer {
+  width: 28px;
+  min-width: 28px;
+  flex-shrink: 0;
+}

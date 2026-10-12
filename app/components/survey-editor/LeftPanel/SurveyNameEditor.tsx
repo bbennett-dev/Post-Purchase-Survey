@@ -1,5 +1,6 @@
-import { useCallback } from "react";
-import { fieldValue } from "../field-value";
+import { useEffect, useRef } from "react";
+import { Button, InlineStack, Text, TextField } from "@shopify/polaris";
+import { EditIcon } from "@shopify/polaris-icons";
 
 interface SurveyNameEditorProps {
   name: string;
@@ -9,9 +10,7 @@ interface SurveyNameEditorProps {
 }
 
 /**
- * Survey title with inline rename.
- * Polaris has no autofocus prop for App Home fields; after a user click,
- * call focus() on the s-text-field host (Shopify’s recommended approach).
+ * Survey title with inline rename; pen opens field with focus + full selection.
  */
 export function SurveyNameEditor({
   name,
@@ -19,32 +18,59 @@ export function SurveyNameEditor({
   onRenaming,
   onRename,
 }: SurveyNameEditorProps) {
-  const focusField = useCallback((field: HTMLElement | null) => {
-    field?.focus();
-  }, []);
+  const fieldId = "survey-name-editor-field";
+  const didFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (!renaming) {
+      didFocusRef.current = false;
+      return;
+    }
+    if (didFocusRef.current) {
+      return;
+    }
+
+    const focusAndSelect = () => {
+      const input = document.getElementById(fieldId) as HTMLInputElement | null;
+      if (!input) {
+        return;
+      }
+      input.focus();
+      input.select();
+      didFocusRef.current = true;
+    };
+
+    const frame = requestAnimationFrame(focusAndSelect);
+    return () => cancelAnimationFrame(frame);
+  }, [renaming]);
 
   if (renaming) {
     return (
-      <s-text-field
+      <TextField
+        id={fieldId}
         label="Survey name"
-        labelAccessibilityVisibility="exclusive"
+        labelHidden
         value={name}
-        onInput={(event) => onRename(fieldValue(event))}
+        onChange={onRename}
         onBlur={() => onRenaming(false)}
-        ref={focusField}
+        autoComplete="off"
+        autoFocus
+        selectTextOnFocus
       />
     );
   }
 
   return (
-    <s-stack direction="inline" gap="small-200" alignItems="center">
-      <s-heading>{name}</s-heading>
-      <s-button
-        icon="edit"
+    <InlineStack gap="200" blockAlign="center">
+      <Text as="h2" variant="headingMd">
+        {name}
+      </Text>
+      <Button
+        icon={EditIcon}
         variant="tertiary"
         accessibilityLabel="Rename survey"
         onClick={() => onRenaming(true)}
       />
-    </s-stack>
+    </InlineStack>
   );
 }

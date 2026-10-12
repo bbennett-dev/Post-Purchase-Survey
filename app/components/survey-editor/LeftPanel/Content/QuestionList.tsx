@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ActionList, BlockStack, Text } from "@shopify/polaris";
 import { QUESTION_TYPES } from "../../../../lib/survey/questions";
 import type { QuestionType, SurveyQuestion } from "../../../../lib/survey/types";
 import { QuestionDragPreview } from "../../QuestionDragPreview";
+import { QuestionDropLine } from "../../QuestionDropLine";
 import { QuestionRow } from "../../QuestionRow";
-import styles from "../../question-drag.module.css";
+import { useQuestionDragCursor } from "../../useEditorViewport";
 import { AddListRow } from "../AddListRow";
 import {
   DRAG_THRESHOLD,
@@ -21,10 +23,6 @@ interface QuestionListProps {
   onDeleteQuestion: (id: string) => void;
   onReorderQuestion: (order: string[]) => void;
   onAddQuestion: (type: QuestionType) => void;
-}
-
-function QuestionDropLine() {
-  return <div className={styles.dropLine} role="presentation" />;
 }
 
 /**
@@ -51,6 +49,7 @@ export function QuestionList({
   const questionsRef = useRef(questions);
   const reorderRef = useRef(onReorderQuestion);
   const sessionActive = pending !== null || drag !== null;
+  useQuestionDragCursor(sessionActive);
 
   pendingRef.current = pending;
   dragRef.current = drag;
@@ -69,10 +68,6 @@ export function QuestionList({
     if (!sessionActive) {
       return;
     }
-
-    const applyGrabbingCursor = () => {
-      document.body.classList.add("survey-question-dragging");
-    };
 
     const startOrMove = (event: PointerEvent) => {
       const activePending = pendingRef.current;
@@ -101,7 +96,6 @@ export function QuestionList({
           ),
         };
         dragRef.current = next;
-        applyGrabbingCursor();
         setPending(null);
         setDrag(next);
         return;
@@ -158,17 +152,12 @@ export function QuestionList({
       setDrag(null);
     };
 
-    if (dragRef.current) {
-      applyGrabbingCursor();
-    }
-
     window.addEventListener("pointermove", startOrMove);
     window.addEventListener("pointerup", finish);
     window.addEventListener("pointercancel", finish);
     window.addEventListener("keydown", cancel);
 
     return () => {
-      document.body.classList.remove("survey-question-dragging");
       window.removeEventListener("pointermove", startOrMove);
       window.removeEventListener("pointerup", finish);
       window.removeEventListener("pointercancel", finish);
@@ -179,29 +168,25 @@ export function QuestionList({
   const addContentRow = (
     <AddListRow
       label="Add content"
-      commandFor="add-question-menu"
       menu={
-        <s-menu id="add-question-menu" accessibilityLabel="Add a question">
-          {QUESTION_TYPES.map((item) => (
-            <s-button
-              key={item.type}
-              icon={item.icon}
-              onClick={() => onAddQuestion(item.type)}
-            >
-              {item.label}
-            </s-button>
-          ))}
-        </s-menu>
+        <ActionList
+          items={QUESTION_TYPES.map((item) => ({
+            content: item.label,
+            onAction: () => onAddQuestion(item.type),
+          }))}
+        />
       }
     />
   );
 
   if (questions.length === 0) {
     return (
-      <s-stack gap="small-200">
-        <s-paragraph color="subdued">No questions yet.</s-paragraph>
+      <BlockStack gap="200">
+        <Text as="p" tone="subdued">
+          No questions yet.
+        </Text>
         {addContentRow}
-      </s-stack>
+      </BlockStack>
     );
   }
 
@@ -216,7 +201,7 @@ export function QuestionList({
 
   return (
     <>
-      <s-stack gap="small-200">
+      <BlockStack gap="050">
         {questions.flatMap((question, index) => {
           const row = (
             <QuestionRow
@@ -224,6 +209,7 @@ export function QuestionList({
               question={question}
               selected={question.id === selectedQuestionId}
               dragging={drag?.id === question.id}
+              reorderActive={sessionActive}
               isFirst={index === 0}
               isLast={index === questions.length - 1}
               onSelect={onSelectQuestion}
@@ -244,12 +230,19 @@ export function QuestionList({
         })}
         {drag && dropBeforeId === null ? <QuestionDropLine /> : null}
         {addContentRow}
-      </s-stack>
+      </BlockStack>
       {drag && draggingQuestion ? (
         <QuestionDragPreview
           title={draggingQuestion.heading || "Untitled question"}
-          x={drag.x}
+          questionType={draggingQuestion.type}
+          selected={draggingQuestion.id === selectedQuestionId}
+          anchorLeft={
+            rows.current.get(drag.id)?.getBoundingClientRect().left ?? drag.x
+          }
           y={drag.y}
+          width={
+            rows.current.get(drag.id)?.getBoundingClientRect().width ?? 240
+          }
         />
       ) : null}
     </>

@@ -1,3 +1,4 @@
+import { BlockStack, Box, Divider } from "@shopify/polaris";
 import type {
   EditorPanel,
   QuestionType,
@@ -68,18 +69,23 @@ export function EditorLeftPanel(props: EditorLeftPanelProps) {
   return (
     <EditorScrollPanel
       accessibilityLabel="Survey structure and channels"
+      bordered={false}
       header={
-        <s-stack gap="base">
-          <SurveyNameEditor
-            name={survey.name}
-            renaming={renaming}
-            onRenaming={onRenaming}
-            onRename={onRename}
-          />
-          <s-divider direction="inline" color="base" />
-          <PanelTabs panel={panel} onPanel={onPanel} />
-          <s-divider direction="inline" color="base" />
-        </s-stack>
+        <BlockStack gap="0">
+          <Box paddingBlockEnd="300">
+            <SurveyNameEditor
+              name={survey.name}
+              renaming={renaming}
+              onRenaming={onRenaming}
+              onRename={onRename}
+            />
+          </Box>
+          <Divider />
+          <Box paddingBlock="300">
+            <PanelTabs panel={panel} onPanel={onPanel} />
+          </Box>
+          <Divider />
+        </BlockStack>
       }
     >
       {panel === "content" ? (
