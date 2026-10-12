@@ -208,7 +208,7 @@ export default function SurveysPage() {
                 placeholder="Search surveys"
                 value={query}
                 onInput={(event) => {
-                  setQuery(event.currentTarget.value);
+                  setQuery(event.currentTarget.value ?? "");
                   setPage(0);
                 }}
               />

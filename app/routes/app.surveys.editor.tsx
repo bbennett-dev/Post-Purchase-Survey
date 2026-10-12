@@ -1,11 +1,24 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import type {
+  ActionFunctionArgs,
+  HeadersFunction,
+  LoaderFunctionArgs,
+} from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { SurveyEditorChrome } from "../components/survey-editor/SurveyEditorChrome";
+import editorChromeStyles from "../components/survey-editor/editor-chrome.module.css";
+import "../components/survey-editor/editor-viewport.css";
+import { useFillRemainingViewportHeight } from "../components/survey-editor/useFillRemainingViewportHeight";
 import { closeSurveyEditor } from "../lib/open-survey-editor";
 import { createSampleSurvey } from "../lib/survey/questions";
+import {
+  PublishSurveyError,
+  publishSurveysToShop,
+} from "../lib/survey/publish-shopify.server";
+import type { CheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
+import { fetchCheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
 import type { SurveyDocument } from "../lib/survey/types";
 import { authenticate } from "../shopify.server";
 
@@ -15,6 +28,7 @@ interface EditorLoaderData {
   mode: EditorMode;
   heading: string;
   sourceLabel: string;
+  checkoutEditor: CheckoutEditorLinks;
 }
 
 const DISCARD_MODAL_ID = "discard-survey-changes";
@@ -40,7 +54,8 @@ const TEMPLATE_NAMES: Record<string, string> = {
 export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<EditorLoaderData> => {
-  await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
+  const checkoutEditor = await fetchCheckoutEditorLinks(admin, session.shop);
 
   const url = new URL(request.url);
   const templateId = url.searchParams.get("template");
@@ -51,6 +66,7 @@ export const loader = async ({
       mode: "edit",
       heading: "Edit survey",
       sourceLabel: "Changes here update this survey.",
+      checkoutEditor,
     };
   }
 
@@ -59,6 +75,7 @@ export const loader = async ({
       mode: "template",
       heading: TEMPLATE_NAMES[templateId] ?? "New survey",
       sourceLabel: "Started from a template. Question setup comes next.",
+      checkoutEditor,
     };
   }
 
@@ -66,7 +83,63 @@ export const loader = async ({
     mode: "create",
     heading: "New survey",
     sourceLabel: "Blank survey. Question setup comes next.",
+    checkoutEditor,
   };
+};
+
+interface SaveActionData {
+  ok: boolean;
+  error?: string;
+  handles?: string[];
+}
+
+/**
+ * Publishes the in-editor survey to shop metafields and the survey metaobject.
+ * Extensions read `$app.checkout_surveys` on Thank you and Order status pages.
+ */
+export const action = async ({
+  request,
+}: ActionFunctionArgs): Promise<SaveActionData> => {
+  const { admin } = await authenticate.admin(request);
+
+  if (request.method !== "POST") {
+    return { ok: false, error: "Method not allowed" };
+  }
+
+  let survey: SurveyDocument;
+  try {
+    const formData = await request.formData();
+    const raw = formData.get("survey");
+    if (typeof raw !== "string" || raw.trim().length === 0) {
+      return { ok: false, error: "Missing survey payload" };
+    }
+    survey = JSON.parse(raw) as SurveyDocument;
+  } catch {
+    return { ok: false, error: "Invalid survey JSON" };
+  }
+
+  if (!survey.name?.trim()) {
+    return { ok: false, error: "Survey name is required" };
+  }
+
+  if (survey.channels.postPurchasePage?.enabled !== true) {
+    return {
+      ok: false,
+      error:
+        "Turn on “Thank you / Order status” in the Channel tab before saving for checkout.",
+    };
+  }
+
+  try {
+    const { handles } = await publishSurveysToShop(admin, [survey]);
+    return { ok: true, handles };
+  } catch (error) {
+    if (error instanceof PublishSurveyError) {
+      return { ok: false, error: error.message };
+    }
+    console.error("publishSurveysToShop", error);
+    return { ok: false, error: "Publish failed. Check server logs." };
+  }
 };
 
 function discardMessage(mode: EditorMode): string {
@@ -92,34 +165,80 @@ function openDiscardModal(): void {
 /**
  * Survey editor.
  * The document matches the get-survey response. Content can be edited in
- * memory. Save does not call the backend yet.
+ * memory until Save publishes to Shopify metafields for checkout extensions.
  */
 export default function SurveyEditorPage() {
   const data = useLoaderData<typeof loader>();
   const shopify = useAppBridge();
+  const saveFetcher = useFetcher<SaveActionData>();
   const [survey, setSurvey] = useState<SurveyDocument>(() =>
     createSampleSurvey(),
   );
 
+  const isSaving =
+    saveFetcher.state === "submitting" || saveFetcher.state === "loading";
+  const editorBodyRef = useRef<HTMLDivElement>(null);
+  useFillRemainingViewportHeight(editorBodyRef);
+
+  /** Keep scroll inside left/right panels, not the app window document. */
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (saveFetcher.state !== "idle" || !saveFetcher.data) {
+      return;
+    }
+    if (saveFetcher.data.ok) {
+      shopify.toast.show("Survey published for Thank you & Order status");
+      return;
+    }
+    if (saveFetcher.data.error) {
+      shopify.toast.show(saveFetcher.data.error, { isError: true });
+    }
+  }, [saveFetcher.state, saveFetcher.data, shopify]);
+
+  function saveSurvey(): void {
+    const formData = new FormData();
+    formData.set("survey", JSON.stringify(survey));
+    saveFetcher.submit(formData, { method: "POST" });
+  }
+
   return (
-    <s-page heading={survey.name} inlineSize="large">
-      <s-button slot="secondary-actions" onClick={openDiscardModal}>
-        Discard
-      </s-button>
-      <s-button
-        slot="primary-action"
-        variant="primary"
-        icon="save"
-        onClick={() => {
-          shopify.toast.show("Saving comes next");
-        }}
-      >
-        Save
-      </s-button>
+    <div className={editorChromeStyles.editorViewport}>
+      <s-page heading={survey.name} inlineSize="large">
+        <s-button slot="secondary-actions" onClick={openDiscardModal}>
+          Discard
+        </s-button>
+        <s-button
+          slot="primary-action"
+          variant="primary"
+          icon="save"
+          loading={isSaving}
+          disabled={isSaving}
+          onClick={saveSurvey}
+        >
+          Save
+        </s-button>
 
-      <SurveyEditorChrome survey={survey} onSurveyChange={setSurvey} />
+        <div ref={editorBodyRef} className={editorChromeStyles.editorPage}>
+          <SurveyEditorChrome
+            survey={survey}
+            checkoutEditor={data.checkoutEditor}
+            onSurveyChange={setSurvey}
+          />
+        </div>
 
-      <s-modal
+        <s-modal
         id={DISCARD_MODAL_ID}
         heading="Discard unsaved changes?"
         size="small"
@@ -146,8 +265,9 @@ export default function SurveyEditorPage() {
         >
           Discard changes
         </s-button>
-      </s-modal>
-    </s-page>
+        </s-modal>
+      </s-page>
+    </div>
   );
 }
 
