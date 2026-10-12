@@ -3,6 +3,7 @@ import type {
   SurveyQuestion,
   ThankYouContent,
 } from "../../lib/survey/types";
+import styles from "./editor-scroll-panel.module.css";
 
 interface EditorPreviewProps {
   question: SurveyQuestion | null;
@@ -21,31 +22,35 @@ export function EditorPreview({
   const narrow = device !== "desktop";
 
   return (
-    <s-box
-      padding="base"
-      background="subdued"
-      borderRadius="base"
-      minBlockSize="720px"
-    >
-      <s-stack gap="base" alignItems="center">
-        <s-box
-          padding="base"
-          background="base"
-          border="base"
-          borderRadius="base"
-          inlineSize={narrow ? "360px" : "100%"}
+    <div className={styles.previewColumn}>
+      <div className={styles.previewFrame}>
+        <div
+          className={styles.previewScroll}
+          role="region"
+          aria-label="Survey preview"
+          tabIndex={0}
         >
-          {ending ? (
-            <EndingPreview ending={ending} />
-          ) : (
-            <CheckoutPreview
-              question={question}
-              showSummary={device === "desktop"}
-            />
-          )}
-        </s-box>
-      </s-stack>
-    </s-box>
+          <s-stack gap="base" alignItems="center">
+            <s-box
+              padding="base"
+              background="base"
+              border="base"
+              borderRadius="base"
+              inlineSize={narrow ? "360px" : "100%"}
+            >
+              {ending ? (
+                <EndingPreview ending={ending} />
+              ) : (
+                <CheckoutPreview
+                  question={question}
+                  showSummary={device === "desktop"}
+                />
+              )}
+            </s-box>
+          </s-stack>
+        </div>
+      </div>
+    </div>
   );
 }
 

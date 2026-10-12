@@ -10,16 +10,22 @@ import type {
   EditorPanel,
   EditorWorkspace,
   PreviewDevice,
+  SurveyChannel,
   SurveyDocument,
   SurveyQuestion,
 } from "../../lib/survey/types";
-import { EditorInspector } from "./EditorInspector";
+import type { CheckoutEditorLinks } from "../../lib/shopify/checkout-editor-url.server";
 import { EditorLeftPanel } from "./LeftPanel";
+import { EditorRightPanel } from "./RightPanel";
+import chromeStyles from "./editor-chrome.module.css";
+import scrollPanelStyles from "./editor-scroll-panel.module.css";
+import { EditorScrollRegion } from "./EditorScrollRegion";
 import { EditorPreview } from "./EditorPreview";
 import { EditorToolbar } from "./EditorToolbar";
 
 interface SurveyEditorChromeProps {
   survey: SurveyDocument;
+  checkoutEditor: CheckoutEditorLinks;
   onSurveyChange: (survey: SurveyDocument) => void;
 }
 
@@ -29,6 +35,7 @@ interface SurveyEditorChromeProps {
  */
 export function SurveyEditorChrome({
   survey,
+  checkoutEditor,
   onSurveyChange,
 }: SurveyEditorChromeProps) {
   const [workspace, setWorkspace] = useState<EditorWorkspace>("build");
@@ -38,6 +45,9 @@ export function SurveyEditorChrome({
     survey.questions[0]?.id ?? "",
   );
   const [selectedEndingId, setSelectedEndingId] = useState<string | null>(null);
+  const [selectedChannelKey, setSelectedChannelKey] = useState<string | null>(
+    "postPurchasePage",
+  );
   const [renaming, setRenaming] = useState(false);
   const [showTranslationTip, setShowTranslationTip] = useState(
     Object.keys(survey.translation).length > 0,
@@ -66,26 +76,55 @@ export function SurveyEditorChrome({
     setSelectedQuestionId(id);
   };
 
-  return (
-    <s-stack gap="small">
-      <EditorToolbar
-        workspace={workspace}
-        device={device}
-        isActive={survey.isActive}
-        onWorkspace={setWorkspace}
-        onDevice={setDevice}
-        onActive={(isActive) => onSurveyChange({ ...survey, isActive })}
-      />
+  const setPanelWithDefaults = (next: EditorPanel) => {
+    setPanel(next);
+    if (next === "channel" && !selectedChannelKey) {
+      setSelectedChannelKey("postPurchasePage");
+    }
+  };
 
-      <s-grid
-        gridTemplateColumns={
-          device === "fullscreen" ? "1fr" : "300px 1fr 300px"
-        }
-        gap="small"
-        alignItems="start"
-      >
+  const selectChannel = (channelKey: string) => {
+    setSelectedChannelKey(channelKey.length > 0 ? channelKey : null);
+  };
+
+  const handleChannelChange = (channelKey: string, patch: SurveyChannel) => {
+    const current = survey.channels[channelKey] ?? { type: channelKey };
+    const nextChannel = { ...current, ...patch };
+    const channels = { ...survey.channels, [channelKey]: nextChannel };
+    if (!("enabled" in patch)) {
+      onSurveyChange({ ...survey, channels });
+      return;
+    }
+    const enabled = nextChannel.enabled === true;
+    const channelTypes = enabled
+      ? survey.channelTypes.includes(channelKey)
+        ? survey.channelTypes
+        : [...survey.channelTypes, channelKey]
+      : survey.channelTypes.filter((key) => key !== channelKey);
+    onSurveyChange({ ...survey, channels, channelTypes });
+  };
+
+  const columnsClass =
+    device === "fullscreen"
+      ? `${chromeStyles.editorColumns} ${chromeStyles.editorColumnsFullscreen}`
+      : chromeStyles.editorColumns;
+
+  return (
+    <div className={chromeStyles.editorRoot}>
+      <div className={chromeStyles.editorToolbarSlot}>
+        <EditorToolbar
+          workspace={workspace}
+          device={device}
+          isActive={survey.isActive}
+          onWorkspace={setWorkspace}
+          onDevice={setDevice}
+          onActive={(isActive) => onSurveyChange({ ...survey, isActive })}
+        />
+      </div>
+
+      <div className={columnsClass}>
         {device === "fullscreen" ? null : (
-          <s-box inlineSize="300px" overflow="hidden">
+          <div className={chromeStyles.editorColumn}>
             <EditorLeftPanel
               survey={survey}
               panel={panel}
@@ -93,7 +132,9 @@ export function SurveyEditorChrome({
               selectedQuestionId={selectedEnding ? "" : selectedQuestionId}
               selectedEndingId={selectedEndingId}
               showTranslationTip={showTranslationTip}
-              onPanel={setPanel}
+              onPanel={setPanelWithDefaults}
+              selectedChannelKey={selectedChannelKey}
+              onSelectChannel={selectChannel}
               onRenaming={setRenaming}
               onRename={(name) => onSurveyChange({ ...survey, name })}
               onSelectQuestion={selectQuestion}
@@ -174,38 +215,43 @@ export function SurveyEditorChrome({
                   setSelectedQuestionId(survey.questions[0]?.id ?? "");
                 }
               }}
+              onChannelChange={handleChannelChange}
             />
-          </s-box>
+          </div>
         )}
 
-        {workspace === "logic" ? (
-          <s-box
-            padding="large"
-            background="subdued"
-            borderRadius="base"
-            minBlockSize="720px"
-          >
-            <s-stack gap="small-200">
-              <s-heading>Advanced logic</s-heading>
-              <s-paragraph color="subdued">
-                Branching rules for this survey will be edited on this canvas.
-                Advanced logic is {survey.advancedLogicEnabled ? "on" : "off"}.
-              </s-paragraph>
-            </s-stack>
-          </s-box>
-        ) : (
-          <EditorPreview
-            question={selectedEnding ? null : selectedQuestion}
-            device={device}
-            ending={selectedEnding}
-          />
-        )}
+        <div className={chromeStyles.editorColumn}>
+          {workspace === "logic" ? (
+            <div className={scrollPanelStyles.previewColumn}>
+              <EditorScrollRegion accessibilityLabel="Advanced logic">
+                <s-stack gap="small-200">
+                  <s-heading>Advanced logic</s-heading>
+                  <s-paragraph color="subdued">
+                    Branching rules for this survey will be edited on this
+                    canvas. Advanced logic is{" "}
+                    {survey.advancedLogicEnabled ? "on" : "off"}.
+                  </s-paragraph>
+                </s-stack>
+              </EditorScrollRegion>
+            </div>
+          ) : (
+            <EditorPreview
+              question={selectedEnding ? null : selectedQuestion}
+              device={device}
+              ending={selectedEnding}
+            />
+          )}
+        </div>
 
         {device === "fullscreen" ? null : (
-          <s-box inlineSize="300px" overflow="hidden">
-            <EditorInspector
+          <div className={chromeStyles.editorColumn}>
+            <EditorRightPanel
+              panel={panel}
+              survey={survey}
+              checkoutEditor={checkoutEditor}
               question={selectedEnding ? null : selectedQuestion}
               ending={selectedEnding}
+              selectedChannelKey={selectedChannelKey}
               onQuestionChange={(patch) => {
                 if (selectedQuestion) {
                   patchQuestion(selectedQuestion.id, patch);
@@ -249,10 +295,17 @@ export function SurveyEditorChrome({
                 updateQuestions(questions);
                 setSelectedQuestionId(questions[0]?.id ?? "");
               }}
+              onChannelChange={handleChannelChange}
+              onDiscountChange={(patch) => {
+                onSurveyChange({
+                  ...survey,
+                  discount: { ...survey.discount, ...patch },
+                });
+              }}
             />
-          </s-box>
+          </div>
         )}
-      </s-grid>
-    </s-stack>
+      </div>
+    </div>
   );
 }
