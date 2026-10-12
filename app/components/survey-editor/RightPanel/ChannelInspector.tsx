@@ -1,3 +1,4 @@
+import { BlockStack, Text } from "@shopify/polaris";
 import type { CheckoutEditorLinks } from "../../../lib/shopify/checkout-editor-url.server";
 import { CHANNEL_DEFINITIONS } from "../../../lib/survey/channels";
 import type {
@@ -30,9 +31,9 @@ export function ChannelInspector({
 }: ChannelInspectorProps) {
   if (!selectedChannelKey) {
     return (
-      <s-paragraph color="subdued">
+      <Text as="p" tone="subdued">
         Expand a channel on the left to edit its advanced settings here.
-      </s-paragraph>
+      </Text>
     );
   }
 
@@ -41,16 +42,21 @@ export function ChannelInspector({
   );
 
   if (!definition) {
-    return <s-paragraph color="subdued">Unknown channel.</s-paragraph>;
+    return (
+      <Text as="p" tone="subdued">
+        Unknown channel.
+      </Text>
+    );
   }
 
   const channel = survey.channels[selectedChannelKey] ?? {};
-  const title =
-    RIGHT_PANEL_TITLES[selectedChannelKey] ?? definition.label;
+  const title = RIGHT_PANEL_TITLES[selectedChannelKey] ?? definition.label;
 
   return (
-    <s-stack gap="base">
-      <s-text type="strong">{title}</s-text>
+    <BlockStack gap="400">
+      <Text as="p" fontWeight="semibold">
+        {title}
+      </Text>
 
       {selectedChannelKey === "postPurchasePage" ? (
         <PostPurchaseAdvancedSettings
@@ -59,12 +65,10 @@ export function ChannelInspector({
           onChange={(patch) => onChannelChange(selectedChannelKey, patch)}
         />
       ) : (
-        <s-stack gap="small-200">
-          <s-paragraph color="subdued">
-            Advanced settings for this channel will appear here.
-          </s-paragraph>
-        </s-stack>
+        <Text as="p" tone="subdued">
+          Advanced settings for this channel will appear here.
+        </Text>
       )}
-    </s-stack>
+    </BlockStack>
   );
 }

@@ -1,12 +1,19 @@
+import {
+  BlockStack,
+  Box,
+  Checkbox,
+  Divider,
+  InlineGrid,
+  Select,
+  Text,
+} from "@shopify/polaris";
 import type {
   ChoiceAnswerLayout,
   SurveyQuestion,
 } from "../../../../lib/survey/types";
 import { QuestionImageSection } from "../../shared/QuestionImageSection";
-import { fieldValue } from "../../field-value";
 import { ChoiceAnswerListEditor } from "./ChoiceAnswerListEditor";
 import { CustomAnswerSection } from "./CustomAnswerSection";
-import styles from "./single-choice-question-fields.module.css";
 
 export interface SingleChoiceQuestionFieldsProps {
   question: SurveyQuestion;
@@ -20,7 +27,7 @@ const defaultImage = (question: SurveyQuestion) =>
     sizePercentage: 100,
   };
 
-const ANSWER_LAYOUT_OPTIONS: { value: ChoiceAnswerLayout; label: string }[] = [
+const ANSWER_LAYOUT_OPTIONS: { label: string; value: ChoiceAnswerLayout }[] = [
   { value: "text_only", label: "Text only" },
   { value: "text_with_image", label: "Text with image" },
 ];
@@ -36,91 +43,59 @@ export function SingleChoiceQuestionFields({
   const answerLayout = question.answerLayout ?? "text_only";
 
   return (
-    <s-stack gap="base">
+    <BlockStack gap="500">
       <QuestionImageSection
-        menuId={`question-image-menu-${question.id}`}
         image={defaultImage(question)}
         onChange={(image) => onQuestionChange({ image })}
         showSize
       />
 
-      <s-divider direction="inline" color="base" />
-
-      <s-checkbox
+      <Checkbox
         label="Allow customers to skip this question"
         checked={question.skippable}
-        onChange={(event) =>
-          onQuestionChange({
-            skippable: Boolean(
-              (event.currentTarget as HTMLElement & { checked?: boolean })
-                .checked,
-            ),
-          })
-        }
+        onChange={(skippable) => onQuestionChange({ skippable })}
       />
 
-      <s-divider direction="inline" color="base" />
-
-      <s-grid
-        gridTemplateColumns="minmax(0, 1fr) auto"
-        gap="small-200"
-        alignItems="center"
-      >
-        <s-text>Answer layout</s-text>
-        <div className={styles.answerLayoutSelect}>
-          <s-select
+      <InlineGrid columns="1fr minmax(140px, 11.75rem)" gap="200" alignItems="end">
+        <Text as="span">Answer layout</Text>
+        <Box minWidth="0">
+          <Select
             label="Answer layout"
-            labelAccessibilityVisibility="exclusive"
+            labelHidden
+            options={ANSWER_LAYOUT_OPTIONS}
             value={answerLayout}
-            onChange={(event) => {
-              const next = fieldValue(event);
-              if (
-                next === "text_only" ||
-                next === "text_with_image"
-              ) {
+            onChange={(next) => {
+              if (next === "text_only" || next === "text_with_image") {
                 onQuestionChange({ answerLayout: next });
               }
             }}
-          >
-            {ANSWER_LAYOUT_OPTIONS.map((option) => (
-              <s-option key={option.value} value={option.value}>
-                {option.label}
-              </s-option>
-            ))}
-          </s-select>
-        </div>
-      </s-grid>
+          />
+        </Box>
+      </InlineGrid>
 
-      <s-divider direction="inline" color="base" />
+      <Divider />
 
       <ChoiceAnswerListEditor
         answers={answers}
         onChange={(next) => onQuestionChange({ answers: next })}
       />
 
-      <s-checkbox
+      <Checkbox
         label="Shuffle answers"
         checked={question.shuffleAnswer === true}
-        onChange={(event) =>
-          onQuestionChange({
-            shuffleAnswer: Boolean(
-              (event.currentTarget as HTMLElement & { checked?: boolean })
-                .checked,
-            ),
-          })
-        }
+        onChange={(shuffleAnswer) => onQuestionChange({ shuffleAnswer })}
       />
-      <s-text color="subdued">
+      <Text as="p" tone="subdued">
         Randomize answer order for each user
-      </s-text>
+      </Text>
 
-      <s-divider direction="inline" color="base" />
+      <Divider />
 
       <CustomAnswerSection
         question={question}
         answers={answers}
         onQuestionChange={onQuestionChange}
       />
-    </s-stack>
+    </BlockStack>
   );
 }

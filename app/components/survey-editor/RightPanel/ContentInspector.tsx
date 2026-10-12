@@ -1,6 +1,19 @@
+import {
+  BlockStack,
+  Button,
+  Checkbox,
+  InlineStack,
+  Select,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import { DeleteIcon, MenuHorizontalIcon } from "@shopify/polaris-icons";
 import { QUESTION_TYPES } from "../../../lib/survey/questions";
-import type { QuestionType, SurveyQuestion, ThankYouContent } from "../../../lib/survey/types";
-import { fieldValue } from "../field-value";
+import type {
+  QuestionType,
+  SurveyQuestion,
+  ThankYouContent,
+} from "../../../lib/survey/types";
 import { SingleChoiceQuestionFields } from "./Content/SingleChoiceQuestionFields";
 
 export interface ContentInspectorProps {
@@ -25,69 +38,82 @@ export function ContentInspector({
 }: ContentInspectorProps) {
   if (ending) {
     return (
-      <s-stack gap="base">
-        <s-heading>Ending</s-heading>
-        <s-text-field
+      <BlockStack gap="400">
+        <Text as="h2" variant="headingMd">
+          Ending
+        </Text>
+        <TextField
           label="Heading"
           value={ending.heading}
-          onInput={(event) => onEndingChange({ heading: fieldValue(event) })}
+          onChange={(heading) => onEndingChange({ heading })}
+          autoComplete="off"
         />
-        <s-text-area
+        <TextField
           label="Description"
           value={ending.description}
-          onInput={(event) =>
-            onEndingChange({ description: fieldValue(event) })
-          }
+          onChange={(description) => onEndingChange({ description })}
+          multiline={3}
+          autoComplete="off"
         />
-        <s-text-field
+        <TextField
           label="Button text"
           value={ending.buttonText}
-          onInput={(event) =>
-            onEndingChange({ buttonText: fieldValue(event) })
-          }
+          onChange={(buttonText) => onEndingChange({ buttonText })}
+          autoComplete="off"
         />
-      </s-stack>
+      </BlockStack>
     );
   }
 
   if (!question) {
     return (
-      <s-paragraph color="subdued">
+      <Text as="p" tone="subdued">
         Select a question or ending from the list.
-      </s-paragraph>
+      </Text>
     );
   }
 
   return (
-    <s-stack gap="base">
-      <s-heading>Question</s-heading>
-      <s-select
+    <BlockStack gap="500">
+      <InlineStack align="space-between" blockAlign="center">
+        <Text as="h2" variant="headingMd">
+          Question
+        </Text>
+        <Button
+          icon={MenuHorizontalIcon}
+          variant="tertiary"
+          accessibilityLabel="Question actions"
+          disabled
+        />
+      </InlineStack>
+
+      <Select
         label="Question type"
+        options={QUESTION_TYPES.map((item) => ({
+          label: item.label,
+          value: item.type,
+        }))}
         value={question.type}
-        onChange={(event) => {
-          const next = fieldValue(event);
+        onChange={(next) => {
           if (QUESTION_TYPES.some((item) => item.type === next)) {
             onTypeChange(next as QuestionType);
           }
         }}
-      >
-        {QUESTION_TYPES.map((item) => (
-          <s-option key={item.type} value={item.type}>
-            {item.label}
-          </s-option>
-        ))}
-      </s-select>
-      <s-text-field
-        label="Heading"
-        value={question.heading}
-        onInput={(event) => onQuestionChange({ heading: fieldValue(event) })}
       />
-      <s-text-area
+
+      <TextField
+        label="Question title"
+        value={question.heading}
+        onChange={(heading) => onQuestionChange({ heading })}
+        autoComplete="off"
+      />
+
+      <TextField
         label="Description"
         value={question.description ?? ""}
-        onInput={(event) =>
-          onQuestionChange({ description: fieldValue(event) })
-        }
+        onChange={(description) => onQuestionChange({ description })}
+        multiline={3}
+        autoComplete="off"
       />
 
       {question.type === "single" ? (
@@ -102,10 +128,15 @@ export function ContentInspector({
         />
       )}
 
-      <s-button icon="delete" tone="critical" onClick={onDeleteQuestion}>
+      <Button
+        icon={DeleteIcon}
+        variant="plain"
+        tone="critical"
+        onClick={onDeleteQuestion}
+      >
         Delete question
-      </s-button>
-    </s-stack>
+      </Button>
+    </BlockStack>
   );
 }
 
@@ -118,115 +149,69 @@ function LegacyQuestionFields({
   onQuestionChange: (patch: Partial<SurveyQuestion>) => void;
 }) {
   return (
-    <s-stack gap="base">
-      <s-text-field
-        label="Image URL"
-        value={question.image?.url ?? ""}
-        onInput={(event) =>
-          onQuestionChange({
-            image: {
-              url: fieldValue(event),
-              alignment: question.image?.alignment ?? "center",
-              sizePercentage: question.image?.sizePercentage ?? 100,
-            },
-          })
-        }
-      />
-      <s-select
-        label="Image alignment"
-        value={question.image?.alignment ?? "center"}
-        onChange={(event) => {
-          const alignment = fieldValue(event);
-          if (
-            alignment === "left" ||
-            alignment === "center" ||
-            alignment === "right"
-          ) {
-            onQuestionChange({
-              image: {
-                url: question.image?.url ?? "",
-                alignment,
-                sizePercentage: question.image?.sizePercentage ?? 100,
-              },
-            });
-          }
-        }}
-      >
-        <s-option value="left">Left</s-option>
-        <s-option value="center">Center</s-option>
-        <s-option value="right">Right</s-option>
-      </s-select>
-      <s-checkbox
+    <BlockStack gap="400">
+      <Checkbox
         label="Allow customers to skip this question"
         checked={question.skippable}
-        onChange={(event) =>
-          onQuestionChange({
-            skippable: Boolean(
-              (event.currentTarget as HTMLElement & { checked?: boolean })
-                .checked,
-            ),
-          })
-        }
+        onChange={(skippable) => onQuestionChange({ skippable })}
       />
       {question.answers ? (
-        <s-stack gap="small-200">
-          <s-text type="strong">Answers</s-text>
+        <BlockStack gap="200">
+          <Text as="p" fontWeight="semibold">
+            Answers
+          </Text>
           {question.answers.map((answer) => (
-            <s-text-field
+            <TextField
               key={answer.id}
               label="Answer"
-              labelAccessibilityVisibility="exclusive"
+              labelHidden
               value={answer.content}
-              onInput={(event) => {
-                const content = fieldValue(event);
+              onChange={(content) => {
                 onQuestionChange({
                   answers: question.answers?.map((item) =>
                     item.id === answer.id ? { ...item, content } : item,
                   ),
                 });
               }}
+              autoComplete="off"
             />
           ))}
-        </s-stack>
+        </BlockStack>
       ) : null}
       {question.leftLabel !== undefined ? (
-        <s-text-field
+        <TextField
           label="Left label"
           value={question.leftLabel}
-          onInput={(event) =>
-            onQuestionChange({ leftLabel: fieldValue(event) })
-          }
+          onChange={(leftLabel) => onQuestionChange({ leftLabel })}
+          autoComplete="off"
         />
       ) : null}
       {question.rightLabel !== undefined ? (
-        <s-text-field
+        <TextField
           label="Right label"
           value={question.rightLabel}
-          onInput={(event) =>
-            onQuestionChange({ rightLabel: fieldValue(event) })
-          }
+          onChange={(rightLabel) => onQuestionChange({ rightLabel })}
+          autoComplete="off"
         />
       ) : null}
       {question.placeholder !== undefined ? (
-        <s-text-field
+        <TextField
           label="Placeholder"
           value={question.placeholder}
-          onInput={(event) =>
-            onQuestionChange({ placeholder: fieldValue(event) })
-          }
+          onChange={(placeholder) => onQuestionChange({ placeholder })}
+          autoComplete="off"
         />
       ) : null}
       {question.agreeDescriptionEmail !== undefined ? (
-        <s-text-field
+        <TextField
           label="Agreement label"
           value={question.agreeDescriptionEmail}
-          onInput={(event) =>
-            onQuestionChange({
-              agreeDescriptionEmail: fieldValue(event),
-            })
+          onChange={(agreeDescriptionEmail) =>
+            onQuestionChange({ agreeDescriptionEmail })
           }
+          autoComplete="off"
         />
       ) : null}
-    </s-stack>
+    </BlockStack>
   );
 }

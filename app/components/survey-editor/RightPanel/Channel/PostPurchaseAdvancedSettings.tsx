@@ -1,8 +1,18 @@
 import { useState } from "react";
+import { Link } from "react-router";
+import {
+  BlockStack,
+  Button,
+  Card,
+  InlineGrid,
+  Select,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import { ExternalIcon } from "@shopify/polaris-icons";
 import { openShopifyAdminUrl } from "../../../../lib/open-checkout-editor";
 import type { CheckoutEditorLinks } from "../../../../lib/shopify/checkout-editor-url.server";
 import type { PostPurchasePageChannel } from "../../../../lib/survey/types";
-import { fieldValue } from "../../field-value";
 import { SideLogoSection } from "./SideLogoSection";
 
 interface PostPurchaseAdvancedSettingsProps {
@@ -14,13 +24,13 @@ interface PostPurchaseAdvancedSettingsProps {
 const DISPLAY_TYPE_OPTIONS = [
   { value: "blockType", label: "Block" },
   { value: "announcementBarType", label: "Announcement bar" },
-] as const;
+];
 
 const INSTRUCTION_URL =
   "https://shopify.dev/docs/apps/build/checkout/thank-you-order-status";
 
 /**
- * Thank you page advanced settings (right column), aligned with merchant UX reference.
+ * Thank you page advanced settings (right column).
  */
 export function PostPurchaseAdvancedSettings({
   channel,
@@ -28,101 +38,91 @@ export function PostPurchaseAdvancedSettings({
   onChange,
 }: PostPurchaseAdvancedSettingsProps) {
   const [sideLogoOpen, setSideLogoOpen] = useState(true);
-
   const displayType = channel.displayType ?? "blockType";
 
   return (
-    <s-stack gap="base">
-      <s-stack gap="small-200">
-        <s-text type="strong">Display type</s-text>
-        <s-select
-          label="Display type"
-          labelAccessibilityVisibility="exclusive"
-          value={displayType}
-          onChange={(event) => onChange({ displayType: fieldValue(event) })}
-        >
-          {DISPLAY_TYPE_OPTIONS.map((opt) => (
-            <s-option key={opt.value} value={opt.value}>
-              {opt.label}
-            </s-option>
-          ))}
-        </s-select>
-      </s-stack>
+    <BlockStack gap="400">
+      <Select
+        label="Display type"
+        options={DISPLAY_TYPE_OPTIONS}
+        value={displayType}
+        onChange={(next) => onChange({ displayType: next })}
+      />
 
       {displayType === "blockType" ? (
-        <s-box padding="base" border="base" borderRadius="base">
-          <s-stack gap="small">
-            <s-grid
-              gridTemplateColumns="1fr auto"
-              gap="small-200"
-              alignItems="center"
-            >
-              <s-text type="strong">Display setting</s-text>
-              <s-link href={INSTRUCTION_URL} target="_blank">
+        <Card>
+          <BlockStack gap="300">
+            <InlineGrid columns="1fr auto" gap="200" alignItems="center">
+              <Text as="p" fontWeight="semibold">
+                Display setting
+              </Text>
+              <Button url={INSTRUCTION_URL} external variant="plain">
                 View instruction
-              </s-link>
-            </s-grid>
+              </Button>
+            </InlineGrid>
 
-            <s-button
-              variant="secondary"
-              icon="external"
-              inlineSize="fill"
+            <Button
+              icon={ExternalIcon}
+              fullWidth
               onClick={() => openShopifyAdminUrl(checkoutEditor.thankYou)}
             >
               Add block
-            </s-button>
+            </Button>
 
-            <s-paragraph color="subdued">
-              <s-link href="/app/settings">Contact us</s-link> if you need any
+            <Text as="p" tone="subdued">
+              <Link to="/app/settings">Contact us</Link> if you need any
               support.
-            </s-paragraph>
-          </s-stack>
-        </s-box>
+            </Text>
+          </BlockStack>
+        </Card>
       ) : (
-        <s-stack gap="small-200">
-          <s-text-field
+        <BlockStack gap="200">
+          <TextField
             label="Modal title"
             value={channel.announcementBar?.modalTitle ?? ""}
-            onInput={(event) =>
+            onChange={(modalTitle) =>
               onChange({
                 announcementBar: {
                   ...channel.announcementBar,
-                  modalTitle: fieldValue(event),
+                  modalTitle,
                   content: channel.announcementBar?.content ?? "",
                   buttonText: channel.announcementBar?.buttonText ?? "",
                 },
               })
             }
+            autoComplete="off"
           />
-          <s-text-field
+          <TextField
             label="Announcement text"
             value={channel.announcementBar?.content ?? ""}
-            onInput={(event) =>
+            onChange={(content) =>
               onChange({
                 announcementBar: {
                   ...channel.announcementBar,
                   modalTitle: channel.announcementBar?.modalTitle ?? "",
-                  content: fieldValue(event),
+                  content,
                   buttonText: channel.announcementBar?.buttonText ?? "",
                 },
               })
             }
+            autoComplete="off"
           />
-          <s-text-field
+          <TextField
             label="Button text"
             value={channel.announcementBar?.buttonText ?? ""}
-            onInput={(event) =>
+            onChange={(buttonText) =>
               onChange({
                 announcementBar: {
                   ...channel.announcementBar,
                   modalTitle: channel.announcementBar?.modalTitle ?? "",
                   content: channel.announcementBar?.content ?? "",
-                  buttonText: fieldValue(event),
+                  buttonText,
                 },
               })
             }
+            autoComplete="off"
           />
-        </s-stack>
+        </BlockStack>
       )}
 
       <SideLogoSection
@@ -131,6 +131,6 @@ export function PostPurchaseAdvancedSettings({
         expanded={sideLogoOpen}
         onToggleExpanded={() => setSideLogoOpen((open) => !open)}
       />
-    </s-stack>
+    </BlockStack>
   );
 }

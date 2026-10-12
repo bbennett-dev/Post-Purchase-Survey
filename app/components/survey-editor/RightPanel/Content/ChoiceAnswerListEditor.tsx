@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useState, type DragEvent } from "react";
+import {
+  BlockStack,
+  Box,
+  Button,
+  Icon,
+  InlineGrid,
+  Text,
+  TextField,
+  UnstyledButton,
+} from "@shopify/polaris";
+import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
 import type { SurveyAnswer } from "../../../../lib/survey/types";
-import { fieldValue } from "../../field-value";
 import { AddListRow } from "../../LeftPanel/AddListRow";
-import styles from "./choice-answer-list.module.css";
 
 export interface ChoiceAnswerListEditorProps {
   answers: SurveyAnswer[];
@@ -63,15 +72,16 @@ export function ChoiceAnswerListEditor({
   };
 
   return (
-    <s-stack gap="small-200">
-      <s-text type="strong">Answer(s)</s-text>
+    <BlockStack gap="200">
+      <Text as="p" fontWeight="semibold">
+        Answer(s)
+      </Text>
 
       {answers.map((answer) => (
         <div
           key={answer.id}
-          className={`${styles.row} ${draggingId === answer.id ? styles.rowDragging : ""}`}
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
+          onDragOver={(event: DragEvent) => event.preventDefault()}
+          onDrop={(event: DragEvent) => {
             event.preventDefault();
             const fromId = event.dataTransfer.getData("text/answer-id");
             if (fromId) {
@@ -80,47 +90,52 @@ export function ChoiceAnswerListEditor({
             setDraggingId(null);
           }}
         >
-          <s-grid
-            gridTemplateColumns="auto minmax(0, 1fr) auto"
-            gap="small-200"
-            alignItems="center"
+          <Box
+            padding="100"
+            background="bg-surface-secondary"
+            borderRadius="200"
+            opacity={draggingId === answer.id ? "0.45" : undefined}
           >
-            <s-box padding="small-200">
-              <div
-                className={styles.dragHandle}
-                draggable
-                role="button"
-                tabIndex={0}
-                aria-label={`Reorder ${answer.content || "answer"}`}
-                onDragStart={(event) => {
-                  event.dataTransfer.setData("text/answer-id", answer.id);
-                  event.dataTransfer.effectAllowed = "move";
-                  setDraggingId(answer.id);
-                }}
-                onDragEnd={() => setDraggingId(null)}
+          <InlineGrid columns="auto minmax(0, 1fr) auto" gap="200" alignItems="center">
+            <Box padding="200">
+              <UnstyledButton
+                accessibilityLabel={`Reorder ${answer.content || "answer"}`}
               >
-                <s-icon type="drag-handle" color="subdued" />
-              </div>
-            </s-box>
-            <s-text-field
+                <div
+                  draggable
+                  role="button"
+                  tabIndex={0}
+                  onDragStart={(event: DragEvent) => {
+                    event.dataTransfer.setData("text/answer-id", answer.id);
+                    event.dataTransfer.effectAllowed = "move";
+                    setDraggingId(answer.id);
+                  }}
+                  onDragEnd={() => setDraggingId(null)}
+                >
+                  <Icon source={DragHandleIcon} tone="subdued" />
+                </div>
+              </UnstyledButton>
+            </Box>
+            <TextField
               label="Answer"
-              labelAccessibilityVisibility="exclusive"
+              labelHidden
               value={answer.content}
-              onInput={(event) => patchAnswer(answer.id, fieldValue(event))}
+              onChange={(content) => patchAnswer(answer.id, content)}
+              autoComplete="off"
             />
-            <s-button
-              variant="secondary"
-              icon="delete"
+            <Button
+              icon={DeleteIcon}
               tone="critical"
               accessibilityLabel={`Delete ${answer.content || "answer"}`}
               disabled={answers.length <= 1}
               onClick={() => deleteAnswer(answer.id)}
             />
-          </s-grid>
+          </InlineGrid>
+          </Box>
         </div>
       ))}
 
       <AddListRow label="Add answer" onClick={addAnswer} />
-    </s-stack>
+    </BlockStack>
   );
 }

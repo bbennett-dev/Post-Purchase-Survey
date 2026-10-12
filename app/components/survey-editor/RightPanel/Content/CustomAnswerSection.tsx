@@ -1,9 +1,18 @@
+import {
+  BlockStack,
+  Box,
+  Checkbox,
+  ChoiceList,
+  Divider,
+  InlineGrid,
+  Text,
+  TextField,
+} from "@shopify/polaris";
 import type {
   CustomAnswerShowWhen,
   SurveyAnswer,
   SurveyQuestion,
 } from "../../../../lib/survey/types";
-import { fieldValue } from "../../field-value";
 
 export interface CustomAnswerSectionProps {
   question: SurveyQuestion;
@@ -11,10 +20,7 @@ export interface CustomAnswerSectionProps {
   onQuestionChange: (patch: Partial<SurveyQuestion>) => void;
 }
 
-const SHOW_WHEN_OPTIONS: {
-  value: CustomAnswerShowWhen;
-  label: string;
-}[] = [
+const SHOW_WHEN_OPTIONS: { value: CustomAnswerShowWhen; label: string }[] = [
   { value: "always_show", label: "Always show" },
   {
     value: "when_customer_select_answers",
@@ -31,10 +37,8 @@ export function CustomAnswerSection({
   onQuestionChange,
 }: CustomAnswerSectionProps) {
   const enabled = question.enabledCustomAnswer === true;
-  const showWhen: CustomAnswerShowWhen =
-    question.showWhen ?? "always_show";
+  const showWhen: CustomAnswerShowWhen = question.showWhen ?? "always_show";
   const triggerIds = question.showCustomAnswerWhen ?? [];
-  const listName = `custom-answer-show-${question.id}`;
 
   const toggleTriggerAnswer = (answerId: string, checked: boolean) => {
     const current = question.showCustomAnswerWhen ?? [];
@@ -47,46 +51,38 @@ export function CustomAnswerSection({
   };
 
   return (
-    <s-box border="base" borderRadius="base" overflow="hidden">
-      <s-box padding="small">
-        <s-grid
-          gridTemplateColumns="minmax(0, 1fr) auto"
-          gap="small-200"
-          alignItems="center"
-        >
-          <s-text type="strong">Custom answer</s-text>
-          <s-switch
+    <Box borderWidth="025" borderColor="border" borderRadius="200" overflowX="hidden" overflowY="hidden">
+      <Box padding="300">
+        <InlineGrid columns="1fr auto" gap="200" alignItems="center">
+          <Text as="p" fontWeight="semibold">
+            Custom answer
+          </Text>
+          <Checkbox
             label="Enable custom answer"
-            labelAccessibilityVisibility="exclusive"
+            labelHidden
             checked={enabled}
-            onChange={(event) =>
-              onQuestionChange({
-                enabledCustomAnswer: Boolean(
-                  (event.currentTarget as HTMLElement & { checked?: boolean })
-                    .checked,
-                ),
-              })
+            onChange={(checked) =>
+              onQuestionChange({ enabledCustomAnswer: checked })
             }
           />
-        </s-grid>
-      </s-box>
+        </InlineGrid>
+      </Box>
 
       {enabled ? (
         <>
-          <s-divider direction="inline" color="base" />
-          <s-box padding="small">
-            <s-stack gap="base">
-              <s-choice-list
-                label="When to show custom answer"
-                labelAccessibilityVisibility="exclusive"
-                name={listName}
-                values={[showWhen]}
-                onChange={(event) => {
-                  const next = (
-                    event.currentTarget as HTMLElement & {
-                      values?: string[];
-                    }
-                  ).values?.[0];
+          <Divider />
+          <Box padding="300">
+            <BlockStack gap="400">
+              <ChoiceList
+                title="When to show custom answer"
+                titleHidden
+                choices={SHOW_WHEN_OPTIONS.map((option) => ({
+                  label: option.label,
+                  value: option.value,
+                }))}
+                selected={[showWhen]}
+                onChange={(values) => {
+                  const next = values[0];
                   if (
                     next === "always_show" ||
                     next === "when_customer_select_answers"
@@ -94,69 +90,45 @@ export function CustomAnswerSection({
                     onQuestionChange({ showWhen: next });
                   }
                 }}
-              >
-                {SHOW_WHEN_OPTIONS.map((option) => (
-                  <s-choice key={option.value} value={option.value}>
-                    {option.label}
-                  </s-choice>
-                ))}
-              </s-choice-list>
+              />
 
               {showWhen === "when_customer_select_answers" ? (
-                <s-box paddingInlineStart="large-100">
-                  <s-stack gap="small-200">
+                <Box paddingInlineStart="400">
+                  <BlockStack gap="200">
                     {answers.map((answer) => (
-                      <s-checkbox
+                      <Checkbox
                         key={answer.id}
                         label={answer.content || "Untitled answer"}
                         checked={triggerIds.includes(answer.id)}
-                        onChange={(event) =>
-                          toggleTriggerAnswer(
-                            answer.id,
-                            Boolean(
-                              (
-                                event.currentTarget as HTMLElement & {
-                                  checked?: boolean;
-                                }
-                              ).checked,
-                            ),
-                          )
+                        onChange={(checked) =>
+                          toggleTriggerAnswer(answer.id, checked)
                         }
                       />
                     ))}
-                  </s-stack>
-                </s-box>
+                  </BlockStack>
+                </Box>
               ) : null}
 
-              <s-text-field
+              <TextField
                 label="Description"
                 value={question.customAnswerPlaceholder ?? ""}
-                onInput={(event) =>
-                  onQuestionChange({
-                    customAnswerPlaceholder: fieldValue(event),
-                  })
+                onChange={(customAnswerPlaceholder) =>
+                  onQuestionChange({ customAnswerPlaceholder })
                 }
+                autoComplete="off"
               />
 
-              <s-checkbox
+              <Checkbox
                 label="Make this required"
                 checked={question.customAnswerRequired === true}
-                onChange={(event) =>
-                  onQuestionChange({
-                    customAnswerRequired: Boolean(
-                      (
-                        event.currentTarget as HTMLElement & {
-                          checked?: boolean;
-                        }
-                      ).checked,
-                    ),
-                  })
+                onChange={(customAnswerRequired) =>
+                  onQuestionChange({ customAnswerRequired })
                 }
               />
-            </s-stack>
-          </s-box>
+            </BlockStack>
+          </Box>
         </>
       ) : null}
-    </s-box>
+    </Box>
   );
 }

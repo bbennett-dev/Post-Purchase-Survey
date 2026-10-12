@@ -1,11 +1,26 @@
-import { useRef, type ChangeEvent } from "react";
+import { useCallback, useRef, useState, type ChangeEvent } from "react";
+import {
+  ActionList,
+  BlockStack,
+  Box,
+  Button,
+  Checkbox,
+  Divider,
+  InlineGrid,
+  Popover,
+  Text,
+  Thumbnail,
+  DropZone,
+} from "@shopify/polaris";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+} from "@shopify/polaris-icons";
 import {
   ACCEPTED_IMAGE_EXTENSIONS,
   readImageAsDataUrl,
 } from "../../../../lib/images/read-image-as-data-url";
 import type { PostPurchasePageChannel } from "../../../../lib/survey/types";
-import imageStyles from "../../shared/image-upload.module.css";
-
 interface SideLogoSectionProps {
   channel: PostPurchasePageChannel;
   onChange: (patch: Partial<PostPurchasePageChannel>) => void;
@@ -23,7 +38,7 @@ export function SideLogoSection({
   onToggleExpanded,
 }: SideLogoSectionProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const menuId = "side-logo-change-menu";
+  const [menuOpen, setMenuOpen] = useState(false);
   const enabledSideLogo = channel.enabledSideLogo === true;
   const sideLogoUrl = channel.sideLogo?.url ?? "";
 
@@ -37,9 +52,10 @@ export function SideLogoSection({
     });
   };
 
-  const pickImage = () => {
+  const pickImage = useCallback(() => {
     inputRef.current?.click();
-  };
+    setMenuOpen(false);
+  }, []);
 
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
@@ -57,98 +73,112 @@ export function SideLogoSection({
   };
 
   return (
-    <s-box border="base" borderRadius="base" overflow="hidden">
-      <s-box padding="small">
-        <s-grid
-          gridTemplateColumns="minmax(0, 1fr) auto auto"
-          gap="small-200"
-          alignItems="center"
-        >
-          <s-text type="strong">Side logo</s-text>
-          <s-switch
+    <Box borderWidth="025" borderColor="border" borderRadius="200" overflowX="hidden" overflowY="hidden">
+      <Box padding="300">
+        <InlineGrid columns="1fr auto auto" gap="200" alignItems="center">
+          <Text as="p" fontWeight="semibold">
+            Side logo
+          </Text>
+          <Checkbox
             label="Enable side logo"
-            labelAccessibilityVisibility="exclusive"
+            labelHidden
             checked={enabledSideLogo}
-            onChange={(event) =>
-              onChange({
-                enabledSideLogo: Boolean(
-                  (event.currentTarget as HTMLElement & { checked?: boolean })
-                    .checked,
-                ),
-              })
-            }
+            onChange={(checked) => onChange({ enabledSideLogo: checked })}
           />
-          <s-button
+          <Button
             variant="tertiary"
-            icon={expanded ? "chevron-up" : "chevron-down"}
+            icon={expanded ? ChevronUpIcon : ChevronDownIcon}
             accessibilityLabel={
               expanded ? "Collapse side logo" : "Expand side logo"
             }
             onClick={onToggleExpanded}
           />
-        </s-grid>
-      </s-box>
+        </InlineGrid>
+      </Box>
 
       {expanded ? (
         <>
-          <s-divider direction="inline" color="base" />
-          <s-box padding="small">
-            <s-stack gap="small">
-              <input
-                ref={inputRef}
-                type="file"
-                accept={ACCEPTED_IMAGE_EXTENSIONS}
-                className={imageStyles.hiddenInput}
-                onChange={onFileChange}
-              />
+          <Divider />
+          <Box padding="300">
+            <BlockStack gap="300">
+              <Box visuallyHidden as="span">
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept={ACCEPTED_IMAGE_EXTENSIONS}
+                  onChange={onFileChange}
+                />
+              </Box>
 
               {sideLogoUrl ? (
                 <>
-                  <s-image
-                    src={sideLogoUrl}
-                    alt="Side logo preview"
-                    aspectRatio="16/9"
-                    borderRadius="base"
-                  />
-                  <s-button
-                    variant="secondary"
-                    inlineSize="fill"
-                    icon="chevron-down"
-                    commandFor={menuId}
+                  <Box
+                    padding="400"
+                    background="bg-surface-secondary"
+                    borderRadius="200"
                   >
-                    Change
-                  </s-button>
-                  <s-menu id={menuId} accessibilityLabel="Side logo actions">
-                    <s-button icon="image-add" onClick={pickImage}>
-                      Change image
-                    </s-button>
-                    <s-button
-                      icon="delete"
-                      tone="critical"
-                      onClick={() => patchUrl("")}
-                    >
-                      Remove image
-                    </s-button>
-                  </s-menu>
+                    <Thumbnail source={sideLogoUrl} alt="Side logo preview" />
+                  </Box>
+                  <Popover
+                    active={menuOpen}
+                    activator={
+                      <Button
+                        fullWidth
+                        icon={ChevronDownIcon}
+                        onClick={() => setMenuOpen((open) => !open)}
+                      >
+                        Change
+                      </Button>
+                    }
+                    onClose={() => setMenuOpen(false)}
+                  >
+                    <ActionList
+                      items={[
+                        {
+                          content: "Change image",
+                          onAction: pickImage,
+                        },
+                        {
+                          content: "Remove image",
+                          destructive: true,
+                          onAction: () => {
+                            patchUrl("");
+                            setMenuOpen(false);
+                          },
+                        },
+                      ]}
+                    />
+                  </Popover>
                 </>
               ) : (
-                <div className={imageStyles.uploadZone}>
-                  <s-button variant="secondary" onClick={pickImage}>
-                    Add Image
-                  </s-button>
-                  <s-text color="subdued">
-                    Accepts .svg, .jpg, .jpeg, and .png
-                  </s-text>
-                </div>
+                <DropZone
+                  accept="image/*"
+                  onDrop={async (_files, accepted) => {
+                    const file = accepted[0];
+                    if (!file) {
+                      return;
+                    }
+                    try {
+                      patchUrl(await readImageAsDataUrl(file));
+                    } catch {
+                      // Invalid type.
+                    }
+                  }}
+                >
+                  <DropZone.FileUpload
+                    actionTitle="Add image"
+                    actionHint="Accepts .svg, .jpg, .jpeg, and .png"
+                  />
+                </DropZone>
               )}
 
-              <s-text color="subdued">
+              <Text as="p" tone="subdued">
                 Leave empty to show the default logo.
-              </s-text>
-            </s-stack>
-          </s-box>
+              </Text>
+            </BlockStack>
+          </Box>
         </>
       ) : null}
-    </s-box>
+    </Box>
   );
 }

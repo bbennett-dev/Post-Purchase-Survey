@@ -1,5 +1,5 @@
+import { BlockStack, Checkbox, Text, TextField } from "@shopify/polaris";
 import type { SurveyDiscount, SurveyDocument } from "../../../lib/survey/types";
-import { fieldValue } from "../field-value";
 
 export interface DiscountInspectorProps {
   survey: SurveyDocument;
@@ -16,39 +16,34 @@ export function DiscountInspector({
   const { discount } = survey;
 
   return (
-    <s-stack gap="base">
-      <s-heading>Discount reward</s-heading>
-      <s-paragraph color="subdued">
-        Offer a code after customers complete the survey. Full reward rules come
-        in a later pass.
-      </s-paragraph>
+    <BlockStack gap="400">
+      <Text as="h2" variant="headingMd">
+        Discount reward
+      </Text>
+      <Text as="p" tone="subdued">
+        Offer a code after customers complete the survey. Full reward rules
+        come in a later pass.
+      </Text>
 
-      <s-switch
+      <Checkbox
         label="Enable discount reward"
         checked={discount.enabled}
-        onChange={(event) =>
-          onDiscountChange({
-            enabled: Boolean(
-              (event.currentTarget as HTMLElement & { checked?: boolean })
-                .checked,
-            ),
-          })
-        }
+        onChange={(checked) => onDiscountChange({ enabled: checked })}
       />
 
-      <s-text-field
+      <TextField
         label="Display text"
         value={discount.displayText ?? ""}
-        onInput={(event) =>
-          onDiscountChange({ displayText: fieldValue(event) })
-        }
+        onChange={(displayText) => onDiscountChange({ displayText })}
+        autoComplete="off"
       />
 
-      <s-text-field
+      <TextField
         label="Discount code"
         value={discount.code ?? ""}
-        onInput={(event) => onDiscountChange({ code: fieldValue(event) })}
+        onChange={(code) => onDiscountChange({ code })}
+        autoComplete="off"
       />
-    </s-stack>
+    </BlockStack>
   );
 }
