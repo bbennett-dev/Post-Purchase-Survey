@@ -5,20 +5,24 @@ interface DiscountPanelProps {
 }
 
 /**
- * Discount tab summary. Full discount editing is a follow-up feature.
+ * Discount tab list summary. Full editing is in the right panel.
  */
 export function DiscountPanel({ survey }: DiscountPanelProps) {
   return (
     <s-stack gap="small-200">
-      <s-paragraph color="subdued">
-        The discount is stored on the survey. Editing it comes next.
-      </s-paragraph>
+      <s-text type="strong" color="subdued">
+        Reward
+      </s-text>
       <s-badge tone={survey.discount.enabled ? "success" : "warning"}>
         {survey.discount.enabled ? "Discount on" : "Discount off"}
       </s-badge>
       {survey.discount.displayText ? (
         <s-text>{survey.discount.displayText}</s-text>
-      ) : null}
+      ) : (
+        <s-paragraph color="subdued">
+          Configure the discount on the right.
+        </s-paragraph>
+      )}
     </s-stack>
   );
 }
