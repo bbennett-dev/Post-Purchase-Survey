@@ -1,8 +1,28 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { openSurveyEditor } from "../lib/open-survey-editor";
+import {
+  ActionList,
+  Badge,
+  BlockStack,
+  Box,
+  Button,
+  Card,
+  ChoiceList,
+  EmptyState,
+  IndexTable,
+  InlineStack,
+  Layout,
+  Page,
+  Pagination,
+  Popover,
+  Text,
+  TextField,
+  useIndexResourceState,
+} from "@shopify/polaris";
+import { FilterIcon } from "@shopify/polaris-icons";
+import { useOpenEditor } from "../lib/editor-modal";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -14,7 +34,6 @@ interface SurveyRow {
   name: string;
   question: string;
   status: SurveyStatus;
-  /** Checkout surface where this survey is offered. */
   surface: "Thank you" | "Order status";
   responses: number;
   createdAt: string;
@@ -91,8 +110,8 @@ export const loader = async ({
   };
 };
 
-function statusLabel(status: SurveyStatus): string {
-  return status === "live" ? "Live" : "Paused";
+function statusTone(status: SurveyStatus): "success" | "warning" {
+  return status === "live" ? "success" : "warning";
 }
 
 /**
@@ -102,17 +121,22 @@ function statusLabel(status: SurveyStatus): string {
 export default function SurveysPage() {
   const data = useLoaderData<typeof loader>();
   const shopify = useAppBridge();
+  const openEditor = useOpenEditor();
   const [surveys, setSurveys] = useState<SurveyRow[]>(data.surveys);
   const [query, setQuery] = useState("");
-  const [statusView, setStatusView] = useState<StatusView>("all");
+  const [statusView, setStatusView] = useState<StatusView[]>(["all"]);
   const [page, setPage] = useState(0);
   const [showPlacementTip, setShowPlacementTip] = useState(true);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  // Per-row action popover state: surveyId → open
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
+    const status = statusView[0] ?? "all";
     return surveys.filter((survey) => {
-      const matchesStatus =
-        statusView === "all" || survey.status === statusView;
+      const matchesStatus = status === "all" || survey.status === status;
       const matchesQuery =
         normalized.length === 0 ||
         survey.name.toLowerCase().includes(normalized) ||
@@ -128,333 +152,326 @@ export default function SurveysPage() {
     currentPage * PAGE_SIZE + PAGE_SIZE,
   );
 
-  const openEditor = (surveyId: string) => {
-    openSurveyEditor({ surveyId });
+  const { selectedResources, allResourcesSelected, handleSelectionChange } =
+    useIndexResourceState(visible as unknown as { [key: string]: unknown }[]);
+
+  const toggleMenu = useCallback(
+    (id: string) => setOpenMenuId((current) => (current === id ? null : id)),
+    [],
+  );
+
+  const duplicateSurvey = (survey: SurveyRow) => {
+    setSurveys((current) => [
+      {
+        ...survey,
+        id: `${survey.id}-copy-${Date.now()}`,
+        name: `${survey.name} copy`,
+        status: "paused",
+        responses: 0,
+        createdAt: "Today",
+      },
+      ...current,
+    ]);
+    setPage(0);
+    shopify.toast.show("Survey duplicated");
+    setOpenMenuId(null);
   };
 
-  const setView = (view: StatusView) => {
-    setStatusView(view);
-    setPage(0);
+  const toggleStatus = (survey: SurveyRow) => {
+    setSurveys((current) =>
+      current.map((row) =>
+        row.id === survey.id
+          ? {
+              ...row,
+              status: row.status === "live" ? "paused" : "live",
+            }
+          : row,
+      ),
+    );
+    shopify.toast.show(
+      survey.status === "live" ? "Survey paused" : "Survey is live",
+    );
+    setOpenMenuId(null);
   };
+
+  const deleteSurvey = (survey: SurveyRow) => {
+    setSurveys((current) => current.filter((row) => row.id !== survey.id));
+    shopify.toast.show("Survey removed");
+    setOpenMenuId(null);
+  };
+
+  const rowMarkup = visible.map((survey, index) => (
+    <IndexTable.Row
+      id={survey.id}
+      key={survey.id}
+      selected={selectedResources.includes(survey.id)}
+      position={index}
+    >
+      <IndexTable.Cell>
+        <BlockStack gap="100">
+          <button
+            type="button"
+            onClick={() => openEditor({ surveyId: survey.id })}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              color: "var(--p-color-text-emphasis)",
+              fontWeight: 600,
+              textAlign: "left",
+            }}
+          >
+            {survey.name}
+          </button>
+          <Text as="p" tone="subdued">
+            {survey.question}
+          </Text>
+        </BlockStack>
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        <Badge tone={statusTone(survey.status)}>
+          {survey.status === "live" ? "Live" : "Paused"}
+        </Badge>
+      </IndexTable.Cell>
+      <IndexTable.Cell>{survey.createdAt}</IndexTable.Cell>
+      <IndexTable.Cell>
+        <Badge tone="info">{survey.surface}</Badge>
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        <Link to="/app/responses">{survey.responses}</Link>
+      </IndexTable.Cell>
+      <IndexTable.Cell>
+        <Popover
+          active={openMenuId === survey.id}
+          activator={
+            <Button
+              variant="tertiary"
+              accessibilityLabel={`Actions for ${survey.name}`}
+              icon={
+                <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+                  <circle cx="4" cy="10" r="2" />
+                  <circle cx="10" cy="10" r="2" />
+                  <circle cx="16" cy="10" r="2" />
+                </svg>
+              }
+              onClick={() => toggleMenu(survey.id)}
+            />
+          }
+          onClose={() => setOpenMenuId(null)}
+        >
+          <ActionList
+            items={[
+              {
+                content: "Edit",
+                onAction: () => {
+                  openEditor({ surveyId: survey.id });
+                  setOpenMenuId(null);
+                },
+              },
+              {
+                content: "Duplicate",
+                onAction: () => duplicateSurvey(survey),
+              },
+              {
+                content: survey.status === "live" ? "Pause" : "Set live",
+                onAction: () => toggleStatus(survey),
+              },
+              {
+                content: "Delete",
+                destructive: true,
+                onAction: () => deleteSurvey(survey),
+              },
+            ]}
+          />
+        </Popover>
+      </IndexTable.Cell>
+    </IndexTable.Row>
+  ));
 
   return (
-    <s-page inlineSize="large">
-      <s-section
-        padding="none"
-        accessibilityLabel="Survey list"
-        heading="Survey list"
-        subheading="Questions customers answer after checkout."
-      >
-        <s-button slot="secondary-actions" href="/app/surveys/templates">
-          Choose a template
-        </s-button>
-        <s-button
-          slot="primary-action"
+    <Page
+      title="Surveys"
+      secondaryActions={[
+        {
+          content: "Choose a template",
+          url: "/app/surveys/templates",
+        },
+      ]}
+      primaryAction={
+        <Button
           variant="primary"
-          icon="plus"
-          onClick={() => openSurveyEditor()}
+          icon={
+            <svg viewBox="0 0 20 20" width="20" height="20" fill="currentColor">
+              <path d="M11 9h4a1 1 0 1 1 0 2h-4v4a1 1 0 1 1-2 0v-4H5a1 1 0 1 1 0-2h4V5a1 1 0 1 1 2 0v4Z" />
+            </svg>
+          }
+          onClick={() => openEditor()}
         >
           Create survey
-        </s-button>
-
-        {surveys.length === 0 ? (
-          <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
-            <s-box maxInlineSize="200px" maxBlockSize="200px">
-              <s-image
-                aspectRatio="1/0.5"
-                src="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
-                alt="Illustration of a survey ready to be created"
-              />
-            </s-box>
-            <s-grid justifyItems="center" maxInlineSize="450px" gap="base">
-              <s-stack alignItems="center">
-                <s-heading>Create your first survey</s-heading>
-                <s-paragraph>
-                  Ask customers how they found you on the Thank You page, then
-                  read the answers under Responses.
-                </s-paragraph>
-              </s-stack>
-              <s-stack direction="inline" gap="small-200">
-                <s-button
-                  variant="primary"
-                  icon="plus"
-                  onClick={() => openSurveyEditor()}
+        </Button>
+      }
+    >
+      <Layout>
+        <Layout.Section>
+          <BlockStack gap="400">
+            <Card padding="0">
+              {surveys.length === 0 ? (
+                <EmptyState
+                  heading="Create your first survey"
+                  image="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
+                  action={{
+                    content: "Create survey",
+                    onAction: () => openEditor(),
+                  }}
+                  secondaryAction={{
+                    content: "Choose a template",
+                    url: "/app/surveys/templates",
+                  }}
                 >
-                  Create survey
-                </s-button>
-                <s-button href="/app/surveys/templates">
-                  Choose a template
-                </s-button>
-              </s-stack>
-            </s-grid>
-          </s-grid>
-        ) : (
-          <s-table
-            paginate
-            hasPreviousPage={currentPage > 0}
-            hasNextPage={currentPage < pageCount - 1}
-            onPreviousPage={() => setPage(currentPage - 1)}
-            onNextPage={() => setPage(currentPage + 1)}
-          >
-            <s-grid
-              slot="filters"
-              gap="small-200"
-              gridTemplateColumns="1fr auto"
-            >
-              <s-text-field
-                label="Search surveys"
-                labelAccessibilityVisibility="exclusive"
-                icon="search"
-                placeholder="Search surveys"
-                value={query}
-                onInput={(event) => {
-                  setQuery(event.currentTarget.value ?? "");
-                  setPage(0);
-                }}
-              />
-              <s-button
-                icon="filter"
-                variant="secondary"
-                accessibilityLabel="Filter surveys"
-                interestFor="survey-filter-tooltip"
-                commandFor="survey-filter"
-              />
-              <s-tooltip id="survey-filter-tooltip">
-                <s-text>Filter</s-text>
-              </s-tooltip>
-              <s-popover id="survey-filter">
-                <s-box padding="small">
-                  <s-choice-list
-                    label="Status"
-                    name="survey-status"
-                    values={[statusView]}
-                    onChange={(event) => {
-                      const next = event.currentTarget.values?.[0];
-                      if (
-                        next === "all" ||
-                        next === "live" ||
-                        next === "paused"
-                      ) {
-                        setView(next);
-                      }
+                  <Text as="p">
+                    Ask customers how they found you on the Thank You page, then
+                    read the answers under Responses.
+                  </Text>
+                </EmptyState>
+              ) : (
+                <>
+                  <Box padding="300">
+                    <InlineStack gap="200" align="space-between" blockAlign="center">
+                      <Box minWidth="280px">
+                        <TextField
+                          label="Search surveys"
+                          labelHidden
+                          placeholder="Search surveys"
+                          value={query}
+                          onChange={(val) => {
+                            setQuery(val);
+                            setPage(0);
+                          }}
+                          clearButton
+                          onClearButtonClick={() => {
+                            setQuery("");
+                            setPage(0);
+                          }}
+                          autoComplete="off"
+                        />
+                      </Box>
+                      <Popover
+                        active={filterOpen}
+                        activator={
+                          <Button
+                            icon={FilterIcon}
+                            variant="secondary"
+                            onClick={() => setFilterOpen((v) => !v)}
+                            accessibilityLabel="Filter surveys"
+                          />
+                        }
+                        onClose={() => setFilterOpen(false)}
+                      >
+                        <Box padding="300" minWidth="180px">
+                          <ChoiceList
+                            title="Status"
+                            choices={[
+                              { label: "All", value: "all" },
+                              { label: "Live", value: "live" },
+                              { label: "Paused", value: "paused" },
+                            ]}
+                            selected={statusView}
+                            onChange={(val) => {
+                              setStatusView(val as StatusView[]);
+                              setPage(0);
+                              setFilterOpen(false);
+                            }}
+                          />
+                        </Box>
+                      </Popover>
+                    </InlineStack>
+                  </Box>
+                  <IndexTable
+                    resourceName={{ singular: "survey", plural: "surveys" }}
+                    itemCount={visible.length}
+                    selectedItemsCount={
+                      allResourcesSelected ? "All" : selectedResources.length
+                    }
+                    onSelectionChange={handleSelectionChange}
+                    headings={[
+                      { title: "Survey" },
+                      { title: "Status" },
+                      { title: "Created" },
+                      { title: "Shown on" },
+                      { title: "Responses" },
+                      { title: "Actions", hidden: true },
+                    ]}
+                    emptyState={
+                      <Box padding="400">
+                        <Text as="p" tone="subdued" alignment="center">
+                          No surveys match this view.
+                        </Text>
+                      </Box>
+                    }
+                  >
+                    {rowMarkup}
+                  </IndexTable>
+                  {pageCount > 1 ? (
+                    <Box padding="300">
+                      <InlineStack align="center">
+                        <Pagination
+                          hasPrevious={currentPage > 0}
+                          hasNext={currentPage < pageCount - 1}
+                          onPrevious={() => setPage(currentPage - 1)}
+                          onNext={() => setPage(currentPage + 1)}
+                        />
+                      </InlineStack>
+                    </Box>
+                  ) : null}
+                </>
+              )}
+            </Card>
+
+            {showPlacementTip && surveys.length > 0 ? (
+              <Card>
+                <InlineStack align="space-between" blockAlign="start">
+                  <BlockStack gap="200">
+                    <Text as="h3" variant="headingMd">
+                      Show this survey after checkout
+                    </Text>
+                    <Text as="p" tone="subdued">
+                      Add the block to the Thank You page. Only live surveys
+                      are offered to customers.
+                    </Text>
+                    <Box>
+                      <Button url="/app/settings">Review placement</Button>
+                    </Box>
+                  </BlockStack>
+                  <Button
+                    variant="plain"
+                    accessibilityLabel="Dismiss placement tip"
+                    onClick={() => {
+                      setShowPlacementTip(false);
+                      shopify.toast.show("Tip dismissed");
                     }}
                   >
-                    <s-choice value="all">All</s-choice>
-                    <s-choice value="live">Live</s-choice>
-                    <s-choice value="paused">Paused</s-choice>
-                  </s-choice-list>
-                </s-box>
-              </s-popover>
-            </s-grid>
+                    ✕
+                  </Button>
+                </InlineStack>
+              </Card>
+            ) : null}
 
-            <s-table-header-row>
-              <s-table-header listSlot="primary">Survey</s-table-header>
-              <s-table-header listSlot="inline">Status</s-table-header>
-              <s-table-header listSlot="labeled">Created</s-table-header>
-              <s-table-header>Shown on</s-table-header>
-              <s-table-header format="numeric" listSlot="labeled">
-                Responses
-              </s-table-header>
-              <s-table-header listSlot="secondary">
-                <s-text color="subdued">Actions</s-text>
-              </s-table-header>
-            </s-table-header-row>
-
-            <s-table-body>
-              {visible.length === 0 ? (
-                <s-table-row>
-                  <s-table-cell>
-                    <s-text>No surveys match this view.</s-text>
-                  </s-table-cell>
-                  <s-table-cell />
-                  <s-table-cell />
-                  <s-table-cell />
-                  <s-table-cell />
-                  <s-table-cell />
-                </s-table-row>
-              ) : (
-                visible.map((survey) => {
-                  const menuId = `survey-menu-${survey.id}`;
-                  return (
-                    <s-table-row key={survey.id}>
-                      <s-table-cell>
-                        <s-stack direction="block" gap="small-200">
-                          <s-link
-                            onClick={(event) => {
-                              event.preventDefault();
-                              openEditor(survey.id);
-                            }}
-                            href={`/app/surveys?survey=${survey.id}`}
-                          >
-                            {survey.name}
-                          </s-link>
-                          <s-text color="subdued">{survey.question}</s-text>
-                        </s-stack>
-                      </s-table-cell>
-                      <s-table-cell>
-                        <s-badge
-                          tone={
-                            survey.status === "live" ? "success" : "warning"
-                          }
-                        >
-                          {statusLabel(survey.status)}
-                        </s-badge>
-                      </s-table-cell>
-                      <s-table-cell>{survey.createdAt}</s-table-cell>
-                      <s-table-cell>
-                        <s-badge tone="info">{survey.surface}</s-badge>
-                      </s-table-cell>
-                      <s-table-cell>
-                        <s-link href="/app/responses">
-                          {survey.responses}
-                        </s-link>
-                      </s-table-cell>
-                      <s-table-cell>
-                        <s-button
-                          icon="menu-horizontal"
-                          variant="tertiary"
-                          accessibilityLabel={`Actions for ${survey.name}`}
-                          commandFor={menuId}
-                        />
-                        <s-menu
-                          id={menuId}
-                          accessibilityLabel={`${survey.name} actions`}
-                        >
-                          <s-button
-                            icon="edit"
-                            onClick={() => openEditor(survey.id)}
-                          >
-                            Edit
-                          </s-button>
-                          <s-button
-                            icon="duplicate"
-                            onClick={() => {
-                              setSurveys((current) => [
-                                {
-                                  ...survey,
-                                  id: `${survey.id}-copy-${Date.now()}`,
-                                  name: `${survey.name} copy`,
-                                  status: "paused",
-                                  responses: 0,
-                                  createdAt: "Today",
-                                },
-                                ...current,
-                              ]);
-                              setPage(0);
-                              shopify.toast.show("Survey duplicated");
-                            }}
-                          >
-                            Duplicate
-                          </s-button>
-                          <s-button
-                            icon={
-                              survey.status === "live" ? "disabled" : "enabled"
-                            }
-                            onClick={() => {
-                              setSurveys((current) =>
-                                current.map((row) =>
-                                  row.id === survey.id
-                                    ? {
-                                        ...row,
-                                        status:
-                                          row.status === "live"
-                                            ? "paused"
-                                            : "live",
-                                      }
-                                    : row,
-                                ),
-                              );
-                              shopify.toast.show(
-                                survey.status === "live"
-                                  ? "Survey paused"
-                                  : "Survey is live",
-                              );
-                            }}
-                          >
-                            {survey.status === "live" ? "Pause" : "Set live"}
-                          </s-button>
-                          <s-button
-                            icon="delete"
-                            tone="critical"
-                            onClick={() => {
-                              setSurveys((current) =>
-                                current.filter((row) => row.id !== survey.id),
-                              );
-                              shopify.toast.show("Survey removed");
-                            }}
-                          >
-                            Delete
-                          </s-button>
-                        </s-menu>
-                      </s-table-cell>
-                    </s-table-row>
-                  );
-                })
-              )}
-            </s-table-body>
-          </s-table>
-        )}
-      </s-section>
-
-      {showPlacementTip && surveys.length > 0 ? (
-        <s-section>
-          <s-grid
-            gridTemplateColumns="1fr auto"
-            gap="small-400"
-            alignItems="start"
-          >
-            <s-grid
-              gridTemplateColumns="@container (inline-size <= 480px) 1fr, auto auto"
-              gap="base"
-              alignItems="center"
-            >
-              <s-grid gap="small-200">
-                <s-heading>Show this survey after checkout</s-heading>
-                <s-paragraph>
-                  Add the SnapPlux block to the Thank You page. Only live
-                  surveys are offered to customers.
-                </s-paragraph>
-                <s-button href="/app/settings">Review placement</s-button>
-              </s-grid>
-              <s-box
-                maxInlineSize="200px"
-                borderRadius="base"
-                overflow="hidden"
+            <Text as="p" tone="subdued" alignment="center">
+              Learn more about{" "}
+              <a
+                href="https://shopify.dev/docs/api/checkout-ui-extensions/latest/targets/purchase-thank-you"
+                target="_blank"
+                rel="noreferrer"
               >
-                <s-image
-                  src="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
-                  alt="Illustration of a post-purchase survey block"
-                  aspectRatio="1/0.5"
-                />
-              </s-box>
-            </s-grid>
-            <s-button
-              icon="x"
-              tone="neutral"
-              variant="tertiary"
-              accessibilityLabel="Dismiss placement tip"
-              onClick={() => {
-                setShowPlacementTip(false);
-                shopify.toast.show("Tip dismissed");
-              }}
-            />
-          </s-grid>
-        </s-section>
-      ) : null}
-
-      <s-stack alignItems="center" paddingBlock="large">
-        <s-text color="subdued">
-          Learn more about{" "}
-          <s-link
-            href="https://shopify.dev/docs/api/checkout-ui-extensions/latest/targets/purchase-thank-you"
-            target="_blank"
-          >
-            Thank You page blocks
-          </s-link>
-          .
-        </s-text>
-      </s-stack>
-    </s-page>
+                Thank You page blocks
+              </a>
+              .
+            </Text>
+          </BlockStack>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
 

@@ -1,8 +1,17 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
+import {
+  Link,
+  Outlet,
+  useLoaderData,
+  useLocation,
+  useRouteError,
+} from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { AppProvider } from "@shopify/shopify-app-react-router/react";
-
+import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
+import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
+import { NavMenu } from "@shopify/app-bridge-react";
+import en from "@shopify/polaris/locales/en.json";
+import { EditorModalProvider } from "../lib/editor-modal";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -15,25 +24,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
   const location = useLocation();
-  const isEditor = location.pathname.startsWith("/app/surveys/editor");
+  const isSurveyEditor = location.pathname.includes("/surveys/editor");
 
   return (
-    <AppProvider embedded apiKey={apiKey}>
-      {isEditor ? null : (
-        <s-app-nav>
-          <s-link href="/app">Dashboard</s-link>
-          <s-link href="/app/surveys">Surveys</s-link>
-          <s-link href="/app/responses">Responses</s-link>
-          <s-link href="/app/analytics">Analytics</s-link>
-          <s-link href="/app/integrations">Integrations</s-link>
-          <s-link href="/app/settings">Settings</s-link>
-        </s-app-nav>
-      )}
-      {isEditor ? null : (
-        <s-app-window id="survey-editor" src="/app/surveys/editor" />
-      )}
-      <Outlet />
-    </AppProvider>
+    <ShopifyAppProvider embedded apiKey={apiKey}>
+      <PolarisAppProvider i18n={en}>
+        {isSurveyEditor ? null : (
+          <NavMenu>
+            <Link to="/app" rel="home">
+              Dashboard
+            </Link>
+            <Link to="/app/surveys">Surveys</Link>
+            <Link to="/app/responses">Responses</Link>
+            <Link to="/app/analytics">Analytics</Link>
+            <Link to="/app/integrations">Integrations</Link>
+            <Link to="/app/settings">Settings</Link>
+          </NavMenu>
+        )}
+        <EditorModalProvider>
+          <Outlet />
+        </EditorModalProvider>
+      </PolarisAppProvider>
+    </ShopifyAppProvider>
   );
 }
 

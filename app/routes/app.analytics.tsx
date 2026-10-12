@@ -1,4 +1,6 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { Link } from "react-router";
+import { BlockStack, Card, Layout, Page, Text } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -13,20 +15,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 /** Placeholder analytics page until channel charts and date ranges are designed. */
 export default function AnalyticsPage() {
   return (
-    <s-page inlineSize="large">
-      <s-section heading="Analytics">
-        <s-paragraph>
-          This page will show response rate, top channels, and how attribution
-          changes over time. We will design the charts and filters on the next
-          pass.
-        </s-paragraph>
-        <s-paragraph>
-          Individual answers stay on{" "}
-          <s-link href="/app/responses">Responses</s-link>. Survey setup stays
-          on <s-link href="/app/surveys">Surveys</s-link>.
-        </s-paragraph>
-      </s-section>
-    </s-page>
+    <Page title="Analytics">
+      <Layout>
+        <Layout.Section>
+          <Card>
+            <BlockStack gap="200">
+              <Text as="p" tone="subdued">
+                This page will show response rate, top channels, and how
+                attribution changes over time. Charts and filters come in the
+                next design pass.
+              </Text>
+              <Text as="p" tone="subdued">
+                Individual answers stay on{" "}
+                <Link to="/app/responses">Responses</Link>. Survey setup stays
+                on <Link to="/app/surveys">Surveys</Link>.
+              </Text>
+            </BlockStack>
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
 

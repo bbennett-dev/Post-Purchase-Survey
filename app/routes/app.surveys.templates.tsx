@@ -1,24 +1,29 @@
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { openSurveyEditor } from "../lib/open-survey-editor";
 import { useMemo, useState } from "react";
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
+import {
+  Badge,
+  BlockStack,
+  Box,
+  Button,
+  Card,
+  EmptyState,
+  InlineGrid,
+  InlineStack,
+  Layout,
+  List,
+  Modal,
+  Page,
+  Text,
+  TextField,
+} from "@shopify/polaris";
+import { useOpenEditor } from "../lib/editor-modal";
 import { authenticate } from "../shopify.server";
 
 type TemplateCategory = "attribution" | "experience" | "feedback";
 type CategoryView = "all" | TemplateCategory;
 type TemplateBadge = "most_popular" | "recommended" | "new";
-type TemplateIcon =
-  | "plus-circle"
-  | "megaphone"
-  | "target"
-  | "order-repeat"
-  | "gift-card"
-  | "email"
-  | "product"
-  | "delivery"
-  | "smiley-happy"
-  | "organization";
 
 interface SurveyTemplate {
   id: string;
@@ -30,7 +35,6 @@ interface SurveyTemplate {
   surface: "Thank you" | "Order status";
   audience: string;
   badge?: TemplateBadge;
-  icon: TemplateIcon;
   questions: string[];
 }
 
@@ -47,8 +51,6 @@ const CATEGORIES: { id: CategoryView; label: string }[] = [
 
 /**
  * Template picker loader.
- * Catalog stays in-app until survey drafts persist; authenticate so the
- * route stays inside the embedded admin session.
  */
 export const loader = async ({
   request,
@@ -67,7 +69,6 @@ export const loader = async ({
         estimatedSeconds: 120,
         surface: "Thank you",
         audience: "Any buyer",
-        icon: "plus-circle",
         questions: [],
       },
       {
@@ -81,7 +82,6 @@ export const loader = async ({
         surface: "Thank you",
         audience: "New buyers",
         badge: "most_popular",
-        icon: "megaphone",
         questions: [
           "How did you hear about us?",
           "If you chose Other, tell us a little more.",
@@ -97,7 +97,6 @@ export const loader = async ({
         estimatedSeconds: 20,
         surface: "Thank you",
         audience: "New buyers",
-        icon: "target",
         questions: [
           "Which campaign sent you here?",
           "Was a discount code part of why you bought?",
@@ -113,7 +112,6 @@ export const loader = async ({
         estimatedSeconds: 20,
         surface: "Order status",
         audience: "Returning buyers",
-        icon: "order-repeat",
         questions: [
           "What brought you back?",
           "What would make you order from us again?",
@@ -129,7 +127,6 @@ export const loader = async ({
         estimatedSeconds: 20,
         surface: "Thank you",
         audience: "Gift buyers",
-        icon: "gift-card",
         questions: [
           "Is this order a gift?",
           "Who recommended this product or store?",
@@ -146,7 +143,6 @@ export const loader = async ({
         surface: "Thank you",
         audience: "New buyers",
         badge: "new",
-        icon: "email",
         questions: [
           "Did an email or text message lead you to this order?",
           "Which message was it?",
@@ -163,7 +159,6 @@ export const loader = async ({
         surface: "Order status",
         audience: "Delivered orders",
         badge: "recommended",
-        icon: "product",
         questions: [
           "Does the product match what you expected?",
           "What could we improve?",
@@ -180,7 +175,6 @@ export const loader = async ({
         estimatedSeconds: 30,
         surface: "Order status",
         audience: "Delivered orders",
-        icon: "delivery",
         questions: [
           "How was the shipping speed?",
           "Did the package arrive in good condition?",
@@ -197,7 +191,6 @@ export const loader = async ({
         estimatedSeconds: 20,
         surface: "Thank you",
         audience: "All buyers",
-        icon: "smiley-happy",
         questions: [
           "How likely are you to recommend us to a friend?",
           "What is the main reason for your score?",
@@ -213,7 +206,6 @@ export const loader = async ({
         estimatedSeconds: 25,
         surface: "Thank you",
         audience: "Wholesale buyers",
-        icon: "organization",
         questions: [
           "How did your team find us?",
           "Who else should we speak with at your company?",
@@ -224,98 +216,72 @@ export const loader = async ({
 };
 
 function badgeLabel(badge: TemplateBadge): string {
-  if (badge === "most_popular") {
-    return "Most popular";
-  }
-  if (badge === "recommended") {
-    return "Recommended";
-  }
+  if (badge === "most_popular") return "Most popular";
+  if (badge === "recommended") return "Recommended";
   return "New";
 }
 
-function badgeTone(badge: TemplateBadge): "success" | "info" | "caution" {
-  if (badge === "most_popular") {
-    return "success";
-  }
-  if (badge === "recommended") {
-    return "info";
-  }
-  return "caution";
+function badgeTone(badge: TemplateBadge): "success" | "info" | "attention" {
+  if (badge === "most_popular") return "success";
+  if (badge === "recommended") return "info";
+  return "attention";
 }
 
 function durationLabel(seconds: number): string {
-  if (seconds >= 60) {
-    return `${Math.round(seconds / 60)} min setup`;
-  }
+  if (seconds >= 60) return `${Math.round(seconds / 60)} min setup`;
   return `${seconds} sec`;
 }
 
 function TemplateCard({
   template,
   onUse,
+  onPreview,
 }: {
   template: SurveyTemplate;
   onUse: (template: SurveyTemplate) => void;
+  onPreview: (template: SurveyTemplate) => void;
 }) {
-  const previewId = `preview-${template.id}`;
-
   return (
-    <s-box
-      border="base"
-      borderRadius="base"
-      overflow="hidden"
-      background="base"
-    >
-      <s-box background="subdued" padding="large">
-        <s-stack alignItems="center" gap="small-200">
-          <s-icon type={template.icon} size="base" />
+    <Card padding="0">
+      <Box
+        background="bg-surface-secondary"
+        padding="600"
+        borderRadius="200"
+      >
+        <InlineStack align="center" gap="200">
           {template.badge ? (
-            <s-badge tone={badgeTone(template.badge)}>
+            <Badge tone={badgeTone(template.badge)}>
               {badgeLabel(template.badge)}
-            </s-badge>
+            </Badge>
           ) : null}
-        </s-stack>
-      </s-box>
-      <s-box padding="base">
-        <s-stack gap="small-300">
-          <s-heading>{template.name}</s-heading>
-          <s-paragraph color="subdued">{template.description}</s-paragraph>
-          <s-stack direction="inline" gap="small-200">
-            <s-badge icon="question-circle">
-              {template.questionCount === 0
-                ? "Your questions"
-                : `${template.questionCount} questions`}
-            </s-badge>
-            <s-badge icon="clock">
-              {durationLabel(template.estimatedSeconds)}
-            </s-badge>
-          </s-stack>
-          <s-text color="subdued">
+        </InlineStack>
+      </Box>
+      <Box padding="400">
+        <BlockStack gap="300">
+          <Text as="h3" variant="headingMd">
+            {template.name}
+          </Text>
+          <Text as="p" tone="subdued">
+            {template.description}
+          </Text>
+          <InlineStack gap="200">
+            <Badge>{template.questionCount === 0 ? "Your questions" : `${template.questionCount} questions`}</Badge>
+            <Badge>{durationLabel(template.estimatedSeconds)}</Badge>
+          </InlineStack>
+          <Text as="p" tone="subdued">
             {template.surface} · {template.audience}
-          </s-text>
-          <s-button-group>
-            <s-button
-              slot="primary-action"
-              variant="primary"
-              icon="plus"
-              onClick={() => onUse(template)}
-            >
+          </Text>
+          <InlineStack gap="200">
+            <Button variant="primary" onClick={() => onUse(template)}>
               Use template
-            </s-button>
+            </Button>
             {template.questions.length > 0 ? (
-              <s-button
-                slot="secondary-actions"
-                icon="view"
-                commandFor={previewId}
-                command="--show"
-              >
-                Preview
-              </s-button>
+              <Button onClick={() => onPreview(template)}>Preview</Button>
             ) : null}
-          </s-button-group>
-        </s-stack>
-      </s-box>
-    </s-box>
+          </InlineStack>
+        </BlockStack>
+      </Box>
+    </Card>
   );
 }
 
@@ -325,10 +291,12 @@ function TemplateCard({
  */
 export default function SurveyTemplatesPage() {
   const { templates } = useLoaderData<typeof loader>();
+  const openEditor = useOpenEditor();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<CategoryView>("all");
+  const [previewTemplate, setPreviewTemplate] = useState<SurveyTemplate | null>(null);
 
-  const featured = templates.find((template) => template.id === "hdyhau");
+  const featured = templates.find((t) => t.id === "hdyhau");
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -344,208 +312,174 @@ export default function SurveyTemplatesPage() {
     });
   }, [category, query, templates]);
 
-  const useTemplate = (template: SurveyTemplate) => {
-    openSurveyEditor({
+  const applyTemplate = (template: SurveyTemplate) => {
+    openEditor({
       templateId: template.id === "blank" ? undefined : template.id,
     });
   };
 
   return (
-    <s-page heading="Select a template">
-      <s-link slot="breadcrumb-actions" href="/app/surveys">
-        Surveys
-      </s-link>
-      <s-button
-        slot="primary-action"
-        variant="primary"
-        icon="plus"
-        onClick={() => {
-          const blank = templates.find((template) => template.id === "blank");
-          if (blank) {
-            useTemplate(blank);
-          }
-        }}
-      >
-        Start from scratch
-      </s-button>
+    <Page
+      title="Select a template"
+      backAction={{ content: "Surveys", url: "/app/surveys" }}
+      primaryAction={
+        <Button
+          variant="primary"
+          onClick={() => {
+            const blank = templates.find((t) => t.id === "blank");
+            if (blank) applyTemplate(blank);
+          }}
+        >
+          Start from scratch
+        </Button>
+      }
+    >
+      <Layout>
+        <Layout.Section>
+          <BlockStack gap="500">
+            {featured ? (
+              <Card>
+                <BlockStack gap="400">
+                  <Text as="h2" variant="headingMd">
+                    {featured.name}
+                  </Text>
+                  <Text as="p" tone="subdued">
+                    {featured.description}
+                  </Text>
+                  <InlineStack gap="200">
+                    <Badge tone="success">Most popular</Badge>
+                    <Badge tone="info">{featured.surface}</Badge>
+                    <Badge>{`${featured.questionCount} questions`}</Badge>
+                    <Badge>{durationLabel(featured.estimatedSeconds)}</Badge>
+                    <Badge>{featured.audience}</Badge>
+                  </InlineStack>
+                  <Text as="p" tone="subdued">
+                    Instagram, TikTok, Google, a friend, email, or Other.
+                    Optional follow-up captures the channel your list missed.
+                  </Text>
+                  <InlineStack gap="200">
+                    <Button
+                      variant="primary"
+                      onClick={() => applyTemplate(featured)}
+                    >
+                      Use this template
+                    </Button>
+                    <Button onClick={() => setPreviewTemplate(featured)}>
+                      Preview questions
+                    </Button>
+                  </InlineStack>
+                </BlockStack>
+              </Card>
+            ) : null}
 
-      {featured ? (
-        <s-section heading={featured.name} subheading={featured.description}>
-          <s-query-container>
-            <s-grid
-              gridTemplateColumns="@container (inline-size <= 640px) 1fr, 1fr auto"
-              gap="base"
-              alignItems="center"
-            >
-              <s-stack gap="small-200">
-                <s-stack direction="inline" gap="small-200">
-                  <s-badge tone="success">Most popular</s-badge>
-                  <s-badge tone="info">{featured.surface}</s-badge>
-                  <s-badge icon="question-circle">
-                    {featured.questionCount} questions
-                  </s-badge>
-                  <s-badge icon="clock">
-                    {durationLabel(featured.estimatedSeconds)}
-                  </s-badge>
-                  <s-badge icon="person">{featured.audience}</s-badge>
-                </s-stack>
-                <s-paragraph>
-                  Instagram, TikTok, Google, a friend, email, or Other. Optional
-                  follow-up captures the channel your list missed.
-                </s-paragraph>
-                <s-button-group>
-                  <s-button
-                    variant="primary"
-                    icon="plus"
-                    onClick={() => useTemplate(featured)}
-                  >
-                    Use this template
-                  </s-button>
-                  <s-button
-                    icon="view"
-                    commandFor="preview-hdyhau"
-                    command="--show"
-                  >
-                    Preview questions
-                  </s-button>
-                </s-button-group>
-              </s-stack>
-              <s-box
-                maxInlineSize="220px"
-                borderRadius="base"
-                overflow="hidden"
-                background="subdued"
-              >
-                <s-image
-                  src="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
-                  alt="Illustration for the how did you hear about us survey"
-                  aspectRatio="1/0.5"
-                />
-              </s-box>
-            </s-grid>
-          </s-query-container>
-        </s-section>
-      ) : null}
-
-      <s-section
-        heading="All templates"
-        subheading="Filter by job: attribution, delivery experience, or product feedback."
-      >
-        <s-query-container>
-          <s-grid
-            gridTemplateColumns="@container (inline-size <= 640px) 1fr, 1fr auto"
-            gap="base"
-            alignItems="end"
-          >
-            <s-search-field
-              label="Search templates"
-              labelAccessibilityVisibility="exclusive"
-              placeholder="Search templates"
-              value={query}
-              onInput={(event) => {
-                setQuery(event.currentTarget.value);
-              }}
-            />
-            <s-stack direction="inline" gap="small-200">
-              {CATEGORIES.map((item) => (
-                <s-button
-                  key={item.id}
-                  variant={category === item.id ? "primary" : "secondary"}
-                  onClick={() => setCategory(item.id)}
-                >
-                  {item.label}
-                </s-button>
-              ))}
-            </s-stack>
-          </s-grid>
-        </s-query-container>
-      </s-section>
-
-      {visible.length === 0 ? (
-        <s-section accessibilityLabel="No matching templates">
-          <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
-            <s-stack alignItems="center">
-              <s-heading>No templates match this view</s-heading>
-              <s-paragraph>
-                Clear search or choose All to see every post-purchase starting
-                point.
-              </s-paragraph>
-            </s-stack>
-            <s-button
-              onClick={() => {
-                setQuery("");
-                setCategory("all");
-              }}
-            >
-              Show all templates
-            </s-button>
-          </s-grid>
-        </s-section>
-      ) : (
-        <s-query-container>
-          <s-grid
-            gridTemplateColumns="repeat(auto-fit, minmax(260px, 1fr))"
-            gap="base"
-          >
-            {visible.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                onUse={useTemplate}
-              />
-            ))}
-          </s-grid>
-        </s-query-container>
-      )}
-
-      {templates
-        .filter((template) => template.questions.length > 0)
-        .map((template) => (
-          <s-modal
-            key={`preview-${template.id}`}
-            id={`preview-${template.id}`}
-            heading={template.name}
-            size="large"
-          >
-            <s-stack gap="base">
-              <s-paragraph>{template.description}</s-paragraph>
-              <s-stack direction="inline" gap="small-200">
-                <s-badge icon="question-circle">
-                  {template.questionCount} questions
-                </s-badge>
-                <s-badge icon="clock">
-                  {durationLabel(template.estimatedSeconds)}
-                </s-badge>
-                <s-badge tone="info">{template.surface}</s-badge>
-              </s-stack>
-              <s-section heading="Questions customers will see">
-                <s-ordered-list>
-                  {template.questions.map((question) => (
-                    <s-list-item key={question}>{question}</s-list-item>
+            <BlockStack gap="300">
+              <Text as="h2" variant="headingMd">
+                All templates
+              </Text>
+              <InlineStack gap="200" align="space-between" blockAlign="center">
+                <Box minWidth="280px">
+                  <TextField
+                    label="Search templates"
+                    labelHidden
+                    placeholder="Search templates"
+                    value={query}
+                    onChange={setQuery}
+                    clearButton
+                    onClearButtonClick={() => setQuery("")}
+                    autoComplete="off"
+                  />
+                </Box>
+                <InlineStack gap="100">
+                  {CATEGORIES.map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={category === item.id ? "primary" : "secondary"}
+                      onClick={() => setCategory(item.id)}
+                    >
+                      {item.label}
+                    </Button>
                   ))}
-                </s-ordered-list>
-              </s-section>
-            </s-stack>
-            <s-button
-              slot="secondary-actions"
-              commandFor={`preview-${template.id}`}
-              command="--hide"
-            >
-              Close
-            </s-button>
-            <s-button
-              slot="primary-action"
-              variant="primary"
-              icon="plus"
-              commandFor={`preview-${template.id}`}
-              command="--hide"
-              onClick={() => useTemplate(template)}
-            >
-              Use this template
-            </s-button>
-          </s-modal>
-        ))}
-    </s-page>
+                </InlineStack>
+              </InlineStack>
+
+              {visible.length === 0 ? (
+                <EmptyState
+                  heading="No templates match this view"
+                  image="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
+                  action={{
+                    content: "Show all templates",
+                    onAction: () => {
+                      setQuery("");
+                      setCategory("all");
+                    },
+                  }}
+                >
+                  <Text as="p">
+                    Clear the search or choose All to see every post-purchase
+                    starting point.
+                  </Text>
+                </EmptyState>
+              ) : (
+                <InlineGrid
+                  columns={{ xs: 1, sm: 2, lg: 3 }}
+                  gap="400"
+                >
+                  {visible.map((template) => (
+                    <TemplateCard
+                      key={template.id}
+                      template={template}
+                      onUse={applyTemplate}
+                      onPreview={setPreviewTemplate}
+                    />
+                  ))}
+                </InlineGrid>
+              )}
+            </BlockStack>
+          </BlockStack>
+        </Layout.Section>
+      </Layout>
+
+      {previewTemplate ? (
+        <Modal
+          open
+          onClose={() => setPreviewTemplate(null)}
+          title={previewTemplate.name}
+          primaryAction={{
+            content: "Use this template",
+            onAction: () => {
+              applyTemplate(previewTemplate);
+              setPreviewTemplate(null);
+            },
+          }}
+          secondaryActions={[
+            { content: "Close", onAction: () => setPreviewTemplate(null) },
+          ]}
+        >
+          <Modal.Section>
+            <BlockStack gap="400">
+              <Text as="p" tone="subdued">
+                {previewTemplate.description}
+              </Text>
+              <InlineStack gap="200">
+                <Badge>{`${previewTemplate.questionCount} questions`}</Badge>
+                <Badge>{durationLabel(previewTemplate.estimatedSeconds)}</Badge>
+                <Badge tone="info">{previewTemplate.surface}</Badge>
+              </InlineStack>
+              <BlockStack gap="200">
+                <Text as="h3" variant="headingSm">
+                  Questions customers will see
+                </Text>
+                <List type="number">
+                  {previewTemplate.questions.map((q) => (
+                    <List.Item key={q}>{q}</List.Item>
+                  ))}
+                </List>
+              </BlockStack>
+            </BlockStack>
+          </Modal.Section>
+        </Modal>
+      ) : null}
+    </Page>
   );
 }
 

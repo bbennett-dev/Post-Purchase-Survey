@@ -1,5 +1,16 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import {
+  Badge,
+  BlockStack,
+  Button,
+  Card,
+  InlineGrid,
+  InlineStack,
+  Layout,
+  Page,
+  Text,
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -31,45 +42,38 @@ export default function IntegrationsPage() {
   const shopify = useAppBridge();
 
   return (
-    <s-page inlineSize="large">
-      <s-section heading="Available connections">
-        <s-stack direction="block" gap="base">
-          {integrations.map((integration) => (
-            <s-box
-              key={integration.name}
-              padding="base"
-              border="base"
-              borderRadius="base"
-            >
-              <s-grid
-                gridTemplateColumns="1fr auto"
-                gap="base"
-                alignItems="center"
-              >
-                <s-stack direction="block" gap="small-200">
-                  <s-stack
-                    direction="inline"
-                    gap="small-200"
-                    alignItems="center"
+    <Page title="Integrations">
+      <Layout>
+        <Layout.Section>
+          <BlockStack gap="300">
+            {integrations.map((integration) => (
+              <Card key={integration.name}>
+                <InlineGrid columns="1fr auto" gap="400" alignItems="center">
+                  <BlockStack gap="100">
+                    <InlineStack gap="200" blockAlign="center">
+                      <Text as="h3" variant="headingMd">
+                        {integration.name}
+                      </Text>
+                      <Badge tone="info">Not connected</Badge>
+                    </InlineStack>
+                    <Text as="p" tone="subdued">
+                      {integration.detail}
+                    </Text>
+                  </BlockStack>
+                  <Button
+                    onClick={() =>
+                      shopify.toast.show(`${integration.name} setup comes next`)
+                    }
                   >
-                    <s-heading>{integration.name}</s-heading>
-                    <s-badge tone="neutral">Not connected</s-badge>
-                  </s-stack>
-                  <s-paragraph>{integration.detail}</s-paragraph>
-                </s-stack>
-                <s-button
-                  onClick={() =>
-                    shopify.toast.show(`${integration.name} setup comes next`)
-                  }
-                >
-                  Connect
-                </s-button>
-              </s-grid>
-            </s-box>
-          ))}
-        </s-stack>
-      </s-section>
-    </s-page>
+                    Connect
+                  </Button>
+                </InlineGrid>
+              </Card>
+            ))}
+          </BlockStack>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
 

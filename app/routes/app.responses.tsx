@@ -1,6 +1,16 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import {
+  Badge,
+  Button,
+  Card,
+  DataTable,
+  EmptyState,
+  Layout,
+  Page,
+  Text,
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -54,68 +64,71 @@ export default function ResponsesPage() {
   const { responses } = useLoaderData<typeof loader>();
   const shopify = useAppBridge();
 
-  return (
-    <s-page inlineSize="large">
-      <s-section padding="none" accessibilityLabel="Responses list">
-        <s-box padding="base">
-          <s-grid
-            gridTemplateColumns="1fr auto"
-            gap="base"
-            alignItems="center"
-          >
-            <s-heading>Responses</s-heading>
-            <s-button
-              variant="primary"
-              onClick={() => shopify.toast.show("CSV export comes next")}
-            >
-              Export to CSV
-            </s-button>
-          </s-grid>
-        </s-box>
+  const rows = responses.map((r) => [
+    <Text key={`${r.id}-order`} as="span" fontWeight="semibold">
+      {r.orderName}
+    </Text>,
+    r.surveyName,
+    <Badge key={`${r.id}-channel`}>{r.selectedChannel}</Badge>,
+    r.customText ? (
+      <Text as="span">{r.customText}</Text>
+    ) : (
+      <Text as="span" tone="subdued">
+        —
+      </Text>
+    ),
+    r.submittedAt,
+  ]);
 
-        {responses.length === 0 ? (
-          <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
-            <s-stack alignItems="center">
-              <s-heading>No responses yet</s-heading>
-              <s-paragraph>
-                Answers from the Thank You page will show up here, one row per
-                order.
-              </s-paragraph>
-            </s-stack>
-            <s-button href="/app/surveys">Review surveys</s-button>
-          </s-grid>
-        ) : (
-          <s-table>
-            <s-table-header-row>
-              <s-table-header listSlot="primary">Order</s-table-header>
-              <s-table-header>Survey</s-table-header>
-              <s-table-header>Channel</s-table-header>
-              <s-table-header>Custom text</s-table-header>
-              <s-table-header listSlot="labeled">Submitted</s-table-header>
-            </s-table-header-row>
-            <s-table-body>
-              {responses.map((response) => (
-                <s-table-row key={response.id}>
-                  <s-table-cell>
-                    <s-text type="strong">{response.orderName}</s-text>
-                  </s-table-cell>
-                  <s-table-cell>{response.surveyName}</s-table-cell>
-                  <s-table-cell>{response.selectedChannel}</s-table-cell>
-                  <s-table-cell>
-                    {response.customText ? (
-                      <s-text>{response.customText}</s-text>
-                    ) : (
-                      <s-text color="subdued">—</s-text>
-                    )}
-                  </s-table-cell>
-                  <s-table-cell>{response.submittedAt}</s-table-cell>
-                </s-table-row>
-              ))}
-            </s-table-body>
-          </s-table>
-        )}
-      </s-section>
-    </s-page>
+  return (
+    <Page
+      title="Responses"
+      primaryAction={
+        <Button
+          variant="primary"
+          onClick={() => shopify.toast.show("CSV export comes next")}
+        >
+          Export to CSV
+        </Button>
+      }
+    >
+      <Layout>
+        <Layout.Section>
+          <Card padding="0">
+            {responses.length === 0 ? (
+              <EmptyState
+                heading="No responses yet"
+                image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+              >
+                <Text as="p">
+                  Answers from the Thank You page will show up here, one row
+                  per order.
+                </Text>
+                <Link to="/app/surveys">Review surveys</Link>
+              </EmptyState>
+            ) : (
+              <DataTable
+                columnContentTypes={[
+                  "text",
+                  "text",
+                  "text",
+                  "text",
+                  "text",
+                ]}
+                headings={[
+                  "Order",
+                  "Survey",
+                  "Channel",
+                  "Custom text",
+                  "Submitted",
+                ]}
+                rows={rows}
+              />
+            )}
+          </Card>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
 

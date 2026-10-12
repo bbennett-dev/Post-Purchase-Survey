@@ -1,17 +1,25 @@
 import { useEffect, useRef, useState } from "react";
-import { useAppBridge } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useSearchParams } from "react-router";
+import { EditorDiscardModal } from "../components/survey-editor/EditorDiscardModal";
 import { SurveyEditorChrome } from "../components/survey-editor/SurveyEditorChrome";
-import editorChromeStyles from "../components/survey-editor/editor-chrome.module.css";
-import "../components/survey-editor/editor-viewport.css";
-import { useFillRemainingViewportHeight } from "../components/survey-editor/useFillRemainingViewportHeight";
-import { closeSurveyEditor } from "../lib/open-survey-editor";
+import { EditorFlexColumn, EditorFlexMain } from "../components/survey-editor/EditorFlexLayout";
+import {
+  useEditorViewportLock,
+  useFillRemainingViewportHeight,
+} from "../components/survey-editor/useEditorViewport";
+import {
+  EDITOR_BRIDGE_CHANNEL,
+  publishEditorChromeState,
+  type EditorBridgeMessage,
+} from "../lib/editor-bridge";
+import { EDITOR_MODAL_ID } from "../lib/editor-modal";
 import { createSampleSurvey } from "../lib/survey/questions";
 import {
   PublishSurveyError,
@@ -31,8 +39,6 @@ interface EditorLoaderData {
   checkoutEditor: CheckoutEditorLinks;
 }
 
-const DISCARD_MODAL_ID = "discard-survey-changes";
-
 const TEMPLATE_NAMES: Record<string, string> = {
   blank: "Blank survey",
   hdyhau: "How did you hear about us?",
@@ -49,7 +55,6 @@ const TEMPLATE_NAMES: Record<string, string> = {
 /**
  * Survey editor loader.
  * The same route opens for a blank survey, a template, or an existing survey.
- * Question content stays empty until the editor sections are designed.
  */
 export const loader = async ({
   request,
@@ -95,7 +100,6 @@ interface SaveActionData {
 
 /**
  * Publishes the in-editor survey to shop metafields and the survey metaobject.
- * Extensions read `$app.checkout_surveys` on Thank you and Order status pages.
  */
 export const action = async ({
   request,
@@ -126,7 +130,7 @@ export const action = async ({
     return {
       ok: false,
       error:
-        "Turn on “Thank you / Order status” in the Channel tab before saving for checkout.",
+        'Turn on "Thank you / Order status" in the Channel tab before saving for checkout.',
     };
   }
 
@@ -142,30 +146,9 @@ export const action = async ({
   }
 };
 
-function discardMessage(mode: EditorMode): string {
-  if (mode === "edit") {
-    return "Your latest edits will be lost. The last saved version of this survey stays as it is.";
-  }
-
-  return "This survey hasn't been saved. Discarding closes the editor and removes what you started.";
-}
-
 /**
- * Opens the discard confirmation from the title-bar button.
- * Title-bar actions are projected into the admin chrome, so this uses the
- * modal method instead of commandFor.
- */
-function openDiscardModal(): void {
-  const modal = document.getElementById(DISCARD_MODAL_ID) as
-    | (HTMLElement & { showOverlay?: () => void })
-    | null;
-  modal?.showOverlay?.();
-}
-
-/**
- * Survey editor.
- * The document matches the get-survey response. Content can be edited in
- * memory until Save publishes to Shopify metafields for checkout extensions.
+ * Survey editor body (max-modal `src` iframe). Modal chrome (`TitleBar`, `SaveBar`)
+ * lives on the parent route in `EditorModalProvider`.
  */
 export default function SurveyEditorPage() {
   const data = useLoaderData<typeof loader>();
@@ -174,24 +157,46 @@ export default function SurveyEditorPage() {
   const [survey, setSurvey] = useState<SurveyDocument>(() =>
     createSampleSurvey(),
   );
+  const [searchParams] = useSearchParams();
+  const inMaxModal = searchParams.get("modal") === "1";
+
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [dirty, setDirty] = useState(false);
 
   const isSaving =
     saveFetcher.state === "submitting" || saveFetcher.state === "loading";
+
   const editorBodyRef = useRef<HTMLDivElement>(null);
+  const surveyRef = useRef(survey);
+  surveyRef.current = survey;
+
+  useEditorViewportLock();
   useFillRemainingViewportHeight(editorBodyRef);
 
-  /** Keep scroll inside left/right panels, not the app window document. */
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevBodyOverflow = body.style.overflow;
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    return () => {
-      html.style.overflow = prevHtmlOverflow;
-      body.style.overflow = prevBodyOverflow;
+    publishEditorChromeState({
+      dirty,
+      name: survey.name,
+      saving: isSaving,
+    });
+  }, [dirty, survey.name, isSaving]);
+
+  useEffect(() => {
+    const channel = new BroadcastChannel(EDITOR_BRIDGE_CHANNEL);
+    channel.onmessage = (event: MessageEvent<EditorBridgeMessage>) => {
+      const message = event.data;
+      if (message?.type === "save") {
+        const formData = new FormData();
+        formData.set("survey", JSON.stringify(surveyRef.current));
+        saveFetcher.submit(formData, { method: "POST" });
+      }
+      if (message?.type === "discard") {
+        setDiscardOpen(true);
+      }
     };
+
+    return () => channel.close();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- stable command listener
   }, []);
 
   useEffect(() => {
@@ -199,6 +204,7 @@ export default function SurveyEditorPage() {
       return;
     }
     if (saveFetcher.data.ok) {
+      setDirty(false);
       shopify.toast.show("Survey published for Thank you & Order status");
       return;
     }
@@ -213,61 +219,69 @@ export default function SurveyEditorPage() {
     saveFetcher.submit(formData, { method: "POST" });
   }
 
-  return (
-    <div className={editorChromeStyles.editorViewport}>
-      <s-page heading={survey.name} inlineSize="large">
-        <s-button slot="secondary-actions" onClick={openDiscardModal}>
-          Discard
-        </s-button>
-        <s-button
-          slot="primary-action"
-          variant="primary"
-          icon="save"
-          loading={isSaving}
-          disabled={isSaving}
-          onClick={saveSurvey}
-        >
-          Save
-        </s-button>
+  async function closeEditor(): Promise<void> {
+    if (shopify.modal?.hide) {
+      try {
+        await shopify.modal.hide(EDITOR_MODAL_ID);
+        return;
+      } catch {
+        // Not inside a modal — fall through.
+      }
+    }
+    window.history.back();
+  }
 
-        <div ref={editorBodyRef} className={editorChromeStyles.editorPage}>
+  return (
+    <EditorFlexColumn>
+      {!inMaxModal ? (
+        <TitleBar title={survey.name}>
+          {dirty ? (
+            <>
+              <s-button onClick={() => setDiscardOpen(true)}>Discard</s-button>
+              <s-button
+                variant="primary"
+                disabled={isSaving}
+                loading={isSaving}
+                onClick={saveSurvey}
+              >
+                Save
+              </s-button>
+            </>
+          ) : null}
+        </TitleBar>
+      ) : null}
+
+      <EditorFlexMain>
+        <div
+          ref={editorBodyRef}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            minHeight: 0,
+          }}
+        >
           <SurveyEditorChrome
             survey={survey}
             checkoutEditor={data.checkoutEditor}
-            onSurveyChange={setSurvey}
+            onSurveyChange={(next) => {
+              setSurvey(next);
+              setDirty(true);
+            }}
           />
         </div>
+      </EditorFlexMain>
 
-        <s-modal
-        id={DISCARD_MODAL_ID}
-        heading="Discard unsaved changes?"
-        size="small"
-        accessibilityLabel="Discard unsaved survey changes"
-      >
-        <s-paragraph>{discardMessage(data.mode)}</s-paragraph>
-        <s-button
-          slot="secondary-actions"
-          variant="secondary"
-          commandFor={DISCARD_MODAL_ID}
-          command="--hide"
-        >
-          Continue editing
-        </s-button>
-        <s-button
-          slot="primary-action"
-          variant="primary"
-          tone="critical"
-          commandFor={DISCARD_MODAL_ID}
-          command="--hide"
-          onClick={() => {
-            closeSurveyEditor();
-          }}
-        >
-          Discard changes
-        </s-button>
-        </s-modal>
-      </s-page>
-    </div>
+      <EditorDiscardModal
+        open={discardOpen}
+        onClose={() => setDiscardOpen(false)}
+        onConfirmDiscard={() => {
+          setDirty(false);
+          void closeEditor();
+        }}
+      />
+    </EditorFlexColumn>
   );
 }
 

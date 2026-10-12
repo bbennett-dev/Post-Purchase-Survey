@@ -1,5 +1,17 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
+import {
+  Badge,
+  Banner,
+  BlockStack,
+  Box,
+  Card,
+  InlineGrid,
+  InlineStack,
+  Layout,
+  Page,
+  Text,
+} from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -12,8 +24,7 @@ interface DashboardLoaderData {
 
 /**
  * Authenticated dashboard loader.
- * Returns a short shop snapshot. Detailed survey, response, and analytics
- * screens live on their own routes and stay mocked until those pages are built out.
+ * Returns a short shop snapshot. Detailed screens live on their own routes.
  */
 export const loader = async ({
   request,
@@ -28,97 +39,120 @@ export const loader = async ({
   };
 };
 
-/**
- * SnapPlux home. General status only; each feature has its own navigation page.
- */
+const NAV_TILES = [
+  {
+    to: "/app/surveys",
+    heading: "Surveys",
+    body: "Create and manage the questions shown after checkout.",
+  },
+  {
+    to: "/app/responses",
+    heading: "Responses",
+    body: "Review each order's answer, channel, and custom text.",
+  },
+  {
+    to: "/app/analytics",
+    heading: "Analytics",
+    body: "See which channels drive orders and how response rate trends.",
+  },
+  {
+    to: "/app/integrations",
+    heading: "Integrations",
+    body: "Connect attribution answers to the rest of your stack.",
+  },
+  {
+    to: "/app/settings",
+    heading: "Settings",
+    body: "App preferences and Thank You page placement live here.",
+  },
+];
+
+/** App home dashboard. General status only; each feature has its own page. */
 export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <s-page inlineSize="large">
-      <s-banner heading="Post-purchase attribution" tone="info">
-        SnapPlux asks customers how they heard about you on the Thank You page.
-        Open a section below to manage surveys, read responses, or review
-        performance.
-      </s-banner>
+    <Page>
+      <Layout>
+        <Layout.Section>
+          <BlockStack gap="500">
+            <Banner title="Post-purchase attribution" tone="info">
+              <Text as="p">
+                This app asks customers how they heard about you on the Thank
+                You page. Open a section below to manage surveys, read
+                responses, or review performance.
+              </Text>
+            </Banner>
 
-      <s-section heading="Store snapshot">
-        <s-query-container>
-          <s-grid
-            gridTemplateColumns="@container (inline-size <= 400px) 1fr, 1fr auto 1fr auto 1fr"
-            gap="small"
-          >
-            <s-box paddingBlock="small-400" paddingInline="small-100">
-              <s-grid gap="small-300">
-                <s-heading>Active surveys</s-heading>
-                <s-text type="strong">{data.activeSurveys}</s-text>
-              </s-grid>
-            </s-box>
-            <s-divider direction="block" />
-            <s-box paddingBlock="small-400" paddingInline="small-100">
-              <s-grid gap="small-300">
-                <s-heading>Total responses</s-heading>
-                <s-text type="strong">
-                  {data.totalResponses.toLocaleString()}
-                </s-text>
-              </s-grid>
-            </s-box>
-            <s-divider direction="block" />
-            <s-box paddingBlock="small-400" paddingInline="small-100">
-              <s-grid gap="small-300">
-                <s-heading>Response rate</s-heading>
-                <s-stack direction="inline" gap="small-200" alignItems="center">
-                  <s-text type="strong">{data.responseRate}</s-text>
-                  <s-badge tone="success">{data.topChannel}</s-badge>
-                </s-stack>
-              </s-grid>
-            </s-box>
-          </s-grid>
-        </s-query-container>
-      </s-section>
+            <Card>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingMd">
+                  Store snapshot
+                </Text>
+                <InlineGrid
+                  columns={{ xs: 1, sm: 3 }}
+                  gap="400"
+                >
+                  <BlockStack gap="100">
+                    <Text as="p" tone="subdued">
+                      Active surveys
+                    </Text>
+                    <Text as="p" variant="headingLg" fontWeight="bold">
+                      {data.activeSurveys}
+                    </Text>
+                  </BlockStack>
+                  <BlockStack gap="100">
+                    <Text as="p" tone="subdued">
+                      Total responses
+                    </Text>
+                    <Text as="p" variant="headingLg" fontWeight="bold">
+                      {data.totalResponses.toLocaleString()}
+                    </Text>
+                  </BlockStack>
+                  <BlockStack gap="100">
+                    <Text as="p" tone="subdued">
+                      Response rate
+                    </Text>
+                    <InlineStack gap="200" blockAlign="center">
+                      <Text as="p" variant="headingLg" fontWeight="bold">
+                        {data.responseRate}
+                      </Text>
+                      <Badge tone="success">{data.topChannel}</Badge>
+                    </InlineStack>
+                  </BlockStack>
+                </InlineGrid>
+              </BlockStack>
+            </Card>
 
-      <s-section heading="Go to">
-        <s-grid
-          gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))"
-          gap="base"
-        >
-          <s-clickable href="/app/surveys" padding="base" background="subdued">
-            <s-heading>Surveys</s-heading>
-            <s-paragraph>
-              Create and manage the questions shown after checkout.
-            </s-paragraph>
-          </s-clickable>
-          <s-clickable href="/app/responses" padding="base" background="subdued">
-            <s-heading>Responses</s-heading>
-            <s-paragraph>
-              Review each order&apos;s answer, channel, and custom text.
-            </s-paragraph>
-          </s-clickable>
-          <s-clickable href="/app/analytics" padding="base" background="subdued">
-            <s-heading>Analytics</s-heading>
-            <s-paragraph>
-              See which channels drive orders and how response rate trends.
-            </s-paragraph>
-          </s-clickable>
-          <s-clickable
-            href="/app/integrations"
-            padding="base"
-            background="subdued"
-          >
-            <s-heading>Integrations</s-heading>
-            <s-paragraph>
-              Connect attribution answers to the rest of your stack.
-            </s-paragraph>
-          </s-clickable>
-          <s-clickable href="/app/settings" padding="base" background="subdued">
-            <s-heading>Settings</s-heading>
-            <s-paragraph>
-              App preferences and Thank You page placement live here.
-            </s-paragraph>
-          </s-clickable>
-        </s-grid>
-      </s-section>
-    </s-page>
+            <BlockStack gap="300">
+              <Text as="h2" variant="headingMd">
+                Go to
+              </Text>
+              <InlineGrid columns={{ xs: 1, sm: 2, md: 3 }} gap="300">
+                {NAV_TILES.map((tile) => (
+                  <Link to={tile.to} key={tile.to} style={{ textDecoration: "none" }}>
+                    <Box
+                      padding="400"
+                      background="bg-surface-secondary"
+                      borderRadius="200"
+                    >
+                      <BlockStack gap="100">
+                        <Text as="h3" variant="headingMd">
+                          {tile.heading}
+                        </Text>
+                        <Text as="p" tone="subdued">
+                          {tile.body}
+                        </Text>
+                      </BlockStack>
+                    </Box>
+                  </Link>
+                ))}
+              </InlineGrid>
+            </BlockStack>
+          </BlockStack>
+        </Layout.Section>
+      </Layout>
+    </Page>
   );
 }
 
