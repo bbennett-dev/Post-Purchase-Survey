@@ -1,0 +1,10 @@
+.answerLayoutSelect {
+  flex-shrink: 0;
+  min-inline-size: 11.75rem;
+  max-inline-size: min(100%, 14rem);
+}
+
+.answerLayoutSelect :global(s-select) {
+  display: block;
+  inline-size: 100%;
+}
