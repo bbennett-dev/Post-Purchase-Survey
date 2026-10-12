@@ -17,6 +17,14 @@ export type QuestionType =
 
 export type ImageAlignment = "left" | "center" | "right";
 
+/** How choice answers render in checkout (stored on the question document). */
+export type ChoiceAnswerLayout = "text_only" | "text_with_image";
+
+/** When the optional “other” / custom answer field is shown. */
+export type CustomAnswerShowWhen =
+  | "always_show"
+  | "when_customer_select_answers";
+
 export interface SurveyAnswer {
   id: string;
   content: string;
@@ -40,11 +48,12 @@ export interface SurveyQuestion {
   image?: SurveyImage;
   answers?: SurveyAnswer[];
   enabledCustomAnswer?: boolean;
-  showWhen?: string;
+  showWhen?: CustomAnswerShowWhen;
   showCustomAnswerWhen?: string[];
   customAnswerPlaceholder?: string;
   customAnswerRequired?: boolean;
   shuffleAnswer?: boolean;
+  answerLayout?: ChoiceAnswerLayout;
   leftLabel?: string;
   rightLabel?: string;
   placeholder?: string;
@@ -79,6 +88,27 @@ export interface SurveyChannel {
   type?: string;
   enabled?: boolean;
   [key: string]: unknown;
+}
+
+/** Shared settings for Thank you + Order status (`postPurchasePage`). */
+export interface PostPurchasePageChannel extends SurveyChannel {
+  type?: "postPurchasePage";
+  displayType?: string;
+  announcementBar?: {
+    modalTitle?: string;
+    content?: string;
+    buttonText?: string;
+  };
+  userTargeting?: {
+    type?: string;
+    customerSegment?: unknown[];
+  };
+  widgetRecurrence?: string;
+  enabledSideLogo?: boolean;
+  sideLogo?: {
+    url?: string;
+    enabled?: boolean;
+  };
 }
 
 export interface SurveyDiscount {

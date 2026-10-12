@@ -31,17 +31,7 @@ export const QUESTION_TYPES: {
   { type: "text_image", label: "Text & Image", icon: "image" },
 ];
 
-export const CHANNEL_LABELS: Record<string, string> = {
-  dedicatedPageSurvey: "Dedicated page",
-  siteWidget: "Site widget",
-  postPurchasePage: "Thank you page",
-  postPurchaseEmail: "Post-purchase email",
-  exitIntent: "Exit intent",
-  embedSurvey: "Embed survey",
-  embedEmail: "Embed email",
-  surveyForm: "Popup form",
-  posPage: "Point of sale",
-};
+export { CHANNEL_LABELS } from "./channels";
 
 const CHOICE_TYPES = new Set<QuestionType>(["single", "multiple"]);
 const SCALE_TYPES = new Set<QuestionType>([
@@ -99,6 +89,7 @@ export function createQuestion(
     question.customAnswerPlaceholder = "Please add more information";
     question.customAnswerRequired = false;
     question.shuffleAnswer = false;
+    question.answerLayout = "text_only";
   }
 
   if (SCALE_TYPES.has(type)) {
