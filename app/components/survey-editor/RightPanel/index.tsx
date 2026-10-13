@@ -77,7 +77,7 @@ export function EditorRightPanel(props: EditorRightPanelProps) {
         </BlockStack>
       }
     >
-      {/* Match left Content tab: SectionLabel uses paddingBlockStart="500" below the header divider. */}
+      {/* Fixed gap below header divider (matches left panel tab body). */}
       <Box paddingBlockStart="500">
         {panel === "content" ? (
           <ContentInspector
