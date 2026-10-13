@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActionList, BlockStack, Text } from "@shopify/polaris";
 import { QUESTION_TYPES } from "../../../../lib/survey/questions";
 import type { QuestionType, SurveyQuestion } from "../../../../lib/survey/types";
+import { questionTypeIconSource } from "../../questionTypeIcons";
 import { QuestionDragPreview } from "../../QuestionDragPreview";
 import { QuestionDropLine } from "../../QuestionDropLine";
 import { QuestionRow } from "../../QuestionRow";
@@ -168,14 +169,18 @@ export function QuestionList({
   const addContentRow = (
     <AddListRow
       label="Add content"
-      menu={
+      menu={({ close }) => (
         <ActionList
           items={QUESTION_TYPES.map((item) => ({
             content: item.label,
-            onAction: () => onAddQuestion(item.type),
+            icon: questionTypeIconSource(item.type),
+            onAction: () => {
+              close();
+              onAddQuestion(item.type);
+            },
           }))}
         />
-      }
+      )}
     />
   );
 

@@ -3,10 +3,14 @@ import { Box, Icon, Popover } from "@shopify/polaris";
 import { PlusCircleIcon } from "@shopify/polaris-icons";
 import styles from "./add-list-row.module.css";
 
+export interface AddListRowMenuHelpers {
+  close: () => void;
+}
+
 interface AddListRowProps {
   label: string;
   onClick?: () => void;
-  menu?: ReactNode;
+  menu?: ReactNode | ((helpers: AddListRowMenuHelpers) => ReactNode);
 }
 
 /**
@@ -58,16 +62,21 @@ export function AddListRow({ label, onClick, menu }: AddListRowProps) {
     return activator;
   }
 
+  const closeMenu = () => {
+    setOpen(false);
+    setHovered(false);
+  };
+
+  const menuContent =
+    typeof menu === "function" ? menu({ close: closeMenu }) : menu;
+
   return (
     <Popover
       active={open}
       activator={activator}
-      onClose={() => {
-        setOpen(false);
-        setHovered(false);
-      }}
+      onClose={closeMenu}
     >
-      {menu}
+      {menuContent}
     </Popover>
   );
 }

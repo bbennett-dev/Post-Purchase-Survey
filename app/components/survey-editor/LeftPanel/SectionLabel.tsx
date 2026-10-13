@@ -14,7 +14,7 @@ export function SectionLabel({
   return (
     <Box
       paddingInline="200"
-      paddingBlockStart={variant === "endings" ? "600" : "500"}
+      paddingBlockStart={variant === "endings" ? "600" : "0"}
       paddingBlockEnd="300"
     >
       <Text as="p" variant="bodySm" tone="subdued" fontWeight="semibold">

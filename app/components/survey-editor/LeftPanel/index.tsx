@@ -96,40 +96,42 @@ export function EditorLeftPanel(props: EditorLeftPanelProps) {
         </BlockStack>
       }
     >
-      {panel === "content" ? (
-        <ContentPanel
-          survey={survey}
-          selectedQuestionId={selectedQuestionId}
-          selectedEndingId={selectedEndingId}
-          showTranslationTip={showTranslationTip}
-          onSelectQuestion={onSelectQuestion}
-          onSelectEnding={onSelectEnding}
-          onDismissTranslation={onDismissTranslation}
-          onAddQuestion={onAddQuestion}
-          onMoveQuestion={onMoveQuestion}
-          onReorderQuestion={onReorderQuestion}
-          onDeleteQuestion={onDeleteQuestion}
-          onAddEnding={onAddEnding}
-          onSetMain={onSetMain}
-          onDeleteEnding={onDeleteEnding}
-        />
-      ) : null}
-      {panel === "channel" ? (
-        <ChannelPanel
-          survey={survey}
-          selectedChannelKey={selectedChannelKey}
-          onSelectChannel={onSelectChannel}
-          onChannelChange={onChannelChange}
-        />
-      ) : null}
-      {panel === "discount" ? (
-        <DiscountPanel
-          survey={survey}
-          selectedDiscountTarget={selectedDiscountTarget}
-          onSelectDiscountTarget={onSelectDiscountTarget}
-          onDiscountChange={onDiscountChange}
-        />
-      ) : null}
+      <Box paddingBlockStart="500">
+        {panel === "content" ? (
+          <ContentPanel
+            survey={survey}
+            selectedQuestionId={selectedQuestionId}
+            selectedEndingId={selectedEndingId}
+            showTranslationTip={showTranslationTip}
+            onSelectQuestion={onSelectQuestion}
+            onSelectEnding={onSelectEnding}
+            onDismissTranslation={onDismissTranslation}
+            onAddQuestion={onAddQuestion}
+            onMoveQuestion={onMoveQuestion}
+            onReorderQuestion={onReorderQuestion}
+            onDeleteQuestion={onDeleteQuestion}
+            onAddEnding={onAddEnding}
+            onSetMain={onSetMain}
+            onDeleteEnding={onDeleteEnding}
+          />
+        ) : null}
+        {panel === "channel" ? (
+          <ChannelPanel
+            survey={survey}
+            selectedChannelKey={selectedChannelKey}
+            onSelectChannel={onSelectChannel}
+            onChannelChange={onChannelChange}
+          />
+        ) : null}
+        {panel === "discount" ? (
+          <DiscountPanel
+            survey={survey}
+            selectedDiscountTarget={selectedDiscountTarget}
+            onSelectDiscountTarget={onSelectDiscountTarget}
+            onDiscountChange={onDiscountChange}
+          />
+        ) : null}
+      </Box>
     </EditorScrollPanel>
   );
 }
