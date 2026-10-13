@@ -1,0 +1,146 @@
+/** Marker class — used with :has() so the popover shell allows the caret to extend outside. */
+.surveyDatePopoverRoot {
+  position: relative;
+  box-sizing: border-box;
+  background: var(--p-color-bg-surface);
+  border: var(--p-border-width-025) solid var(--p-color-border-secondary);
+  border-radius: var(--p-border-radius-300);
+  box-shadow: var(--p-shadow-300);
+  overflow: visible;
+}
+
+:global(.Polaris-Popover__ContentContainer:has(.surveyDatePopoverRoot)),
+:global(.Polaris-Popover__Content:has(.surveyDatePopoverRoot)),
+:global(.Polaris-Popover__Pane:has(.surveyDatePopoverRoot)) {
+  overflow: visible;
+}
+
+:global(.Polaris-Popover__ContentContainer:has(.surveyDatePopoverRoot)) {
+  background: transparent;
+  box-shadow: none;
+}
+
+:global(.Polaris-Popover:has(.surveyDatePopoverRoot)) {
+  box-shadow: none;
+}
+
+:global(.Polaris-Popover:has(.surveyDatePopoverRoot))::before {
+  display: none;
+}
+
+:global(.Polaris-Popover--positionedAbove:has(.surveyDatePopoverRoot)) {
+  margin-bottom: 0.625rem;
+}
+
+:global(.Polaris-Popover--positionedAbove.Polaris-Popover--fullWidth:has(.surveyDatePopoverRoot)) {
+  margin-bottom: 0.625rem;
+}
+
+/** Calendar prefix — near default Polaris 20px. */
+.fieldCalendarIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.fieldCalendarIcon :global(.Polaris-Icon) {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+}
+
+.fieldCalendarIcon :global(.Polaris-Icon svg) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.popoverSurface {
+  padding: var(--p-space-400);
+}
+
+/**
+ * Downward V caret (popover opens above the field). Two layers: border triangle + fill.
+ */
+.popoverCaret {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 5;
+  width: 1.25rem;
+  height: 0.625rem;
+  pointer-events: none;
+  transform: translate(-50%, 100%);
+  filter: drop-shadow(0 0.0625rem 0 rgba(26, 26, 26, 0.06));
+}
+
+.popoverCaretBorder,
+.popoverCaretFill {
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  transform: translateX(-50%);
+}
+
+.popoverCaretBorder {
+  bottom: 0;
+  border-width: 0.5625rem 0.6875rem 0 0.6875rem;
+  border-color: var(--p-color-border-secondary) transparent transparent transparent;
+}
+
+.popoverCaretFill {
+  bottom: 0.0625rem;
+  border-width: 0.5rem 0.625rem 0 0.625rem;
+  border-color: var(--p-color-bg-surface) transparent transparent transparent;
+}
+
+.compactCalendar :global(.Polaris-DatePicker) {
+  width: 100%;
+}
+
+.compactCalendar :global(.Polaris-DatePicker__MonthLayout) {
+  margin-top: calc(var(--p-space-400) * -1);
+  margin-left: calc(var(--p-space-400) * -1);
+  width: calc(100% + var(--p-space-400));
+}
+
+.compactCalendar :global(.Polaris-DatePicker__MonthContainer) {
+  min-width: 0;
+  flex: 1 1 100%;
+  max-width: 100%;
+  width: 100%;
+  margin-top: var(--p-space-400);
+  margin-left: var(--p-space-400);
+}
+
+.compactCalendar :global(.Polaris-DatePicker__Header) {
+  margin-bottom: var(--p-space-200);
+}
+
+.compactCalendar :global(.Polaris-DatePicker__Title) {
+  font-size: var(--p-font-size-325);
+  font-weight: var(--p-font-weight-semibold);
+}
+
+.compactCalendar :global(.Polaris-DatePicker__Weekday) {
+  font-size: var(--p-font-size-300);
+  padding: var(--p-space-100) 0;
+}
+
+.compactCalendar :global(.Polaris-DatePicker__Day) {
+  padding: var(--p-space-100);
+  font-size: var(--p-font-size-300);
+}
+
+.compactCalendar :global(.Polaris-DatePicker__Header .Polaris-Button) {
+  min-height: 2rem;
+  min-width: 2rem;
+}
+
+.compactCalendar :global(.Polaris-DatePicker__Header .Polaris-Button .Polaris-Icon) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
