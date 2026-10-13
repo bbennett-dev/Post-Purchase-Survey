@@ -1,12 +1,12 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
+  BlockStack,
   Box,
-  Checkbox,
-  Divider,
+  Collapsible,
   Icon,
-  InlineGrid,
   InlineStack,
   Text,
+  Tooltip,
   UnstyledButton,
 } from "@shopify/polaris";
 import {
@@ -14,6 +14,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CodeIcon,
+  DesktopIcon,
   EmailIcon,
   ExitIcon,
   PageIcon,
@@ -21,11 +22,12 @@ import {
   StarFilledIcon,
 } from "@shopify/polaris-icons";
 import type { ChannelDefinition } from "../../../../lib/survey/channels";
+import { ChannelSwitch } from "./ChannelSwitch";
 
 const CHANNEL_ICONS: Record<string, typeof CartIcon> = {
   cart: CartIcon,
   page: PageIcon,
-  "layout-popup": PageIcon,
+  "layout-popup": DesktopIcon,
   email: EmailIcon,
   exit: ExitIcon,
   code: CodeIcon,
@@ -33,18 +35,71 @@ const CHANNEL_ICONS: Record<string, typeof CartIcon> = {
   "point-of-sale": PointOfSaleIcon,
 };
 
-interface ChannelRowProps {
+/** Disclosure control: flex row so chevron, icons, and label share one vertical center line. */
+const disclosureControl: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  flex: "1 1 auto",
+  minWidth: 0,
+  margin: 0,
+  padding: 0,
+  border: "none",
+  background: "transparent",
+  boxShadow: "none",
+  cursor: "pointer",
+  textAlign: "left",
+};
+
+function RecommendedStarTooltip({
+  definition,
+}: {
+  definition: ChannelDefinition;
+}) {
+  const tip = definition.recommendedTooltip;
+  const content = tip ? (
+    <BlockStack gap="0">
+      <Text as="span" variant="bodySm">
+        {tip.line1}
+      </Text>
+      {tip.line2 ? (
+        <Text as="span" variant="bodySm">
+          {tip.line2}
+        </Text>
+      ) : null}
+    </BlockStack>
+  ) : (
+    "Recommended channel"
+  );
+
+  return (
+    <Tooltip content={content} preferredPosition="above">
+      <span
+        aria-label={
+          tip
+            ? [tip.line1, tip.line2].filter(Boolean).join(" ")
+            : "Recommended channel"
+        }
+        onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
+        style={{ display: "inline-flex", alignItems: "center" }}
+      >
+        <Icon source={StarFilledIcon} tone="info" />
+      </span>
+    </Tooltip>
+  );
+}
+
+export interface ChannelRowProps {
   definition: ChannelDefinition;
   enabled: boolean;
   expanded: boolean;
   onToggleExpand: () => void;
   onEnabledChange: (enabled: boolean) => void;
-  children?: ReactNode;
+  children: ReactNode;
 }
 
 /**
- * Accordion channel row. Core settings render in the expanded left body;
- * advanced settings for the selected channel render in the right panel.
+ * Flat accordion row: aligned header (competitor) + {@link Collapsible} body for every channel.
  */
 export function ChannelRow({
   definition,
@@ -56,67 +111,87 @@ export function ChannelRow({
 }: ChannelRowProps) {
   const hasToggle = definition.hasToggle !== false;
   const ChannelIcon = CHANNEL_ICONS[definition.icon] ?? PageIcon;
+  const collapsibleId = `channel-${definition.key}`;
 
   return (
-    <Box borderWidth="025" borderColor="border" borderRadius="200" overflowX="hidden" overflowY="hidden">
+    <Box background="bg-surface">
       <Box
-        padding="200"
         background={expanded ? "bg-surface-secondary" : "bg-surface"}
+        paddingBlock="300"
+        paddingInline="400"
       >
-        <InlineGrid
-          columns={
-            hasToggle && definition.recommended
-              ? "1fr auto auto"
-              : hasToggle || definition.recommended
-                ? "1fr auto"
-                : "1fr"
-          }
-          gap="200"
-          alignItems="center"
+        <InlineStack
+          align={hasToggle ? "space-between" : "start"}
+          blockAlign="center"
+          wrap={false}
+          gap="300"
         >
           <UnstyledButton
             onClick={onToggleExpand}
+            ariaExpanded={expanded}
+            ariaControls={collapsibleId}
             accessibilityLabel={
               expanded
                 ? `Collapse ${definition.label}`
                 : `Expand ${definition.label}`
             }
+            style={disclosureControl}
           >
-            <InlineStack gap="200" blockAlign="center">
-              <Icon
-                source={expanded ? ChevronUpIcon : ChevronDownIcon}
-                tone="subdued"
-              />
-              <Icon source={ChannelIcon} tone={enabled ? undefined : "subdued"} />
-              <Text as="span" fontWeight={enabled ? "semibold" : "regular"}>
+            <InlineStack gap="200" blockAlign="center" wrap={false}>
+              <Box minWidth="500">
+                <Icon
+                  source={expanded ? ChevronUpIcon : ChevronDownIcon}
+                  tone="subdued"
+                />
+              </Box>
+              <Box minWidth="500">
+                <Icon
+                  source={ChannelIcon}
+                  tone={enabled ? undefined : "subdued"}
+                />
+              </Box>
+              <Text
+                as="span"
+                variant="bodyMd"
+                fontWeight={expanded ? "semibold" : "regular"}
+              >
                 {definition.label}
               </Text>
+              {definition.recommended ? (
+                <RecommendedStarTooltip definition={definition} />
+              ) : null}
             </InlineStack>
           </UnstyledButton>
 
-          {definition.recommended ? (
-            <Icon source={StarFilledIcon} tone="info" />
-          ) : null}
-
           {hasToggle ? (
-            <Checkbox
-              label={`Enable ${definition.label}`}
-              labelHidden
-              checked={enabled}
-              onChange={onEnabledChange}
-            />
+            <Box minHeight="500">
+              <InlineStack blockAlign="center">
+                <ChannelSwitch
+                  enabled={enabled}
+                  accessibilityLabel={`Enable ${definition.label}`}
+                  onChange={onEnabledChange}
+                />
+              </InlineStack>
+            </Box>
           ) : null}
-        </InlineGrid>
+        </InlineStack>
       </Box>
 
-      {expanded ? (
-        <>
-          <Divider />
-          <Box padding="300" background="bg-surface-secondary">
-            {children}
-          </Box>
-        </>
-      ) : null}
+      <Collapsible
+        open={expanded}
+        id={collapsibleId}
+        transition={{ duration: "200ms", timingFunction: "ease-in-out" }}
+        expandOnPrint
+      >
+        <Box
+          paddingBlock="300"
+          paddingInline="400"
+          paddingBlockStart="300"
+          background="bg-surface"
+        >
+          {children}
+        </Box>
+      </Collapsible>
     </Box>
   );
 }

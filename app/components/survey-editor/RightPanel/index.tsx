@@ -1,5 +1,6 @@
 import type { CheckoutEditorLinks } from "../../../lib/shopify/checkout-editor-url.server";
 import type {
+  DiscountPreviewTarget,
   EditorPanel,
   QuestionType,
   SurveyChannel,
@@ -26,6 +27,7 @@ export interface EditorRightPanelProps {
   onDeleteQuestion: () => void;
   onChannelChange: (channelKey: string, patch: SurveyChannel) => void;
   onDiscountChange: (patch: Partial<SurveyDiscount>) => void;
+  selectedDiscountTarget: DiscountPreviewTarget;
 }
 
 /**
@@ -44,6 +46,7 @@ export function EditorRightPanel({
   onDeleteQuestion,
   onChannelChange,
   onDiscountChange,
+  selectedDiscountTarget,
 }: EditorRightPanelProps) {
   return (
     <EditorScrollPanel accessibilityLabel="Survey settings inspector">
@@ -70,6 +73,7 @@ export function EditorRightPanel({
       {panel === "discount" ? (
         <DiscountInspector
           survey={survey}
+          selectedDiscountTarget={selectedDiscountTarget}
           onDiscountChange={onDiscountChange}
         />
       ) : null}

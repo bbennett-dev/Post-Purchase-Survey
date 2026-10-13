@@ -29,7 +29,7 @@ export function PostPurchaseSettings({
   return (
     <BlockStack gap="400">
       <BlockStack gap="200">
-        <Text as="p" fontWeight="semibold">
+        <Text as="p" variant="bodySm" tone="subdued">
           User targeting
         </Text>
         <ButtonGroup variant="segmented" fullWidth>

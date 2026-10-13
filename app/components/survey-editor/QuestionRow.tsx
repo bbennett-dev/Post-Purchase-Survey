@@ -159,11 +159,11 @@ export function QuestionRow({
                           setMenuOpen(false);
                         },
                       },
-                      {
-                        content: "Create section with question",
-                        icon: LayoutColumns2Icon,
-                        disabled: true,
-                      },
+                      // {
+                      //   content: "Create section with question",
+                      //   icon: LayoutColumns2Icon,
+                      //   disabled: true,
+                      // },
                       {
                         content: "Delete question",
                         icon: DeleteIcon,

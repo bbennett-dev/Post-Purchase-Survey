@@ -1,10 +1,11 @@
-import { Badge, BlockStack, InlineStack, Text } from "@shopify/polaris";
+import { Box, Divider } from "@shopify/polaris";
 import { CHANNEL_DEFINITIONS } from "../../../../lib/survey/channels";
 import type {
   PostPurchasePageChannel,
   SurveyChannel,
   SurveyDocument,
 } from "../../../../lib/survey/types";
+import { ChannelPlaceholderBody } from "./ChannelPlaceholderBody";
 import { ChannelRow } from "./ChannelRow";
 import { PostPurchaseSettings } from "./PostPurchaseSettings";
 
@@ -16,7 +17,8 @@ export interface ChannelPanelProps {
 }
 
 /**
- * Channel tab: accordion list with core settings inline; advanced settings on the right.
+ * Channel tab — flat accordion list (competitor + theme editor app embeds):
+ * one bordered group, rows separated by dividers, no per-channel card stacks.
  */
 export function ChannelPanel({
   survey,
@@ -24,24 +26,25 @@ export function ChannelPanel({
   onSelectChannel,
   onChannelChange,
 }: ChannelPanelProps) {
+  const lastIndex = CHANNEL_DEFINITIONS.length - 1;
+
   return (
-    <BlockStack gap="300">
-      <InlineStack gap="200" blockAlign="center">
-        <Text as="p" variant="bodySm" tone="subdued" fontWeight="semibold">
-          Distribution channels
-        </Text>
-        <Badge>{String(CHANNEL_DEFINITIONS.length)}</Badge>
-      </InlineStack>
+    <Box
+      borderWidth="025"
+      borderColor="border"
+      borderRadius="200"
+      overflowX="hidden"
+      overflowY="hidden"
+      background="bg-surface"
+    >
+      {CHANNEL_DEFINITIONS.map((definition, index) => {
+        const channel = survey.channels[definition.key] ?? {};
+        const enabled = channel.enabled === true;
+        const expanded = selectedChannelKey === definition.key;
 
-      <BlockStack gap="200">
-        {CHANNEL_DEFINITIONS.map((definition) => {
-          const channel = survey.channels[definition.key] ?? {};
-          const enabled = channel.enabled === true;
-          const expanded = selectedChannelKey === definition.key;
-
-          return (
+        return (
+          <Box key={definition.key}>
             <ChannelRow
-              key={definition.key}
               definition={definition}
               enabled={enabled}
               expanded={expanded}
@@ -60,14 +63,13 @@ export function ChannelPanel({
                   }
                 />
               ) : (
-                <Text as="p" tone="subdued">
-                  Core settings for this channel come next.
-                </Text>
+                <ChannelPlaceholderBody channelLabel={definition.label} />
               )}
             </ChannelRow>
-          );
-        })}
-      </BlockStack>
-    </BlockStack>
+            {index < lastIndex ? <Divider /> : null}
+          </Box>
+        );
+      })}
+    </Box>
   );
 }

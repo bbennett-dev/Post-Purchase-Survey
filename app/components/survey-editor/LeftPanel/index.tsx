@@ -1,8 +1,10 @@
 import { BlockStack, Box, Divider } from "@shopify/polaris";
 import type {
+  DiscountPreviewTarget,
   EditorPanel,
   QuestionType,
   SurveyChannel,
+  SurveyDiscount,
   SurveyDocument,
 } from "../../../lib/survey/types";
 import { EditorScrollPanel } from "../EditorScrollPanel";
@@ -35,6 +37,9 @@ export interface EditorLeftPanelProps {
   selectedChannelKey: string | null;
   onSelectChannel: (channelKey: string) => void;
   onChannelChange: (channelKey: string, patch: SurveyChannel) => void;
+  selectedDiscountTarget: DiscountPreviewTarget;
+  onSelectDiscountTarget: (target: DiscountPreviewTarget) => void;
+  onDiscountChange: (patch: Partial<SurveyDiscount>) => void;
 }
 
 /**
@@ -64,6 +69,9 @@ export function EditorLeftPanel(props: EditorLeftPanelProps) {
     selectedChannelKey,
     onSelectChannel,
     onChannelChange,
+    selectedDiscountTarget,
+    onSelectDiscountTarget,
+    onDiscountChange,
   } = props;
 
   return (
@@ -114,7 +122,14 @@ export function EditorLeftPanel(props: EditorLeftPanelProps) {
           onChannelChange={onChannelChange}
         />
       ) : null}
-      {panel === "discount" ? <DiscountPanel survey={survey} /> : null}
+      {panel === "discount" ? (
+        <DiscountPanel
+          survey={survey}
+          selectedDiscountTarget={selectedDiscountTarget}
+          onSelectDiscountTarget={onSelectDiscountTarget}
+          onDiscountChange={onDiscountChange}
+        />
+      ) : null}
     </EditorScrollPanel>
   );
 }

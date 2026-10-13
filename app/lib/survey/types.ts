@@ -111,11 +111,30 @@ export interface PostPurchasePageChannel extends SurveyChannel {
   };
 }
 
+export interface SurveyDiscountCard {
+  heading?: string;
+  description?: string;
+  placeholder?: string;
+  buttonText?: string;
+}
+
+export interface SurveyDiscountBanner {
+  heading?: string;
+  description?: string;
+}
+
+/** Which discount surface is selected for preview / right-panel editing. */
+export type DiscountPreviewTarget = "banner" | "thankYouCard";
+
 export interface SurveyDiscount {
   enabled: boolean;
   code?: string;
   displayText?: string;
+  /** Where the code is shown after completion (competitor “Display discount code on”). */
+  displayOn?: string;
   discountType?: string;
+  card?: SurveyDiscountCard;
+  banner?: SurveyDiscountBanner;
   [key: string]: unknown;
 }
 

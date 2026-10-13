@@ -8,6 +8,7 @@ import {
   moveQuestion,
 } from "../../lib/survey/questions";
 import type {
+  DiscountPreviewTarget,
   EditorPanel,
   EditorWorkspace,
   PreviewDevice,
@@ -53,6 +54,8 @@ export function SurveyEditorChrome({
   const [selectedChannelKey, setSelectedChannelKey] = useState<string | null>(
     "postPurchasePage",
   );
+  const [selectedDiscountTarget, setSelectedDiscountTarget] =
+    useState<DiscountPreviewTarget>("thankYouCard");
   const [renaming, setRenaming] = useState(false);
   const [showTranslationTip, setShowTranslationTip] = useState(
     Object.keys(survey.translation).length > 0,
@@ -114,7 +117,9 @@ export function SurveyEditorChrome({
   };
 
   const showSidePanels = device !== "fullscreen";
-  const gridColumns = showSidePanels ? "minmax(260px, 300px) minmax(0, 1fr) minmax(280px, 320px)" : "minmax(0, 1fr)";
+  const gridColumns = showSidePanels
+    ? "minmax(300px, 340px) minmax(0, 1fr) minmax(295px, 345px)"
+    : "minmax(0, 1fr)";
 
   return (
     <EditorFlexColumn gap="0" style={{ flex: 1, minHeight: 0 }}>
@@ -222,6 +227,14 @@ export function SurveyEditorChrome({
                   }
                 }}
                 onChannelChange={handleChannelChange}
+                selectedDiscountTarget={selectedDiscountTarget}
+                onSelectDiscountTarget={setSelectedDiscountTarget}
+                onDiscountChange={(patch) => {
+                  onSurveyChange({
+                    ...survey,
+                    discount: { ...survey.discount, ...patch },
+                  });
+                }}
               />
             </EditorGridCell>
           ) : null}
@@ -311,6 +324,7 @@ export function SurveyEditorChrome({
                     discount: { ...survey.discount, ...patch },
                   });
                 }}
+                selectedDiscountTarget={selectedDiscountTarget}
               />
             </EditorGridCell>
           ) : null}

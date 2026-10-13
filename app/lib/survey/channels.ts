@@ -19,6 +19,8 @@ export interface ChannelDefinition {
   icon: ChannelIcon;
   /** Shown with a star; recommended first channel for merchants. */
   recommended?: boolean;
+  /** Star hover tooltip (competitor: response rate hint). */
+  recommendedTooltip?: { line1: string; line2?: string };
   /** When false, the row has no enable switch (link-only channels). */
   hasToggle?: boolean;
 }
@@ -33,6 +35,10 @@ export const CHANNEL_DEFINITIONS: ChannelDefinition[] = [
     label: "Thank you page",
     icon: "cart",
     recommended: true,
+    recommendedTooltip: {
+      line1: "Highest response rate",
+      line2: "(~30%)",
+    },
     hasToggle: true,
   },
   {
