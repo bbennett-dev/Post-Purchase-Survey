@@ -12,6 +12,7 @@ export type QuestionType =
   | "satisfaction"
   | "short_answer"
   | "date"
+  | "email"
   | "consent_email"
   | "text_image";
 
@@ -19,6 +20,9 @@ export type ImageAlignment = "left" | "center" | "right";
 
 /** How choice answers render in checkout (stored on the question document). */
 export type ChoiceAnswerLayout = "text_only" | "text_with_image";
+
+/** Short answer validation format (checkout input rules). */
+export type ShortAnswerFormat = "any_text" | "numbers_only";
 
 /** When the optional “other” / custom answer field is shown. */
 export type CustomAnswerShowWhen =
@@ -57,6 +61,11 @@ export interface SurveyQuestion {
   leftLabel?: string;
   rightLabel?: string;
   placeholder?: string;
+  /** Short answer: optional input validation (competitor “Answer validation”). */
+  enabledAnswerValidation?: boolean;
+  answerFormat?: ShortAnswerFormat;
+  minCharacters?: number;
+  maxCharacters?: number;
   dateFormat?: string;
   minDate?: string;
   maxDate?: string;

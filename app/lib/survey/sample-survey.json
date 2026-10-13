@@ -353,6 +353,7 @@
       "customAnswerPlaceholder": "Please add more information multi",
       "customAnswerRequired": false,
       "shuffleAnswer": false,
+      "answerLayout": "text_only",
       "id": "question_1790053288693",
       "sectionId": null,
       "positionInSection": null
