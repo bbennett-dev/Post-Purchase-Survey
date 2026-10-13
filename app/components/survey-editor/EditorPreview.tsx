@@ -230,6 +230,21 @@ function SurveyPopupCard({
           />
         ) : null}
 
+        {question.type === "email" || question.type === "short_answer" ? (
+          <Box
+            padding="300"
+            borderWidth="025"
+            borderColor="border"
+            borderRadius="200"
+            background="bg-surface"
+          >
+            <Text as="p" tone="subdued">
+              {question.placeholder?.trim() ||
+                (question.type === "email" ? "Enter email" : "Your answer")}
+            </Text>
+          </Box>
+        ) : null}
+
         {question.answers && question.answers.length > 0 ? (
           <BlockStack gap="200">
             {question.answers.map((answer, index) => (
