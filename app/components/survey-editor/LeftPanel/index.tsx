@@ -80,7 +80,7 @@ export function EditorLeftPanel(props: EditorLeftPanelProps) {
       bordered={false}
       header={
         <BlockStack gap="0">
-          <Box paddingBlockEnd="300">
+          <Box paddingBlockEnd="300" paddingInline="400">
             <SurveyNameEditor
               name={survey.name}
               renaming={renaming}
@@ -89,7 +89,7 @@ export function EditorLeftPanel(props: EditorLeftPanelProps) {
             />
           </Box>
           <Divider />
-          <Box paddingBlock="300">
+          <Box paddingBlock="300" paddingInline="400">
             <PanelTabs panel={panel} onPanel={onPanel} />
           </Box>
           <Divider />

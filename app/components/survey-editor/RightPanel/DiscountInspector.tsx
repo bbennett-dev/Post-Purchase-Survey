@@ -34,9 +34,6 @@ export function DiscountInspector({
     const banner = discount.banner ?? {};
     return (
       <BlockStack gap="400">
-        <Text as="h2" variant="headingMd">
-          Discount banner
-        </Text>
         <TextField
           label="Heading"
           value={banner.heading ?? ""}
@@ -61,9 +58,6 @@ export function DiscountInspector({
   const card = discount.card ?? {};
   return (
     <BlockStack gap="400">
-      <Text as="h2" variant="headingMd">
-        Thank you card
-      </Text>
       <TextField
         label="Heading"
         value={card.heading ?? ""}

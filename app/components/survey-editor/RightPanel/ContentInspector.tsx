@@ -2,12 +2,11 @@ import {
   BlockStack,
   Button,
   Checkbox,
-  InlineStack,
   Select,
   Text,
   TextField,
 } from "@shopify/polaris";
-import { DeleteIcon, MenuHorizontalIcon } from "@shopify/polaris-icons";
+import { DeleteIcon } from "@shopify/polaris-icons";
 import { QUESTION_TYPES } from "../../../lib/survey/questions";
 import type {
   QuestionType,
@@ -39,9 +38,6 @@ export function ContentInspector({
   if (ending) {
     return (
       <BlockStack gap="400">
-        <Text as="h2" variant="headingMd">
-          Ending
-        </Text>
         <TextField
           label="Heading"
           value={ending.heading}
@@ -75,18 +71,6 @@ export function ContentInspector({
 
   return (
     <BlockStack gap="500">
-      <InlineStack align="space-between" blockAlign="center">
-        <Text as="h2" variant="headingMd">
-          Question
-        </Text>
-        <Button
-          icon={MenuHorizontalIcon}
-          variant="tertiary"
-          accessibilityLabel="Question actions"
-          disabled
-        />
-      </InlineStack>
-
       <Select
         label="Question type"
         options={QUESTION_TYPES.map((item) => ({

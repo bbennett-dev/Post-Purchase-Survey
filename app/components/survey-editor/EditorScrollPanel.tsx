@@ -49,7 +49,7 @@ export function EditorScrollPanel({
   return (
     <div style={panelShell(bordered)}>
       {header ? (
-        <Box padding="400" paddingBlockEnd="200">
+        <Box paddingBlockStart="400">
           {header}
         </Box>
       ) : null}

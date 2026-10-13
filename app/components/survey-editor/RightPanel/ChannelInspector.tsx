@@ -15,11 +15,6 @@ export interface ChannelInspectorProps {
   onChannelChange: (channelKey: string, patch: SurveyChannel) => void;
 }
 
-/** Right-panel title overrides (shorter merchant-facing names). */
-const RIGHT_PANEL_TITLES: Record<string, string> = {
-  postPurchasePage: "Thank you page",
-};
-
 /**
  * Channel tab: advanced configuration for the channel selected on the left.
  */
@@ -50,14 +45,9 @@ export function ChannelInspector({
   }
 
   const channel = survey.channels[selectedChannelKey] ?? {};
-  const title = RIGHT_PANEL_TITLES[selectedChannelKey] ?? definition.label;
 
   return (
     <BlockStack gap="400">
-      <Text as="p" fontWeight="semibold">
-        {title}
-      </Text>
-
       {selectedChannelKey === "postPurchasePage" ? (
         <PostPurchaseAdvancedSettings
           channel={channel as PostPurchasePageChannel}
