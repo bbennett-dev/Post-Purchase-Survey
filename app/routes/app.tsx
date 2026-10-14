@@ -41,9 +41,13 @@ export default function App() {
             <Link to="/app/settings">Settings</Link>
           </NavMenu>
         )}
-        <EditorModalProvider>
+        {isSurveyEditor ? (
           <Outlet />
-        </EditorModalProvider>
+        ) : (
+          <EditorModalProvider>
+            <Outlet />
+          </EditorModalProvider>
+        )}
       </PolarisAppProvider>
     </ShopifyAppProvider>
   );
