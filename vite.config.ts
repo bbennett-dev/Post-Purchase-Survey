@@ -55,7 +55,14 @@ export default defineConfig({
   build: {
     assetsInlineLimit: 0,
   },
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
   optimizeDeps: {
-    include: ["@shopify/app-bridge-react"],
+    include: [
+      "@shopify/app-bridge-react",
+      "@uiw/react-color-sketch",
+      "@uiw/color-convert",
+    ],
   },
 }) satisfies UserConfig;
