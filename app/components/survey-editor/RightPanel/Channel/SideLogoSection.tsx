@@ -173,7 +173,7 @@ export function SideLogoSection({
               )}
 
               <Text as="p" tone="subdued">
-                Leave empty to show the default logo.
+                Leave empty to show the SEA logo
               </Text>
             </BlockStack>
           </Box>

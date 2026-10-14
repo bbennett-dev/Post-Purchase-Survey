@@ -1,18 +1,12 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import {
-  BlockStack,
-  Button,
-  Card,
-  InlineGrid,
-  Select,
-  Text,
-  TextField,
-} from "@shopify/polaris";
-import { ExternalIcon } from "@shopify/polaris-icons";
-import { openShopifyAdminUrl } from "../../../../lib/open-checkout-editor";
+import { useCallback, useState } from "react";
+import { BlockStack, Select, TextField } from "@shopify/polaris";
 import type { CheckoutEditorLinks } from "../../../../lib/shopify/checkout-editor-url.server";
 import type { PostPurchasePageChannel } from "../../../../lib/survey/types";
+import { PostPurchaseDisplaySettingCard } from "./PostPurchaseDisplaySettingCard";
+import {
+  ANNOUNCEMENT_BUTTON_TEXT_MAX_LENGTH,
+  ANNOUNCEMENT_CONTENT_MAX_LENGTH,
+} from "./postPurchaseAnnouncementLimits";
 import { SideLogoSection } from "./SideLogoSection";
 
 interface PostPurchaseAdvancedSettingsProps {
@@ -26,8 +20,11 @@ const DISPLAY_TYPE_OPTIONS = [
   { value: "announcementBarType", label: "Announcement bar" },
 ];
 
-const INSTRUCTION_URL =
-  "https://shopify.dev/docs/apps/build/checkout/thank-you-order-status";
+const DISPLAY_TYPE_HELP: Record<string, string> = {
+  blockType: "Embed the survey as a checkout UI block on the thank you page.",
+  announcementBarType:
+    "Better for content that needs to capture a buyer's immediate attention",
+};
 
 /**
  * Thank you page advanced settings (right column).
@@ -39,6 +36,25 @@ export function PostPurchaseAdvancedSettings({
 }: PostPurchaseAdvancedSettingsProps) {
   const [sideLogoOpen, setSideLogoOpen] = useState(true);
   const displayType = channel.displayType ?? "blockType";
+  const isAnnouncement = displayType === "announcementBarType";
+
+  const patchAnnouncement = useCallback(
+    (
+      patch: Partial<
+        NonNullable<PostPurchasePageChannel["announcementBar"]>
+      >,
+    ) => {
+      onChange({
+        announcementBar: {
+          modalTitle: channel.announcementBar?.modalTitle ?? "",
+          content: channel.announcementBar?.content ?? "",
+          buttonText: channel.announcementBar?.buttonText ?? "",
+          ...patch,
+        },
+      });
+    },
+    [channel.announcementBar, onChange],
+  );
 
   return (
     <BlockStack gap="400">
@@ -46,84 +62,39 @@ export function PostPurchaseAdvancedSettings({
         label="Display type"
         options={DISPLAY_TYPE_OPTIONS}
         value={displayType}
+        helpText={DISPLAY_TYPE_HELP[displayType]}
         onChange={(next) => onChange({ displayType: next })}
       />
 
-      {displayType === "blockType" ? (
-        <Card>
-          <BlockStack gap="300">
-            <InlineGrid columns="1fr auto" gap="200" alignItems="center">
-              <Text as="p" fontWeight="semibold">
-                Display setting
-              </Text>
-              <Button url={INSTRUCTION_URL} external variant="plain">
-                View instruction
-              </Button>
-            </InlineGrid>
+      <PostPurchaseDisplaySettingCard checkoutEditor={checkoutEditor} />
 
-            <Button
-              icon={ExternalIcon}
-              fullWidth
-              onClick={() => openShopifyAdminUrl(checkoutEditor.thankYou)}
-            >
-              Add block
-            </Button>
-
-            <Text as="p" tone="subdued">
-              <Link to="/app/settings">Contact us</Link> if you need any
-              support.
-            </Text>
-          </BlockStack>
-        </Card>
-      ) : (
-        <BlockStack gap="200">
+      {isAnnouncement ? (
+        <BlockStack gap="300">
           <TextField
             label="Modal title"
             value={channel.announcementBar?.modalTitle ?? ""}
-            onChange={(modalTitle) =>
-              onChange({
-                announcementBar: {
-                  ...channel.announcementBar,
-                  modalTitle,
-                  content: channel.announcementBar?.content ?? "",
-                  buttonText: channel.announcementBar?.buttonText ?? "",
-                },
-              })
-            }
+            onChange={(modalTitle) => patchAnnouncement({ modalTitle })}
             autoComplete="off"
           />
           <TextField
-            label="Announcement text"
+            label="Content"
             value={channel.announcementBar?.content ?? ""}
-            onChange={(content) =>
-              onChange({
-                announcementBar: {
-                  ...channel.announcementBar,
-                  modalTitle: channel.announcementBar?.modalTitle ?? "",
-                  content,
-                  buttonText: channel.announcementBar?.buttonText ?? "",
-                },
-              })
-            }
+            onChange={(content) => patchAnnouncement({ content })}
+            multiline={3}
+            maxLength={ANNOUNCEMENT_CONTENT_MAX_LENGTH}
+            showCharacterCount
             autoComplete="off"
           />
           <TextField
             label="Button text"
             value={channel.announcementBar?.buttonText ?? ""}
-            onChange={(buttonText) =>
-              onChange({
-                announcementBar: {
-                  ...channel.announcementBar,
-                  modalTitle: channel.announcementBar?.modalTitle ?? "",
-                  content: channel.announcementBar?.content ?? "",
-                  buttonText,
-                },
-              })
-            }
+            onChange={(buttonText) => patchAnnouncement({ buttonText })}
+            maxLength={ANNOUNCEMENT_BUTTON_TEXT_MAX_LENGTH}
+            showCharacterCount
             autoComplete="off"
           />
         </BlockStack>
-      )}
+      ) : null}
 
       <SideLogoSection
         channel={channel}
