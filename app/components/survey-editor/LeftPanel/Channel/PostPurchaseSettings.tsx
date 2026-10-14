@@ -1,5 +1,6 @@
 import { BlockStack, Button, ButtonGroup, Select, Text } from "@shopify/polaris";
 import type { PostPurchasePageChannel } from "../../../../lib/survey/types";
+import { PostPurchaseUserSegmentBox } from "./PostPurchaseUserSegmentBox";
 
 interface PostPurchaseSettingsProps {
   channel: PostPurchasePageChannel;
@@ -17,7 +18,7 @@ const RECURRENCE_OPTIONS = [
 ];
 
 /**
- * Core Thank you / Order status settings shown in the left accordion body.
+ * Core Thank you page settings in the left accordion (targeting + recurrence).
  */
 export function PostPurchaseSettings({
   channel,
@@ -37,21 +38,35 @@ export function PostPurchaseSettings({
             <Button
               key={option.id}
               pressed={targetingType === option.id}
-              onClick={() =>
+              onClick={() => {
+                if (option.id === "segment") {
+                  onChange({
+                    userTargeting: {
+                      type: "segment",
+                      returnCustomer:
+                        channel.userTargeting?.returnCustomer ?? true,
+                      newCustomer: channel.userTargeting?.newCustomer ?? false,
+                      customerSegment: channel.userTargeting?.customerSegment ?? [],
+                    },
+                  });
+                  return;
+                }
                 onChange({
                   userTargeting: {
-                    ...channel.userTargeting,
-                    type: option.id,
-                    customerSegment:
-                      channel.userTargeting?.customerSegment ?? [],
+                    type: "all_users",
+                    customerSegment: channel.userTargeting?.customerSegment ?? [],
                   },
-                })
-              }
+                });
+              }}
             >
               {option.label}
             </Button>
           ))}
         </ButtonGroup>
+
+        {targetingType === "segment" ? (
+          <PostPurchaseUserSegmentBox channel={channel} onChange={onChange} />
+        ) : null}
       </BlockStack>
 
       <Select

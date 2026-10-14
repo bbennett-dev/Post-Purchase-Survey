@@ -1,12 +1,14 @@
 import { Box, Divider } from "@shopify/polaris";
 import { CHANNEL_DEFINITIONS } from "../../../../lib/survey/channels";
 import type {
+  DedicatedPageSurveyChannel,
   PostPurchasePageChannel,
   SurveyChannel,
   SurveyDocument,
 } from "../../../../lib/survey/types";
 import { ChannelPlaceholderBody } from "./ChannelPlaceholderBody";
 import { ChannelRow } from "./ChannelRow";
+import { DedicatedPageSurveySettings } from "./DedicatedPageSurveySettings";
 import { PostPurchaseSettings } from "./PostPurchaseSettings";
 
 export interface ChannelPanelProps {
@@ -58,6 +60,13 @@ export function ChannelPanel({
               {definition.key === "postPurchasePage" ? (
                 <PostPurchaseSettings
                   channel={channel as PostPurchasePageChannel}
+                  onChange={(patch) =>
+                    onChannelChange(definition.key, patch)
+                  }
+                />
+              ) : definition.key === "dedicatedPageSurvey" ? (
+                <DedicatedPageSurveySettings
+                  channel={channel as DedicatedPageSurveyChannel}
                   onChange={(patch) =>
                     onChannelChange(definition.key, patch)
                   }
