@@ -99,6 +99,68 @@ export interface SurveyChannel {
   [key: string]: unknown;
 }
 
+export type SegmentConditionField = "user_tag";
+
+export type SegmentConditionOperator = "include" | "exclude";
+
+export interface SurveyCustomerSegmentCondition {
+  field: SegmentConditionField;
+  operator: SegmentConditionOperator;
+  tags: string[];
+}
+
+/** Merchant-defined segment group (Thank you page user targeting). */
+export interface SurveyCustomerSegmentGroup {
+  id: string;
+  name: string;
+  condition: SurveyCustomerSegmentCondition;
+  enabled?: boolean;
+}
+
+export type DedicatedPageBackgroundType = "solid" | "gradient" | "image";
+
+/** Branded survey page channel (`dedicatedPageSurvey`). */
+export interface DedicatedPageSurveyChannel extends SurveyChannel {
+  type?: "dedicatedPageSurvey";
+  link?: string;
+  allowMultiSubmit?: boolean;
+  enabledHeaderLogo?: boolean;
+  enabledSideLogo?: boolean;
+  headerLogo?: {
+    url?: string;
+    alignment?: string;
+    enabled?: boolean;
+  };
+  sideLogo?: {
+    url?: string;
+    enabled?: boolean;
+  };
+  button?: {
+    color?: string;
+    backgroundColor?: string;
+    backgroundHover?: string;
+  };
+  section?: {
+    primaryTextColor?: string;
+    secondaryTextColor?: string;
+    accentColor?: string;
+    backgroundColor?: string;
+  };
+  enabledSectionBackground?: boolean;
+  background?: {
+    type?: DedicatedPageBackgroundType;
+    colorSolid?: string;
+    gradientStart?: string;
+    gradientEnd?: string;
+    gradientDirection?: number;
+    image?: {
+      url?: string;
+    };
+  };
+  enabledCustomCss?: boolean;
+  customCss?: string;
+}
+
 /** Shared settings for Thank you + Order status (`postPurchasePage`). */
 export interface PostPurchasePageChannel extends SurveyChannel {
   type?: "postPurchasePage";
@@ -109,8 +171,11 @@ export interface PostPurchasePageChannel extends SurveyChannel {
     buttonText?: string;
   };
   userTargeting?: {
-    type?: string;
-    customerSegment?: unknown[];
+    type?: "all_users" | "segment";
+    /** Segment mode: return buyers (locked on in competitor UI). */
+    returnCustomer?: boolean;
+    newCustomer?: boolean;
+    customerSegment?: SurveyCustomerSegmentGroup[];
   };
   widgetRecurrence?: string;
   enabledSideLogo?: boolean;

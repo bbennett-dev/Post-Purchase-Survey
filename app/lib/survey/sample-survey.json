@@ -133,7 +133,14 @@
       },
       "userTargeting": {
         "type": "all_users",
+        "returnCustomer": false,
+        "newCustomer": false,
         "customerSegment": []
+      },
+      "enabledSideLogo": false,
+      "sideLogo": {
+        "url": "",
+        "enabled": true
       },
       "widgetRecurrence": "once_per_customer",
       "enabled": true
