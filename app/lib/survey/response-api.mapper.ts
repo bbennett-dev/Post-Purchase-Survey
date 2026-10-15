@@ -1,6 +1,7 @@
 import type { SurveyResponse } from "@prisma/client";
 import type {
   SurveyResponseMeta,
+  SurveyResponseMetaCustomer,
   SurveyResponseQuestionDto,
 } from "./survey-response.types";
 
@@ -24,8 +25,15 @@ export interface SurveyResponseListItemDto {
   email: string | null;
   customerName: string | null;
   customerTags: string[];
+  customer: SurveyResponseMetaCustomer | null;
   productId: string | null;
   productName: string | null;
+  country: string | null;
+  deviceType: string | null;
+  deliveryMethodType: string | null;
+  deliveryMethodTitle: string | null;
+  endingCardId: string | null;
+  completionTime: number | null;
   variants: unknown[];
   isArchived: boolean;
 }
@@ -54,6 +62,7 @@ export function mapSurveyResponseToListItem(
 ): SurveyResponseListItemDto {
   const meta = parseMeta(row.meta);
   const questions = parseQuestions(row.questions);
+  const email = row.email ?? meta.customerEmail ?? null;
 
   return {
     id: row.id,
@@ -71,11 +80,18 @@ export function mapSurveyResponseToListItem(
     orderId: row.orderId,
     orderName: meta.orderName ?? null,
     customerId: row.customerId,
-    email: meta.customerEmail ?? null,
-    customerName: meta.customerName ?? null,
-    customerTags: meta.customerTags ?? [],
+    email,
+    customerName: meta.customerName ?? meta.customer?.name ?? null,
+    customerTags: meta.customerTags ?? meta.customer?.tags ?? [],
+    customer: meta.customer ?? null,
     productId: meta.productId ?? null,
     productName: meta.productName ?? null,
+    country: meta.countryCode ?? null,
+    deviceType: meta.deviceType ?? null,
+    deliveryMethodType: meta.deliveryMethodType ?? null,
+    deliveryMethodTitle: meta.deliveryMethodTitle ?? null,
+    endingCardId: meta.endingCardId ?? null,
+    completionTime: meta.completionTime ?? null,
     variants: meta.variants ?? [],
     isArchived: row.isArchived,
   };
@@ -86,7 +102,13 @@ export function formatQuestionsSummary(
   questions: SurveyResponseQuestionDto[],
 ): string {
   return questions
-    .map((q) => (q.question ? `${q.question}: ${q.answer}` : q.answer))
+    .map((q) => {
+      const ans =
+        q.answer === null || q.answer === undefined
+          ? q.answers?.join(", ") ?? ""
+          : String(q.answer);
+      return q.question ? `${q.question}: ${ans}` : ans;
+    })
     .filter(Boolean)
     .join(" · ");
 }

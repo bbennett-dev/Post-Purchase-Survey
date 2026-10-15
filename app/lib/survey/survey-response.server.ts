@@ -1,10 +1,13 @@
 import type { Prisma } from "@prisma/client";
 import prisma from "../../db.server";
+import { enrichSubmissionContext } from "./enrich-submission-context.server";
+import { normalizeSurveyResponseQuestions } from "./response-question-normalizer";
 import type {
   RecordSurveySubmissionInput,
   SurveyResponseAnswerInput,
   SurveyResponseMeta,
-  SurveyResponseQuestionDto,
+  SurveyResponseMetaVariant,
+  SurveySubmissionContext,
 } from "./survey-response.types";
 
 function isNonEmptyString(value: unknown): value is string {
@@ -33,10 +36,20 @@ export function parseSurveyResponseAnswers(
     const hasChoice =
       Array.isArray(record.answerIds) && record.answerIds.length > 0;
     const hasText = isNonEmptyString(record.text);
+    const hasCustom = isNonEmptyString(record.customText);
     const hasNumber =
       typeof record.number === "number" && !Number.isNaN(record.number);
+    const hasBoolean = typeof record.booleanAnswer === "boolean";
+    const hasImage = isNonEmptyString(record.imageUrl);
 
-    if (!hasChoice && !hasText && !hasNumber) {
+    if (
+      !hasChoice &&
+      !hasText &&
+      !hasCustom &&
+      !hasNumber &&
+      !hasBoolean &&
+      !hasImage
+    ) {
       return null;
     }
 
@@ -48,58 +61,20 @@ export function parseSurveyResponseAnswers(
       answerLabels: Array.isArray(record.answerLabels)
         ? record.answerLabels.map(String)
         : undefined,
-      customText: isNonEmptyString(record.customText)
-        ? record.customText.trim()
-        : null,
-      text: hasText ? record.text!.trim() : null,
+      customText: hasCustom ? record.customText!.trim() : null,
+      text: hasText ? record.text!.trim() : hasCustom ? record.customText!.trim() : null,
       number: hasNumber ? record.number! : null,
-      imageUrl: isNonEmptyString(record.imageUrl) ? record.imageUrl : null,
+      imageUrl: hasImage ? record.imageUrl : null,
+      booleanAnswer: hasBoolean ? record.booleanAnswer! : null,
     });
   }
 
   return parsed;
 }
 
-function primaryAnswerFields(answer: SurveyResponseAnswerInput): {
-  answerId: string | null;
-  answerText: string;
-} {
-  if (answer.answerLabels?.length) {
-    return {
-      answerId: answer.answerIds?.[0] ?? null,
-      answerText: answer.answerLabels.join(", "),
-    };
-  }
-  if (answer.text) {
-    return { answerId: null, answerText: answer.text };
-  }
-  if (typeof answer.number === "number") {
-    return { answerId: null, answerText: String(answer.number) };
-  }
-  if (answer.customText) {
-    return { answerId: answer.answerIds?.[0] ?? null, answerText: answer.customText };
-  }
-  return { answerId: answer.answerIds?.[0] ?? null, answerText: "" };
-}
-
-function answersToStoredQuestions(
-  answers: SurveyResponseAnswerInput[],
-): SurveyResponseQuestionDto[] {
-  return answers.map((answer, index) => {
-    const { answerId, answerText } = primaryAnswerFields(answer);
-    return {
-      type: String(answer.questionType),
-      question: answer.questionHeading?.trim() || `Question ${index + 1}`,
-      questionId: answer.questionId,
-      answer: answerText,
-      answerId,
-      image: answer.imageUrl ?? null,
-    };
-  });
-}
-
 function contextToMeta(
-  context: RecordSurveySubmissionInput["context"],
+  context: SurveySubmissionContext | undefined,
+  customerId: string | null,
 ): SurveyResponseMeta | undefined {
   if (!context) {
     return undefined;
@@ -107,16 +82,22 @@ function contextToMeta(
 
   const lineItems = context.lineItems ?? [];
   const firstLine = lineItems[0];
-  const variants =
+  const variants: SurveyResponseMetaVariant[] | undefined =
     lineItems.length > 0
       ? lineItems.map((item) => ({
-          id: item.variantId,
-          title: item.variantTitle,
-          image: item.featuredImageUrl,
+          id: item.variantId?.startsWith("gid://")
+            ? item.variantId
+            : item.variantId
+              ? `gid://shopify/ProductVariant/${item.variantId}`
+              : "",
+          title: item.variantTitle ?? null,
+          image: item.featuredImageUrl ?? null,
           product: item.productId
             ? {
-                id: item.productId,
-                title: item.productTitle,
+                id: item.productId.startsWith("gid://")
+                  ? item.productId
+                  : `gid://shopify/Product/${item.productId}`,
+                title: item.productTitle ?? "",
                 featuredImage: item.featuredImageUrl
                   ? { url: item.featuredImageUrl }
                   : undefined,
@@ -125,24 +106,57 @@ function contextToMeta(
         }))
       : undefined;
 
+  const email = context.customerEmail?.trim() || null;
+  const name = context.customerName?.trim() || null;
+  const numericCustomerId = customerId?.trim() || context.customerId?.trim() || null;
+
+  const customer =
+    numericCustomerId || email || name
+      ? {
+          id: numericCustomerId ?? "",
+          name: name ?? "",
+          email: email ?? "",
+          tags: context.customerTags ?? [],
+        }
+      : null;
+
   const meta: SurveyResponseMeta = {
     orderName: context.orderName?.trim() || null,
     displayType: context.displayType?.trim() || null,
-    customerEmail: context.customerEmail?.trim() || null,
-    customerName: context.customerName?.trim() || null,
+    customerEmail: email,
+    customerName: name,
+    customer,
     customerTags: context.customerTags?.length ? context.customerTags : undefined,
     countryCode: context.countryCode?.trim() || null,
     deliveryMethodType: context.deliveryMethodType?.trim() || null,
     deliveryMethodTitle: context.deliveryMethodTitle?.trim() || null,
     deviceType: context.deviceType?.trim() || null,
-    productId: firstLine?.productId ?? null,
-    productName: firstLine?.productTitle ?? null,
-    variants,
+    productId: context.productId ?? firstLine?.productId ?? null,
+    productName: context.productName ?? firstLine?.productTitle ?? null,
+    variantIds: context.variantIds?.length
+      ? context.variantIds.map(String)
+      : undefined,
+    variants: variants?.filter((v) => v.id) as SurveyResponseMetaVariant[] | undefined,
+    isDiscount: context.isDiscount ?? undefined,
+    endingCardId: context.endingCardId?.trim() || null,
+    endingCardName: context.endingCardName?.trim() || null,
+    completionTime: context.completionTime ?? null,
+    completionRate: context.completionRate ?? null,
+    attributionSource: context.attributionSource?.trim() || null,
+    pageUrl: context.pageUrl?.trim() || null,
   };
 
-  const hasValue = Object.values(meta).some(
-    (v) => v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0),
-  );
+  const hasValue = Object.entries(meta).some(([key, v]) => {
+    if (key === "customer" && v && typeof v === "object") {
+      const c = v as SurveyResponseMeta["customer"];
+      return Boolean(c?.id || c?.email || c?.name);
+    }
+    return (
+      v !== undefined &&
+      v !== null &&
+      !(Array.isArray(v) && v.length === 0)
+    );
+  });
   return hasValue ? meta : undefined;
 }
 
@@ -158,8 +172,8 @@ export async function recordSurveySubmission(
     surveyId,
     surveyName,
     answers,
-    customerId,
-    context,
+    customerId: inputCustomerId,
+    context: clientContext,
     rawPayload,
   } = input;
 
@@ -170,9 +184,28 @@ export async function recordSurveySubmission(
     throw new Error("Survey not found");
   }
 
-  const surveyType = context?.surveyType?.trim() || survey.surveyType;
-  const questions = answersToStoredQuestions(answers);
-  const meta = contextToMeta(context);
+  const enrichedContext = await enrichSubmissionContext(
+    shop,
+    orderId,
+    clientContext,
+  );
+
+  const surveyType = enrichedContext.surveyType?.trim() || survey.surveyType;
+  const questions = normalizeSurveyResponseQuestions(
+    answers,
+    survey.document,
+  );
+
+  const resolvedCustomerId =
+    inputCustomerId?.trim() ||
+    enrichedContext.customerId?.trim() ||
+    null;
+
+  const meta = contextToMeta(enrichedContext, resolvedCustomerId);
+  const email =
+    meta?.customerEmail?.trim() ||
+    enrichedContext.customerEmail?.trim() ||
+    null;
 
   const rowData = {
     shop,
@@ -180,9 +213,10 @@ export async function recordSurveySubmission(
     surveyName,
     surveyType,
     orderId,
-    customerId: customerId ?? null,
-    pageType: context?.pageType?.trim() || null,
-    channelType: context?.channelType?.trim() || null,
+    customerId: resolvedCustomerId,
+    email,
+    pageType: enrichedContext.pageType?.trim() || null,
+    channelType: enrichedContext.channelType?.trim() || null,
     questions: questions as unknown as Prisma.InputJsonValue,
     meta: meta ? (meta as unknown as Prisma.InputJsonValue) : undefined,
     payload: rawPayload ? (rawPayload as Prisma.InputJsonValue) : undefined,
@@ -233,7 +267,7 @@ export async function recordSurveyResponseFromBody(input: {
   answerId?: string;
   answerLabel?: string;
   customText?: string | null;
-  context?: RecordSurveySubmissionInput["context"];
+  context?: SurveySubmissionContext;
   rawPayload?: unknown;
 }): Promise<void> {
   let answers = parseSurveyResponseAnswers(input.answers);
@@ -285,10 +319,14 @@ export async function countSurveyResponsesForShop(shop: string): Promise<number>
 
 /** @deprecated use formatQuestionsSummary from response-api.mapper */
 export function formatAnswersSummary(
-  questions: { question?: string; answer: string }[],
+  questions: { question?: string; answer?: unknown }[],
 ): string {
   return questions
-    .map((q) => (q.question ? `${q.question}: ${q.answer}` : q.answer))
+    .map((q) => {
+      const ans =
+        q.answer === null || q.answer === undefined ? "" : String(q.answer);
+      return q.question ? `${q.question}: ${ans}` : ans;
+    })
     .filter(Boolean)
     .join(" · ");
 }

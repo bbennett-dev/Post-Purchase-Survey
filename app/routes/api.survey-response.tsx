@@ -1,23 +1,10 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { recordSurveyResponseFromBody } from "../lib/survey/survey-response.server";
-import type { SurveySubmissionContext } from "../lib/survey/survey-response.types";
+import {
+  submitBodyToContext,
+  type SurveyResponseSubmitBody,
+} from "../lib/survey/submit-body-to-context";
 import { authenticate } from "../shopify.server";
-
-interface SubmitBody {
-  orderId?: string;
-  surveyId?: string;
-  surveyName?: string;
-  answers?: unknown;
-  answerId?: string;
-  answerLabel?: string;
-  customText?: string | null;
-  pageType?: string | null;
-  channelType?: string | null;
-  displayType?: string | null;
-  orderName?: string | null;
-  surveyType?: string | null;
-  lineItems?: SurveySubmissionContext["lineItems"];
-}
 
 function shopFromSessionDest(dest: unknown): string | null {
   if (typeof dest !== "string" || dest.trim().length === 0) {
@@ -59,9 +46,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
-  let body: SubmitBody;
+  let body: SurveyResponseSubmitBody;
   try {
-    body = (await request.json()) as SubmitBody;
+    body = (await request.json()) as SurveyResponseSubmitBody;
   } catch {
     return cors(
       Response.json({ ok: false, error: "Invalid JSON" }, { status: 400 }),
@@ -81,17 +68,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
-  const customerId =
-    typeof sessionToken.sub === "string" ? sessionToken.sub : null;
-
-  const context: SurveySubmissionContext = {
-    pageType: body.pageType,
-    channelType: body.channelType,
-    displayType: body.displayType,
-    orderName: body.orderName,
-    surveyType: body.surveyType,
-    lineItems: body.lineItems,
-  };
+  const customerId = body.customerId?.trim() || null;
+  const context = submitBodyToContext(body);
 
   try {
     await recordSurveyResponseFromBody({

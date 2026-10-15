@@ -25,6 +25,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 interface ResponseRow {
   id: string;
   orderName: string;
+  customer: string;
+  product: string;
   surveyName: string;
   questionCount: number;
   answerSummary: string;
@@ -52,6 +54,18 @@ function orderLabel(orderId: string, orderName: string | null): string {
   return tail ? `#${tail}` : orderId;
 }
 
+function displayOrDash(value: string | null | undefined): string {
+  return value?.trim() ? value.trim() : "—";
+}
+
+function customerLabel(
+  name: string | null,
+  email: string | null,
+): string {
+  const parts = [name?.trim(), email?.trim()].filter(Boolean);
+  return parts.length ? parts.join(" · ") : "—";
+}
+
 /**
  * Responses index loader — shop-scoped submissions (questions JSON + meta).
  */
@@ -69,6 +83,8 @@ export const loader = async ({
     return {
       id: dto.id,
       orderName: orderLabel(dto.orderId, dto.orderName),
+      customer: customerLabel(dto.customerName, dto.email),
+      product: displayOrDash(dto.productName),
       surveyName: dto.surveyName,
       questionCount: dto.questions.length,
       answerSummary: formatQuestionsSummary(dto.questions),
@@ -87,6 +103,8 @@ export default function ResponsesPage() {
     <Text key={`${r.id}-order`} as="span" fontWeight="semibold">
       {r.orderName}
     </Text>,
+    r.customer,
+    r.product,
     r.surveyName,
     <Badge key={`${r.id}-count`}>{`${r.questionCount} question${r.questionCount === 1 ? "" : "s"}`}</Badge>,
     <Text key={`${r.id}-summary`} as="span">
@@ -136,9 +154,13 @@ export default function ResponsesPage() {
                   "text",
                   "text",
                   "text",
+                  "text",
+                  "text",
                 ]}
                 headings={[
                   "Order",
+                  "Customer",
+                  "Product",
                   "Survey",
                   "Questions",
                   "Answers",
@@ -150,8 +172,9 @@ export default function ResponsesPage() {
           )}
           <BlockStack gap="200">
             <Text as="p" tone="subdued">
-              Each row is one order + survey submission with normalized answer
-              rows for analytics.
+              Each row is one order + survey submission. Order, customer, and
+              product columns are filled when the channel sends context or Admin
+              enrichment succeeds.
             </Text>
             <Text as="p" tone="subdued">
               Test: place an order, answer every step on Thank you, then refresh.{" "}
