@@ -6,8 +6,10 @@
   padding: 0;
   border: none;
   background: transparent;
+  box-shadow: none;
   text-align: left;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .addButton:focus-visible {

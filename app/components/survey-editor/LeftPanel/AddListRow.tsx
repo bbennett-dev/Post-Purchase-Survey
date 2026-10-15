@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { Box, Icon, Popover } from "@shopify/polaris";
+import { Box, Icon, Popover, UnstyledButton } from "@shopify/polaris";
 import { PlusCircleIcon } from "@shopify/polaris-icons";
-import styles from "./add-list-row.module.css";
 
 export interface AddListRowMenuHelpers {
   close: () => void;
@@ -28,24 +27,22 @@ export function AddListRow({ label, onClick, menu }: AddListRowProps) {
       borderRadius="200"
       background={showChrome ? "bg-surface-secondary" : undefined}
     >
-      <div className={styles.addRowInner}>
-        <span className={styles.addIcon}>
+      <div className="se-add-row-inner">
+        <span className="se-add-icon">
           <Icon source={PlusCircleIcon} tone="interactive" />
         </span>
-        <span className={styles.addLabel}>{label}</span>
-        <span className={styles.addMenuSpacer} aria-hidden />
+        <span className="se-add-label">{label}</span>
+        <span className="se-add-menu-spacer" aria-hidden />
       </div>
     </Box>
   );
 
   const activator = (
-    <button
-      type="button"
-      className={styles.addButton}
-      aria-expanded={menu ? open : undefined}
-      aria-haspopup={menu ? "true" : undefined}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
+    <UnstyledButton
+      className="se-add-button"
+      ariaExpanded={menu ? open : undefined}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onClick={() => {
         if (menu) {
           setOpen((value) => !value);
@@ -55,7 +52,7 @@ export function AddListRow({ label, onClick, menu }: AddListRowProps) {
       }}
     >
       {rowBody}
-    </button>
+    </UnstyledButton>
   );
 
   if (!menu) {
@@ -71,11 +68,7 @@ export function AddListRow({ label, onClick, menu }: AddListRowProps) {
     typeof menu === "function" ? menu({ close: closeMenu }) : menu;
 
   return (
-    <Popover
-      active={open}
-      activator={activator}
-      onClose={closeMenu}
-    >
+    <Popover active={open} activator={activator} onClose={closeMenu}>
       {menuContent}
     </Popover>
   );
