@@ -1,5 +1,5 @@
 import { Box, Divider } from "@shopify/polaris";
-import { CHANNEL_DEFINITIONS } from "../../../../lib/survey/channels";
+import { channelDefinitionsForEditor } from "../../../../lib/survey/channels";
 import type {
   DedicatedPageSurveyChannel,
   PostPurchasePageChannel,
@@ -28,7 +28,8 @@ export function ChannelPanel({
   onSelectChannel,
   onChannelChange,
 }: ChannelPanelProps) {
-  const lastIndex = CHANNEL_DEFINITIONS.length - 1;
+  const channelDefinitions = channelDefinitionsForEditor();
+  const lastIndex = channelDefinitions.length - 1;
 
   return (
     <Box
@@ -39,7 +40,7 @@ export function ChannelPanel({
       overflowY="hidden"
       background="bg-surface"
     >
-      {CHANNEL_DEFINITIONS.map((definition, index) => {
+      {channelDefinitions.map((definition, index) => {
         const channel = survey.channels[definition.key] ?? {};
         const enabled = channel.enabled === true;
         const expanded = selectedChannelKey === definition.key;
