@@ -1,3 +1,5 @@
+import type { MouseEvent } from "react";
+import { UnstyledButton } from "@shopify/polaris";
 import styles from "./date-input-clear-button.module.css";
 
 export interface DateInputClearButtonProps {
@@ -14,16 +16,14 @@ export function DateInputClearButton({
   onClear,
 }: DateInputClearButtonProps) {
   return (
-    <button
-      type="button"
+    <UnstyledButton
       className={styles.clearButton}
-      aria-label={accessibilityLabel}
-      onMouseDown={(event) => {
+      accessibilityLabel={accessibilityLabel}
+      onMouseDown={(event: MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
       }}
-      onClick={(event) => {
-        event.stopPropagation();
+      onClick={() => {
         onClear();
       }}
     >
@@ -35,6 +35,6 @@ export function DateInputClearButton({
       >
         <path d="M11.414 10l4.293-4.293a1 1 0 10-1.414-1.414L10 8.586 5.707 4.293a1 1 0 00-1.414 1.414L8.586 10l-4.293 4.293a1 1 0 101.414 1.414L10 11.414l4.293 4.293a1 1 0 001.414-1.414L11.414 10z" />
       </svg>
-    </button>
+    </UnstyledButton>
   );
 }
