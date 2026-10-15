@@ -1,3 +1,5 @@
+import { V1_APP_STORE_SCOPE, V1_CHANNEL_KEYS } from "../v1-product";
+
 /**
  * Stable channel catalog for the Channel tab.
  * Keys match survey.channels in the survey document.
@@ -88,3 +90,31 @@ export const CHANNEL_DEFINITIONS: ChannelDefinition[] = [
 export const CHANNEL_LABELS: Record<string, string> = Object.fromEntries(
   CHANNEL_DEFINITIONS.map((channel) => [channel.key, channel.label]),
 );
+
+/** Channel rows shown in the survey editor (v1-gated). */
+export function channelDefinitionsForEditor(): ChannelDefinition[] {
+  if (!V1_APP_STORE_SCOPE) {
+    return CHANNEL_DEFINITIONS;
+  }
+  const allowed = new Set<string>(V1_CHANNEL_KEYS);
+  return CHANNEL_DEFINITIONS.filter((channel) => allowed.has(channel.key));
+}
+
+/** Resolves a channel definition for inspector headers (respects v1 gating). */
+export function channelDefinitionByKey(
+  channelKey: string,
+): ChannelDefinition | undefined {
+  return channelDefinitionsForEditor().find((item) => item.key === channelKey);
+}
+
+/** First channel key to select when opening the Channel tab (editor UI only). */
+export function defaultEditorChannelKey(
+  survey?: { channels?: Record<string, unknown> },
+): string | null {
+  const fromCatalog = channelDefinitionsForEditor()[0]?.key;
+  if (fromCatalog) {
+    return fromCatalog;
+  }
+  const keys = Object.keys(survey?.channels ?? {});
+  return keys[0] ?? null;
+}

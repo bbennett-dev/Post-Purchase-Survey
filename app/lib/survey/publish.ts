@@ -1,8 +1,8 @@
-import type {
-  PostPurchasePageChannel,
-  SurveyDocument,
-  SurveyQuestion,
-} from "./types";
+import {
+  surveyHasAnyEnabledChannel,
+  surveyHasCheckoutSurveysChannel,
+} from "./runtime-channels";
+import type { SurveyChannel, SurveyDocument, SurveyQuestion } from "./types";
 
 /**
  * Compact payload written to the $app:survey metaobject and checkout metafield.
@@ -12,9 +12,7 @@ export interface PublishedSurveyPayload {
   id: string;
   name: string;
   questions: SurveyQuestion[];
-  channels: {
-    postPurchasePage?: PostPurchasePageChannel;
-  };
+  channels: Record<string, SurveyChannel>;
 }
 
 /** Handle used for metaobjectUpsert; falls back when the survey has no id yet. */
@@ -25,39 +23,47 @@ export function surveyPublishHandle(survey: SurveyDocument): string {
   return `survey_${survey.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
 }
 
+function publishedChannelsFromDocument(
+  survey: SurveyDocument,
+): Record<string, SurveyChannel> {
+  const channels: Record<string, SurveyChannel> = {};
+
+  for (const [channelKey, channel] of Object.entries(survey.channels ?? {})) {
+    if (channel?.enabled !== true) {
+      continue;
+    }
+    channels[channelKey] = {
+      ...channel,
+      enabled: true,
+      type: channel.type ?? channelKey,
+    };
+  }
+
+  return channels;
+}
+
 /**
  * Builds the storefront/checkout render payload from a full survey document.
+ * Only channels with `enabled: true` in the document are included.
  */
 export function buildPublishedSurveyPayload(
   survey: SurveyDocument,
 ): PublishedSurveyPayload {
-  const handle = surveyPublishHandle(survey);
-  const postPurchase = survey.channels.postPurchasePage as
-    | PostPurchasePageChannel
-    | undefined;
-
   return {
-    id: handle,
+    id: surveyPublishHandle(survey),
     name: survey.name,
     questions: survey.questions,
-    channels: {
-      postPurchasePage: postPurchase?.enabled
-        ? {
-            type: "postPurchasePage",
-            enabled: true,
-            displayType: postPurchase.displayType,
-            announcementBar: postPurchase.announcementBar,
-            userTargeting: postPurchase.userTargeting,
-            widgetRecurrence: postPurchase.widgetRecurrence,
-          }
-        : undefined,
-    },
+    channels: publishedChannelsFromDocument(survey),
   };
 }
 
+/** @deprecated use surveyHasAnyEnabledChannel from runtime-channels */
+export function surveyHasEnabledChannels(survey: SurveyDocument): boolean {
+  return surveyHasAnyEnabledChannel(survey);
+}
+
 /**
- * Rebuilds the shop channel_index metafield from every survey that has
- * at least one channel enabled. Call with all surveys for the shop on Save.
+ * Rebuilds the shop channel_index metafield from published (live) surveys.
  */
 export function buildChannelIndex(
   surveys: SurveyDocument[],
@@ -66,7 +72,7 @@ export function buildChannelIndex(
 
   for (const survey of surveys) {
     const handle = surveyPublishHandle(survey);
-    for (const [channelKey, channel] of Object.entries(survey.channels)) {
+    for (const [channelKey, channel] of Object.entries(survey.channels ?? {})) {
       if (channel?.enabled !== true) {
         continue;
       }
@@ -82,8 +88,8 @@ export function buildChannelIndex(
 }
 
 /**
- * Surveys enabled for Thank you / Order status, keyed by handle.
- * Written to the shop checkout_surveys metafield for extension targets.
+ * Live surveys keyed by handle for `$app.checkout_surveys` (checkout UI extensions).
+ * Only includes surveys with an enabled channel listed in CHECKOUT_SURVEYS_CHANNEL_KEYS.
  */
 export function buildCheckoutSurveys(
   surveys: SurveyDocument[],
@@ -91,7 +97,7 @@ export function buildCheckoutSurveys(
   const checkout: Record<string, PublishedSurveyPayload> = {};
 
   for (const survey of surveys) {
-    if (survey.channels.postPurchasePage?.enabled !== true) {
+    if (!surveyHasCheckoutSurveysChannel(survey)) {
       continue;
     }
     const payload = buildPublishedSurveyPayload(survey);

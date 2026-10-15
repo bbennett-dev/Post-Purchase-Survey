@@ -1,4 +1,8 @@
 import sampleSurvey from "./sample-survey.json";
+import {
+  isV1EditorLimited,
+  V1_QUESTION_TYPE_KEYS,
+} from "../v1-product";
 import type {
   QuestionType,
   SurveyDocument,
@@ -18,6 +22,33 @@ export const QUESTION_TYPES: { type: QuestionType; label: string }[] = [
   { type: "text_image", label: "Text & Image" },
   { type: "email", label: "Email" },
 ];
+
+/** Question types shown in Add content + Question type select (v1-limited when flagged). */
+export function questionTypesForEditor(): {
+  type: QuestionType;
+  label: string;
+}[] {
+  if (!isV1EditorLimited()) {
+    return QUESTION_TYPES;
+  }
+  const allowed = new Set<string>(V1_QUESTION_TYPE_KEYS);
+  return QUESTION_TYPES.filter((item) => allowed.has(item.type));
+}
+
+/**
+ * Type dropdown options: v1 list plus the current type when editing legacy questions.
+ */
+export function questionTypesForEditorSelect(currentType: QuestionType): {
+  type: QuestionType;
+  label: string;
+}[] {
+  const base = questionTypesForEditor();
+  if (base.some((item) => item.type === currentType)) {
+    return base;
+  }
+  const extra = QUESTION_TYPES.find((item) => item.type === currentType);
+  return extra ? [...base, extra] : base;
+}
 
 export { CHANNEL_LABELS } from "./channels";
 
@@ -48,6 +79,52 @@ export function scaleEndpointLabels(type: QuestionType): {
 /** Fresh copy of the sample survey so edits stay in memory. */
 export function createSampleSurvey(): SurveyDocument {
   return structuredClone(sampleSurvey) as SurveyDocument;
+}
+
+/**
+ * New survey from Surveys → Create: one default question, one main ending, channel shell only.
+ * (Not the multi-question demo document in `sample-survey.json`.)
+ */
+export function createBlankSurveyDocument(): SurveyDocument {
+  const shell = createSampleSurvey();
+  const mainCard =
+    shell.thankYouCards.find((card) => card.isDefault) ??
+    shell.thankYouCards[0];
+  const thankYouCard: ThankYouContent = mainCard
+    ? {
+        ...structuredClone(mainCard),
+        id: "card_default",
+        isDefault: true,
+        name: "",
+      }
+    : {
+        ...createEnding(),
+        id: "card_default",
+        isDefault: true,
+        name: "",
+        heading: "Thank you for doing our survey",
+      };
+
+  const thankYou: ThankYouContent = {
+    ...structuredClone(thankYouCard),
+    id: undefined,
+    isDefault: undefined,
+    name: undefined,
+  };
+
+  return {
+    ...shell,
+    name: "Untitled survey",
+    isActive: false,
+    templateType: "blank",
+    advancedLogicEnabled: false,
+    questions: [createQuestion("single", 0)],
+    thankYou,
+    thankYouCards: [thankYouCard],
+    totalResponses: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: undefined,
+  };
 }
 
 export function questionLabel(type: QuestionType): string {

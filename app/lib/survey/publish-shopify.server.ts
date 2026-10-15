@@ -25,8 +25,8 @@ export class PublishSurveyError extends Error {
 }
 
 /**
- * Writes published survey data to Shopify so Thank you / Order status extensions
- * can read `$app.checkout_surveys` without calling the app server.
+ * Writes published survey data to Shopify (checkout metafields, channel index,
+ * survey metaobjects) so storefront runtimes can read config without the app server.
  */
 export async function publishSurveysToShop(
   admin: AdminApiContext,
@@ -34,6 +34,12 @@ export async function publishSurveysToShop(
 ): Promise<{ handles: string[] }> {
   const shopId = await fetchShopGid(admin);
   const checkoutSurveys = buildCheckoutSurveys(surveys);
+  const appUrl = (process.env.SHOPIFY_APP_URL ?? "").replace(/\/$/, "");
+  if (appUrl) {
+    (checkoutSurveys as Record<string, unknown>).__config = {
+      submitUrl: `${appUrl}/api/survey-response`,
+    };
+  }
   const channelIndex = buildChannelIndex(surveys);
 
   await setShopMetafields(admin, shopId, [
