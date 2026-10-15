@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "preact/hooks";
+import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import { CheckoutSurveyFrame } from "../components/CheckoutSurveyFrame.jsx";
 import { SurveyEnding } from "../components/SurveyEnding.jsx";
 import { SurveyFormFooter } from "../components/SurveyFormFooter.jsx";
@@ -16,7 +16,9 @@ export function SurveyBlock({
   submitUrl,
   pageType,
   channelType,
+  submissionContext = {},
 }) {
+  const startedAtRef = useRef(Date.now());
   const questions = useMemo(() => sortedSurveyQuestions(survey), [survey]);
   const thankYouEnding = useMemo(() => resolveSurveyThankYou(survey), [survey]);
   const [stepIndex, setStepIndex] = useState(0);
@@ -49,6 +51,7 @@ export function SurveyBlock({
       setSubmitting(true);
       setErrorMessage("");
       try {
+        const completionTime = Date.now() - startedAtRef.current;
         await submitSurveyResponse({
           submitUrl,
           orderId,
@@ -56,6 +59,11 @@ export function SurveyBlock({
           answers,
           pageType,
           channelType,
+          submissionContext: {
+            ...submissionContext,
+            completionTime,
+            completionRate: 1,
+          },
         });
         setPhase("success");
       } catch (error) {
@@ -72,6 +80,7 @@ export function SurveyBlock({
       pageType,
       questions,
       channelType,
+      submissionContext,
       submitUrl,
       survey,
     ],

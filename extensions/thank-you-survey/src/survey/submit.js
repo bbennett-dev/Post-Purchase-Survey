@@ -9,6 +9,7 @@ export async function submitSurveyResponse({
   pageType,
   channelType,
   displayType = null,
+  submissionContext = {},
 }) {
   const token = await shopify.sessionToken.get();
   const resolvedChannel = channelType ?? CHECKOUT_CHANNEL_KEY;
@@ -28,6 +29,7 @@ export async function submitSurveyResponse({
       channelType: resolvedChannel,
       displayType:
         displayType ?? channelDisplayType(survey, resolvedChannel),
+      ...submissionContext,
     }),
   });
 
