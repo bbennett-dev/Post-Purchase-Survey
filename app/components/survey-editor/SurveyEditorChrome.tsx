@@ -270,12 +270,43 @@ export function SurveyEditorChrome({
               </EditorScrollPanel>
             ) : (
               <EditorPreview
-                question={selectedEnding ? null : selectedQuestion}
+                channelKey={
+                  selectedChannelKey ??
+                  defaultEditorChannelKey(survey) ??
+                  "postPurchasePage"
+                }
+                questions={survey.questions}
+                thankYou={
+                  selectedEnding ??
+                  survey.thankYouCards.find((card) => card.isDefault) ??
+                  survey.thankYou
+                }
                 device={device}
-                ending={selectedEnding}
-                questionIndex={Math.max(0, questionIndex)}
-                questionCount={Math.max(1, survey.questions.length)}
                 shopLabel={survey.name}
+                selection={
+                  selectedEnding
+                    ? {
+                        type: "ending",
+                        endingId: selectedEnding.id ?? selectedEndingId,
+                      }
+                    : {
+                        type: "question",
+                        questionId: selectedQuestionId,
+                      }
+                }
+                onPreviewNavigate={(target) => {
+                  if (target.type === "ending") {
+                    const endingId =
+                      target.endingId ??
+                      survey.thankYouCards.find((card) => card.isDefault)?.id ??
+                      null;
+                    setSelectedEndingId(endingId);
+                    setSelectedQuestionId("");
+                    return;
+                  }
+                  setSelectedEndingId(null);
+                  setSelectedQuestionId(target.questionId);
+                }}
               />
             )}
           </EditorGridCell>

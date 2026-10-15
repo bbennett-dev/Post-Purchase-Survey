@@ -1,7 +1,7 @@
 import { BlockStack, Divider } from "@shopify/polaris";
 import type { ChoiceAnswerLayout } from "../../../../../lib/survey/types";
 import { QuestionImageBlock } from "../common/QuestionImageBlock";
-import { QuestionSkippableCheckbox } from "../common/QuestionSkippableCheckbox";
+import { QuestionRequiredCheckbox } from "../common/QuestionRequiredCheckbox";
 import { resolveQuestionImage } from "../common/questionImageDefaults";
 import type { QuestionTypeInspectorProps } from "../types/QuestionTypeInspectorProps";
 import { ChoiceAnswerLayoutSelect } from "./ChoiceAnswerLayoutSelect";
@@ -27,9 +27,9 @@ export function ChoiceQuestionInspector({
         showSize
       />
 
-      <QuestionSkippableCheckbox
-        checked={question.skippable}
-        onChange={(skippable) => onQuestionChange({ skippable })}
+      <QuestionRequiredCheckbox
+        required={!question.skippable}
+        onChange={(required) => onQuestionChange({ skippable: !required })}
       />
 
       {/* <ChoiceAnswerLayoutSelect
