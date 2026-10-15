@@ -2,7 +2,12 @@ import {
   surveyHasAnyEnabledChannel,
   surveyHasCheckoutSurveysChannel,
 } from "./runtime-channels";
-import type { SurveyChannel, SurveyDocument, SurveyQuestion } from "./types";
+import type {
+  SurveyChannel,
+  SurveyDocument,
+  SurveyQuestion,
+  ThankYouContent,
+} from "./types";
 
 /**
  * Compact payload written to the $app:survey metaobject and checkout metafield.
@@ -13,6 +18,8 @@ export interface PublishedSurveyPayload {
   name: string;
   questions: SurveyQuestion[];
   channels: Record<string, SurveyChannel>;
+  /** Main ending card shown after submit on checkout (default thank-you card). */
+  thankYou?: ThankYouContent;
 }
 
 /** Handle used for metaobjectUpsert; falls back when the survey has no id yet. */
@@ -42,6 +49,19 @@ function publishedChannelsFromDocument(
   return channels;
 }
 
+function publishedThankYouFromDocument(
+  survey: SurveyDocument,
+): ThankYouContent | undefined {
+  const card =
+    survey.thankYouCards?.find((item) => item.isDefault) ??
+    survey.thankYouCards?.[0] ??
+    survey.thankYou;
+  if (!card) {
+    return undefined;
+  }
+  return structuredClone(card);
+}
+
 /**
  * Builds the storefront/checkout render payload from a full survey document.
  * Only channels with `enabled: true` in the document are included.
@@ -49,11 +69,13 @@ function publishedChannelsFromDocument(
 export function buildPublishedSurveyPayload(
   survey: SurveyDocument,
 ): PublishedSurveyPayload {
+  const thankYou = publishedThankYouFromDocument(survey);
   return {
     id: surveyPublishHandle(survey),
     name: survey.name,
     questions: survey.questions,
     channels: publishedChannelsFromDocument(survey),
+    ...(thankYou ? { thankYou } : {}),
   };
 }
 

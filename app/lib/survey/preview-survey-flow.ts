@@ -91,3 +91,50 @@ export function validateQuestionStep(
   }
   return draft.answerIds.length > 0 || Boolean(draft.customText.trim());
 }
+
+/**
+ * Advance on answer selection (competitor checkout flow). Multiple choice and
+ * free-text steps still use Next; required "Other" waits for the text field.
+ */
+export function shouldAutoAdvanceAfterAnswer(
+  question: SurveyQuestion,
+  draft: SurveyAnswerDraft,
+): boolean {
+  if (question.type === "multiple") {
+    return false;
+  }
+  if (SCALE_TYPES.has(question.type)) {
+    return draft.answerIds.length > 0;
+  }
+  if (question.type === "single") {
+    if (draft.answerIds.length === 0) {
+      return false;
+    }
+    const selected = choiceAnswersForQuestion(question).find(
+      (answer) => answer.id === draft.answerIds[0],
+    );
+    if (
+      isOtherAnswer(selected) &&
+      question.enabledCustomAnswer !== false &&
+      question.customAnswerRequired === true &&
+      !draft.customText.trim()
+    ) {
+      return false;
+    }
+    return validateQuestionStep(question, draft);
+  }
+  if (question.type === "consent_email") {
+    return draft.answerIds.includes("consent");
+  }
+  return false;
+}
+
+export function canAutoAdvanceStep(
+  question: SurveyQuestion,
+  draft: SurveyAnswerDraft,
+): boolean {
+  if (!shouldAutoAdvanceAfterAnswer(question, draft)) {
+    return false;
+  }
+  return validateQuestionStep(question, draft);
+}
