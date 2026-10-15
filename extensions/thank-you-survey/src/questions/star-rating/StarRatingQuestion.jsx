@@ -1,4 +1,4 @@
-import { useMemo, useState } from "preact/hooks";
+import { useMemo } from "preact/hooks";
 import {
   emojiForStarRatingValue,
   parseStarRatingAnswerContent,
@@ -15,8 +15,6 @@ export function StarRatingQuestion({
   selectedAnswerId,
   onSelect,
 }) {
-  const [hoveredValue, setHoveredValue] = useState(null);
-
   const selectedValue = useMemo(() => {
     const selected = answers.find((answer) => answer.id === selectedAnswerId);
     if (!selected) {
@@ -25,80 +23,52 @@ export function StarRatingQuestion({
     return parseStarRatingAnswerContent(selected.content);
   }, [answers, selectedAnswerId]);
 
-  const locked = selectedValue != null;
-  const emojiSource = locked ? selectedValue : hoveredValue;
   const emoji =
-    emojiSource != null
-      ? emojiForStarRatingValue(emojiSource)
+    selectedValue != null
+      ? emojiForStarRatingValue(selectedValue)
       : STAR_RATING_DEFAULT_EMOJI;
 
-  const highlightUpTo = locked
-    ? (selectedValue ?? 0)
-    : (hoveredValue ?? 0);
+  const highlightUpTo = selectedValue ?? 0;
 
   const leftLabel = question.leftLabel?.trim() || DEFAULT_LABELS.left;
   const rightLabel = question.rightLabel?.trim() || DEFAULT_LABELS.right;
 
   return (
-    <s-stack gap="base">
+    <s-grid gridTemplateColumns="1fr" gap="base">
       <s-text color="subdued">{leftLabel}</s-text>
 
-      <s-stack inlineAlignment="center">
-        <s-text>{emoji}</s-text>
-      </s-stack>
+      <s-grid gridTemplateColumns="1fr" justifyItems="center" padding="small">
+        <s-box border="base" borderRadius="max" padding="large">
+          <s-heading>{emoji}</s-heading>
+        </s-box>
+      </s-grid>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "4px",
-        }}
-      >
-        {answers.map((answer) => {
-          const value = parseStarRatingAnswerContent(answer.content);
-          if (value == null) {
-            return null;
-          }
-          const filled = highlightUpTo >= value;
-          return (
-            <button
-              key={answer.id}
-              type="button"
-              aria-label={`${value} star`}
-              onClick={() => onSelect(answer.id)}
-              onMouseEnter={() => {
-                if (!locked) {
-                  setHoveredValue(value);
-                }
-              }}
-              onMouseLeave={() => {
-                if (!locked) {
-                  setHoveredValue(null);
-                }
-              }}
-              style={{
-                margin: 0,
-                padding: "4px",
-                border: 0,
-                outline: "none",
-                appearance: "none",
-                WebkitAppearance: "none",
-                background: "transparent",
-                cursor: "pointer",
-                fontSize: "28px",
-                lineHeight: 1,
-                color: filled ? "#303030" : "#8a8a8a",
-              }}
-            >
-              {filled ? STAR_FILLED : STAR_OUTLINE}
-            </button>
-          );
-        })}
-      </div>
+      <s-grid gridTemplateColumns="1fr" justifyItems="center">
+        <s-grid gridTemplateColumns="repeat(5, auto)" gap="small">
+          {answers.map((answer) => {
+            const value = parseStarRatingAnswerContent(answer.content);
+            if (value == null) {
+              return null;
+            }
+            const filled = highlightUpTo >= value;
+            return (
+              <s-button
+                key={answer.id}
+                type="button"
+                variant="secondary"
+                accessibilityLabel={`${value} star`}
+                onClick={() => onSelect(answer.id)}
+              >
+                {filled ? STAR_FILLED : STAR_OUTLINE}
+              </s-button>
+            );
+          })}
+        </s-grid>
+      </s-grid>
 
-      <s-stack inlineAlignment="end">
+      <s-grid gridTemplateColumns="1fr" justifyItems="end">
         <s-text color="subdued">{rightLabel}</s-text>
-      </s-stack>
-    </s-stack>
+      </s-grid>
+    </s-grid>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "preact/hooks";
+import { useMemo } from "preact/hooks";
 import {
   emojiForNumberScaleValue,
   NUMBER_SCALE_DEFAULT_EMOJI,
@@ -11,8 +11,6 @@ export function NumberScaleQuestion({
   selectedAnswerId,
   onSelect,
 }) {
-  const [hoveredValue, setHoveredValue] = useState(null);
-
   const selectedValue = useMemo(() => {
     const selected = answers.find((answer) => answer.id === selectedAnswerId);
     if (!selected) {
@@ -21,82 +19,48 @@ export function NumberScaleQuestion({
     return parseNumberScaleAnswerContent(selected.content);
   }, [answers, selectedAnswerId]);
 
-  const locked = selectedValue != null;
-  const activeValue = locked ? selectedValue : hoveredValue;
   const emoji =
-    activeValue != null
-      ? emojiForNumberScaleValue(activeValue)
+    selectedValue != null
+      ? emojiForNumberScaleValue(selectedValue)
       : NUMBER_SCALE_DEFAULT_EMOJI;
 
   const leftLabel = question.leftLabel?.trim() || "Not likely";
   const rightLabel = question.rightLabel?.trim() || "Very likely";
 
   return (
-    <s-stack gap="base">
+    <s-grid gridTemplateColumns="1fr" gap="base">
       <s-text color="subdued">{leftLabel}</s-text>
 
-      <s-stack inlineAlignment="center">
-        <s-text>{emoji}</s-text>
-      </s-stack>
+      <s-grid gridTemplateColumns="1fr" justifyItems="center" padding="small">
+        <s-box
+          border="base"
+          borderRadius="max"
+          padding="large"
+          background="transparent"
+        >
+          <s-heading>{emoji}</s-heading>
+        </s-box>
+      </s-grid>
 
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          gap: "1px",
-          padding: "1px",
-          boxSizing: "border-box",
-          borderRadius: "8px",
-          overflow: "hidden",
-          background: "#d9d9d9",
-        }}
-      >
+      <s-grid gridTemplateColumns="repeat(10, 1fr)" gap="none">
         {answers.map((answer) => {
-          const value = parseNumberScaleAnswerContent(answer.content);
           const selected = selectedAnswerId === answer.id;
           return (
-            <button
+            <s-button
               key={answer.id}
               type="button"
+              variant={selected ? "primary" : "secondary"}
               onClick={() => onSelect(answer.id)}
-              onMouseEnter={() => {
-                if (!locked && value != null) {
-                  setHoveredValue(value);
-                }
-              }}
-              onMouseLeave={() => {
-                if (!locked) {
-                  setHoveredValue(null);
-                }
-              }}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                margin: 0,
-                padding: "10px 0",
-                border: 0,
-                outline: "none",
-                appearance: "none",
-                WebkitAppearance: "none",
-                boxSizing: "border-box",
-                background: selected ? "#f1f1f1" : "#fff",
-                boxShadow: selected ? "inset 0 0 0 2px #005bd3" : "none",
-                cursor: "pointer",
-                fontSize: "13px",
-                fontWeight: 500,
-                fontFamily: "inherit",
-                color: "inherit",
-              }}
             >
               {answer.content}
-            </button>
+            </s-button>
           );
         })}
-      </div>
+      </s-grid>
 
-      <s-stack inlineAlignment="end">
+      <s-grid gridTemplateColumns="1fr" justifyItems="end">
         <s-text color="subdued">{rightLabel}</s-text>
-      </s-stack>
-    </s-stack>
+      </s-grid>
+    </s-grid>
   );
 }

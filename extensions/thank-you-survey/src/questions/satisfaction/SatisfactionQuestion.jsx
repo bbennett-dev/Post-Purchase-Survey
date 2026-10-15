@@ -27,54 +27,31 @@ export function SatisfactionQuestion({
   );
 
   return (
-    <s-stack gap="base">
+    <s-grid gridTemplateColumns="1fr" gap="base">
       <s-text color="subdued">{leftLabel}</s-text>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "8px",
-          flexWrap: "wrap",
-        }}
-      >
-        {tiles.map(({ answer, value, face }) => {
-          const selected = selectedAnswerId === answer.id;
-          return (
-            <button
-              key={answer.id}
-              type="button"
-              aria-label={`Satisfaction ${value ?? ""}`}
-              onClick={() => onSelect(answer.id)}
-              style={{
-                margin: 0,
-                width: "52px",
-                height: "52px",
-                padding: 0,
-                border: selected ? "2px solid #005bd3" : "1px solid #d9d9d9",
-                outline: "none",
-                appearance: "none",
-                WebkitAppearance: "none",
-                boxSizing: "border-box",
-                borderRadius: "8px",
-                background: selected ? "#f1f1f1" : "#fff",
-                cursor: "pointer",
-                fontSize: "28px",
-                lineHeight: 1,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {face}
-            </button>
-          );
-        })}
-      </div>
+      <s-grid gridTemplateColumns="1fr" justifyItems="center">
+        <s-grid gridTemplateColumns="repeat(5, auto)" gap="base">
+          {tiles.map(({ answer, value, face }) => {
+            const selected = selectedAnswerId === answer.id;
+            return (
+              <s-button
+                key={answer.id}
+                type="button"
+                variant={selected ? "primary" : "secondary"}
+                accessibilityLabel={`Satisfaction ${value ?? ""}`}
+                onClick={() => onSelect(answer.id)}
+              >
+                {face}
+              </s-button>
+            );
+          })}
+        </s-grid>
+      </s-grid>
 
-      <s-stack inlineAlignment="end">
+      <s-grid gridTemplateColumns="1fr" justifyItems="end">
         <s-text color="subdued">{rightLabel}</s-text>
-      </s-stack>
-    </s-stack>
+      </s-grid>
+    </s-grid>
   );
 }

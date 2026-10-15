@@ -8,7 +8,7 @@ export async function submitSurveyResponse({
   answers,
   pageType,
   channelType,
-  displayType,
+  displayType = null,
 }) {
   const token = await shopify.sessionToken.get();
   const resolvedChannel = channelType ?? CHECKOUT_CHANNEL_KEY;

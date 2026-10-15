@@ -1,10 +1,13 @@
 import { useCallback, useMemo, useState } from "preact/hooks";
 import { CheckoutSurveyFrame } from "../components/CheckoutSurveyFrame.jsx";
+import { SurveyEnding } from "../components/SurveyEnding.jsx";
 import { SurveyFormFooter } from "../components/SurveyFormFooter.jsx";
 import { QuestionStep } from "../questions/QuestionStep.jsx";
 import { sortedSurveyQuestions } from "./checkout-data.js";
 import { buildAnswerRecord, emptyDraft } from "./draft.js";
 import { submitSurveyResponse } from "./submit.js";
+import { canAutoAdvanceStep } from "./auto-advance.js";
+import { resolveSurveyThankYou } from "./thank-you.js";
 import { validateQuestionStep } from "./validate.js";
 
 export function SurveyBlock({
@@ -15,6 +18,7 @@ export function SurveyBlock({
   channelType,
 }) {
   const questions = useMemo(() => sortedSurveyQuestions(survey), [survey]);
+  const thankYouEnding = useMemo(() => resolveSurveyThankYou(survey), [survey]);
   const [stepIndex, setStepIndex] = useState(0);
   const [draftsByQuestionId, setDraftsByQuestionId] = useState({});
   const [phase, setPhase] = useState("form");
@@ -26,58 +30,86 @@ export function SurveyBlock({
     ? (draftsByQuestionId[question.id] ?? emptyDraft())
     : emptyDraft();
 
-  const setDraftForQuestion = useCallback((questionId, nextDraft) => {
-    setDraftsByQuestionId((current) => ({
-      ...current,
-      [questionId]: nextDraft,
-    }));
-    setErrorMessage("");
-  }, []);
+  const goSubmit = useCallback(
+    async (draftsOverride) => {
+      if (!survey || !submitUrl || !orderId) {
+        setErrorMessage(
+          shopify.i18n.translate("submitUnavailable") ||
+            "Unable to submit right now.",
+        );
+        return;
+      }
+
+      const drafts = draftsOverride ?? draftsByQuestionId;
+      const answers = questions.map((q) => {
+        const d = drafts[q.id] ?? emptyDraft();
+        return buildAnswerRecord(q, d);
+      });
+
+      setSubmitting(true);
+      setErrorMessage("");
+      try {
+        await submitSurveyResponse({
+          submitUrl,
+          orderId,
+          survey,
+          answers,
+          pageType,
+          channelType,
+        });
+        setPhase("success");
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : "Submit failed",
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [
+      draftsByQuestionId,
+      orderId,
+      pageType,
+      questions,
+      channelType,
+      submitUrl,
+      survey,
+    ],
+  );
+
+  const advanceAfterAnswer = useCallback(
+    (activeQuestion, nextDraft, draftsOverride) => {
+      if (submitting || !canAutoAdvanceStep(activeQuestion, nextDraft)) {
+        return;
+      }
+      setErrorMessage("");
+      if (stepIndex >= questions.length - 1) {
+        void goSubmit(draftsOverride);
+      } else {
+        setStepIndex((i) => i + 1);
+      }
+    },
+    [goSubmit, questions.length, stepIndex, submitting],
+  );
+
+  const setDraftForQuestion = useCallback(
+    (questionId, nextDraft) => {
+      setDraftsByQuestionId((current) => {
+        const nextDrafts = {
+          ...current,
+          [questionId]: nextDraft,
+        };
+        if (question && question.id === questionId) {
+          advanceAfterAnswer(question, nextDraft, nextDrafts);
+        }
+        return nextDrafts;
+      });
+      setErrorMessage("");
+    },
+    [advanceAfterAnswer, question],
+  );
 
   const isLastStep = stepIndex >= questions.length - 1;
-
-  const goSubmit = useCallback(async () => {
-    if (!survey || !submitUrl || !orderId) {
-      setErrorMessage(
-        shopify.i18n.translate("submitUnavailable") ||
-          "Unable to submit right now.",
-      );
-      return;
-    }
-
-    const answers = questions.map((q) => {
-      const d = draftsByQuestionId[q.id] ?? emptyDraft();
-      return buildAnswerRecord(q, d);
-    });
-
-    setSubmitting(true);
-    setErrorMessage("");
-    try {
-      await submitSurveyResponse({
-        submitUrl,
-        orderId,
-        survey,
-        answers,
-        pageType,
-        channelType,
-      });
-      setPhase("success");
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Submit failed",
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  }, [
-    draftsByQuestionId,
-    orderId,
-    pageType,
-    questions,
-    channelType,
-    submitUrl,
-    survey,
-  ]);
 
   const onPrimaryAction = useCallback(
     async (event) => {
@@ -112,14 +144,9 @@ export function SurveyBlock({
 
   if (phase === "success") {
     return (
-      <s-section heading={survey.name || shopify.i18n.translate("surveyHeading")}>
-        <s-stack gap="base">
-          <s-text>
-            {shopify.i18n.translate("thankYouSubmit") ||
-              "Thanks — your answers were recorded."}
-          </s-text>
-        </s-stack>
-      </s-section>
+      <CheckoutSurveyFrame>
+        <SurveyEnding thankYou={thankYouEnding} surveyName={survey.name} />
+      </CheckoutSurveyFrame>
     );
   }
 

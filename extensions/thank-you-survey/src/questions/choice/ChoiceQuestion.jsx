@@ -1,3 +1,4 @@
+import { readChoiceListValues, readTextFieldValue } from "../../lib/checkout-events.js";
 import { isOtherAnswer } from "../../survey/question-answers.js";
 
 function choiceListVariant(question) {
@@ -31,10 +32,9 @@ export function ChoiceQuestion({ question, answers, draft, onDraftChange }) {
           variant={listVariant}
           multiple
           onChange={(event) => {
-            const values = event.currentTarget?.values ?? [];
             onDraftChange({
               ...draft,
-              answerIds: values.map(String),
+              answerIds: readChoiceListValues(event),
             });
           }}
         >
@@ -57,8 +57,8 @@ export function ChoiceQuestion({ question, answers, draft, onDraftChange }) {
           labelAccessibilityVisibility="exclusive"
           variant={listVariant}
           onChange={(event) => {
-            const values = event.currentTarget?.values ?? [];
-            const nextId = values[0] ? String(values[0]) : "";
+            const values = readChoiceListValues(event);
+            const nextId = values[0] ?? "";
             onDraftChange({
               ...draft,
               answerIds: nextId ? [nextId] : [],
@@ -89,7 +89,7 @@ export function ChoiceQuestion({ question, answers, draft, onDraftChange }) {
           onChange={(event) => {
             onDraftChange({
               ...draft,
-              customText: event.currentTarget?.value ?? "",
+              customText: readTextFieldValue(event),
             });
           }}
         />

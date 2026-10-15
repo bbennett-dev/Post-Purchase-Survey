@@ -1,3 +1,8 @@
+import {
+  readCheckboxChecked,
+  readTextFieldValue,
+} from "../../lib/checkout-events.js";
+
 export function QuestionFields({ question, draft, onDraftChange }) {
   if (question.type === "short_answer" || question.type === "email") {
     return (
@@ -13,7 +18,7 @@ export function QuestionFields({ question, draft, onDraftChange }) {
         onChange={(event) => {
           onDraftChange({
             ...draft,
-            customText: event.currentTarget?.value ?? "",
+            customText: readTextFieldValue(event),
           });
         }}
       />
@@ -31,7 +36,7 @@ export function QuestionFields({ question, draft, onDraftChange }) {
         onChange={(event) => {
           onDraftChange({
             ...draft,
-            customText: event.currentTarget?.value ?? "",
+            customText: readTextFieldValue(event),
           });
         }}
       />
@@ -45,10 +50,9 @@ export function QuestionFields({ question, draft, onDraftChange }) {
         name={`consent-${question.id}`}
         checked={draft.answerIds.includes("consent")}
         onChange={(event) => {
-          const checked = event.currentTarget?.checked ?? false;
           onDraftChange({
             ...draft,
-            answerIds: checked ? ["consent"] : [],
+            answerIds: readCheckboxChecked(event) ? ["consent"] : [],
           });
         }}
       />

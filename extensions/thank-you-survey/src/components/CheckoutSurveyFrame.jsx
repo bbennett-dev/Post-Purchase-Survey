@@ -6,9 +6,8 @@ export function CheckoutSurveyFrame({ children }) {
       border="base"
       borderRadius="large"
       overflow="hidden"
-      inlineSize="fill"
     >
-      <s-box blockSize="4px" background="strong" inlineSize="fill" />
+      <s-box blockSize="4px" background="subdued" />
       <s-box padding="large">{children}</s-box>
     </s-box>
   );

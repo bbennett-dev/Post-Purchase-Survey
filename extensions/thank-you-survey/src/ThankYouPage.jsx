@@ -1,6 +1,7 @@
 import "@shopify/ui-extensions/preact";
 import { render } from "preact";
 import { CHECKOUT_CHANNEL_KEY } from "./channel-config.js";
+import { readThankYouOrderId } from "./lib/order-id.js";
 import {
   firstSurveyForChannel,
   readCheckoutConfig,
@@ -20,10 +21,7 @@ function ThankYouSurvey() {
   const config = readCheckoutConfig(surveys);
   const survey = firstSurveyForChannel(surveys, CHECKOUT_CHANNEL_KEY);
 
-  const orderId =
-    shopify.orderConfirmation?.value?.order?.id ??
-    shopify.orderConfirmation?.value?.id ??
-    null;
+  const orderId = readThankYouOrderId(shopify);
   const submitUrl = config?.submitUrl ?? null;
 
   return (
