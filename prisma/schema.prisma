@@ -65,6 +65,7 @@ model SurveyResponse {
   surveyType   String    @default("survey")
   orderId      String
   customerId   String?
+  email        String?
   pageType     String?
   channelType  String?
   questions    Json
@@ -84,4 +85,5 @@ model SurveyResponse {
   @@index([shop, surveyId, submittedAt])
   @@index([shop, orderId])
   @@index([shop, customerId])
+  @@index([shop, email])
 }
