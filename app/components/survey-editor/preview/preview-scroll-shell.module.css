@@ -1,0 +1,14 @@
+.scrollBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  outline: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollBody::-webkit-scrollbar {
+  display: none;
+}

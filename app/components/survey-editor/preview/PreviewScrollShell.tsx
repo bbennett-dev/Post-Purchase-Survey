@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import styles from "./preview-scroll-shell.module.css";
 
 const shell: CSSProperties = {
   display: "flex",
@@ -6,15 +7,6 @@ const shell: CSSProperties = {
   height: "100%",
   minHeight: 0,
   overflow: "hidden",
-};
-
-const scrollBody: CSSProperties = {
-  flex: "1 1 auto",
-  minHeight: 0,
-  overflowY: "auto",
-  overflowX: "hidden",
-  WebkitOverflowScrolling: "touch",
-  outline: "none",
 };
 
 const footer: CSSProperties = {
@@ -40,7 +32,7 @@ export function PreviewScrollShell({
 }: PreviewScrollShellProps) {
   return (
     <div style={{ ...shell, background }}>
-      <div style={scrollBody} tabIndex={-1}>
+      <div className={styles.scrollBody} tabIndex={-1}>
         {children}
       </div>
       <div style={footer}>{footerContent}</div>
