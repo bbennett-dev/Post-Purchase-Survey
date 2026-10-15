@@ -1,0 +1,89 @@
+{
+    "success": true,
+    "data": {
+        "items": [
+            {
+                "incrementId": 2,
+                "firestoreId": "21ocmfl3mrJCJpzXYa3O",
+                "shopId": "h3blsQjLTM7KMkla36f9",
+                "timestamp": {
+                    "value": "2026-10-14T10:41:38.298Z"
+                },
+                "surveyId": "pgjxdC5oWWJKUmUQnyEl",
+                "surveyName": "Survey #1",
+                "surveyType": "survey",
+                "questions": [
+                    {
+                        "type": "single",
+                        "question": "Where did you find us?d",
+                        "questionId": "question_1787498933027",
+                        "answer": "Instagram",
+                        "answerId": "answer_1787498933027_0_1",
+                        "image": null
+                    },
+                    {
+                        "type": "single",
+                        "question": "How did you see us?",
+                        "questionId": "question_1787498933028",
+                        "answer": "An advertisment",
+                        "answerId": "answer_1787498933027_1_1",
+                        "image": null
+                    }
+                ],
+                "createdAt": "2026-10-14T10:41:38.193Z",
+                "pageType": "thank-you",
+                "channelType": "postPurchasePage",
+                "productId": "10454853550370",
+                "productName": "The Collection Snowboard: Hydrogen",
+                "collectionId": null,
+                "customerTags": "[\"Return customer\"]",
+                "email": "brookebennett1582@gmail.com",
+                "customerId": "10293645967650",
+                "customerName": "Brooke Bennett",
+                "pageUrl": null,
+                "orderId": "gid://shopify/OrderIdentity/7288503206178",
+                "orderName": "#1005",
+                "variantIds": "[\"52345340166434\"]",
+                "cartStatusExitIntent": null,
+                "isDiscount": false,
+                "isEmbed": false,
+                "embedType": null,
+                "isArchived": false,
+                "archivedAt": null,
+                "displayType": "blockType",
+                "abTestId": null,
+                "variant": null,
+                "mysteryDiscountLabel": null,
+                "mysteryDiscountCode": null,
+                "country": "IN",
+                "deliveryMethodType": "SHIPPING",
+                "deliveryMethodTitle": "Standard",
+                "deviceType": "Desktop",
+                "endingCardId": "card_default",
+                "endingCardName": null,
+                "operation": "CREATE",
+                "customer": {
+                    "id": "10293645967650",
+                    "name": "Brooke Bennett",
+                    "email": "brookebennett1582@gmail.com",
+                    "tags": []
+                },
+                "variants": [
+                    {
+                        "id": "gid://shopify/ProductVariant/52345340166434",
+                        "title": "Default Title",
+                        "image": null,
+                        "product": {
+                            "id": "gid://shopify/Product/10454853550370",
+                            "title": "The Collection Snowboard: Hydrogen",
+                            "featuredImage": {
+                                "url": "https://cdn.shopify.com/s/files/1/1014/8151/3250/files/Main_0a40b01b-5021-48c1-80d1-aa8ab4876d3d.jpg?v=1787227545"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "total": 1
+    }
+}
