@@ -20,12 +20,6 @@ function ThankYouSurvey() {
   const config = readCheckoutConfig(surveys);
   const survey = firstSurveyForChannel(surveys, CHECKOUT_CHANNEL_KEY);
 
-  console.log("shopify.appMetafields.value", shopify.appMetafields.value);
-  console.log("config", config);
-  console.log("surveys", surveys);
-  console.log("survey", survey);
-
-
   const orderId =
     shopify.orderConfirmation?.value?.order?.id ??
     shopify.orderConfirmation?.value?.id ??
