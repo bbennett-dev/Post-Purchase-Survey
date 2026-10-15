@@ -1,6 +1,6 @@
 import { BlockStack, Text } from "@shopify/polaris";
 import type { CheckoutEditorLinks } from "../../../lib/shopify/checkout-editor-url.server";
-import { CHANNEL_DEFINITIONS } from "../../../lib/survey/channels";
+import { channelDefinitionByKey } from "../../../lib/survey/channels";
 import type {
   DedicatedPageSurveyChannel,
   PostPurchasePageChannel,
@@ -34,9 +34,7 @@ export function ChannelInspector({
     );
   }
 
-  const definition = CHANNEL_DEFINITIONS.find(
-    (item) => item.key === selectedChannelKey,
-  );
+  const definition = channelDefinitionByKey(selectedChannelKey);
 
   if (!definition) {
     return (

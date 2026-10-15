@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Button, InlineStack, Text } from "@shopify/polaris";
 import { MenuHorizontalIcon } from "@shopify/polaris-icons";
-import { CHANNEL_DEFINITIONS } from "../../../lib/survey/channels";
+import { channelDefinitionByKey } from "../../../lib/survey/channels";
 import type {
   DiscountPreviewTarget,
   EditorPanel,
@@ -65,9 +65,7 @@ export function buildRightPanelHeader(
 
   if (panel === "channel") {
     if (selectedChannelKey) {
-      const definition = CHANNEL_DEFINITIONS.find(
-        (item) => item.key === selectedChannelKey,
-      );
+      const definition = channelDefinitionByKey(selectedChannelKey);
       const title =
         (definition &&
           (CHANNEL_RIGHT_TITLES[selectedChannelKey] ?? definition.label)) ||
