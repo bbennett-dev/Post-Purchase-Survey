@@ -1,10 +1,8 @@
-import type { ReactNode } from "react";
 import {
   BlockStack,
   Box,
   Button,
   Checkbox,
-  InlineGrid,
   Icon,
   InlineStack,
   ProgressBar,
@@ -13,6 +11,7 @@ import {
   Thumbnail,
 } from "@shopify/polaris";
 import { ArrowRightIcon, CheckIcon } from "@shopify/polaris-icons";
+import type { ReactNode } from "react";
 import {
   choiceAnswersForQuestion,
   isOtherAnswer,
@@ -69,7 +68,11 @@ export function SurveyPreviewStep({
             <Text as="p" tone="subdued">{thankYou.description}</Text>
           ) : null}
           {thankYou.enableButton ? (
-            <Button variant="primary">{thankYou.buttonText || "Continue"}</Button>
+            <InlineStack align="end">
+              <Button variant="primary">
+                {thankYou.buttonText || "Continue"}
+              </Button>
+            </InlineStack>
           ) : null}
           {canGoBack ? (
             <InlineStack align="end">
@@ -258,15 +261,10 @@ export function SurveyPreviewStep({
           <Text as="p" tone="critical">{errorMessage}</Text>
         ) : null}
 
-        <InlineGrid columns="1fr auto auto" gap="200" alignItems="center">
-          <Text as="span" variant="bodySm" tone="subdued">
-            sea
-          </Text>
+        <InlineStack align="end" gap="500" blockAlign="center">
           {canGoBack ? (
             <Button variant="plain" onClick={onBack}>Back</Button>
-          ) : (
-            <span />
-          )}
+          ) : null}
           <Button
             icon={isLastQuestion ? undefined : ArrowRightIcon}
             variant="primary"
@@ -274,7 +272,7 @@ export function SurveyPreviewStep({
           >
             {isLastQuestion ? "Submit" : "Next"}
           </Button>
-        </InlineGrid>
+        </InlineStack>
       </BlockStack>
     </CheckoutSurveyFrame>
   );

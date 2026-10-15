@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  canAutoAdvanceStep,
   emptySurveyAnswerDraft,
   sortedSurveyQuestions,
   validateQuestionStep,
@@ -74,18 +75,46 @@ export function useInteractiveSurveyPreview(
     ? (draftsByQuestionId[question.id] ?? emptySurveyAnswerDraft())
     : emptySurveyAnswerDraft();
 
+  const advanceFromDraft = useCallback(
+    (nextDraft: SurveyAnswerDraft) => {
+      if (!question || !canAutoAdvanceStep(question, nextDraft)) {
+        return;
+      }
+      setErrorMessage("");
+      if (stepIndex >= sorted.length - 1) {
+        setPhase("thank_you");
+        onPreviewNavigate?.({
+          type: "ending",
+          endingId: thankYou.id ?? null,
+        });
+        return;
+      }
+      const nextIndex = stepIndex + 1;
+      setStepIndex(nextIndex);
+      const nextQuestion = sorted[nextIndex];
+      if (nextQuestion) {
+        onPreviewNavigate?.({ type: "question", questionId: nextQuestion.id });
+      }
+    },
+    [onPreviewNavigate, question, sorted, stepIndex, thankYou.id],
+  );
+
   const setDraft = useCallback(
     (nextDraft: SurveyAnswerDraft) => {
       if (!question) {
         return;
       }
-      setDraftsByQuestionId((current) => ({
-        ...current,
-        [question.id]: nextDraft,
-      }));
+      setDraftsByQuestionId((current) => {
+        const nextDrafts = {
+          ...current,
+          [question.id]: nextDraft,
+        };
+        advanceFromDraft(nextDraft);
+        return nextDrafts;
+      });
       setErrorMessage("");
     },
-    [question],
+    [advanceFromDraft, question],
   );
 
   const reset = useCallback(() => {
