@@ -25,7 +25,8 @@ export function ThankYouCheckoutBody({
   const order = THANK_YOU_PREVIEW_ORDER;
   const twoColumn = layout === "fullscreen" || layout === "desktop";
   const mobileStack = layout === "mobile";
-  const showConfirmation = surveyFlow.phase === "questions";
+  /** Checkout confirmation stays visible during questions and survey ending. */
+  const showConfirmation = true;
 
   const surveyBlock = (
     <SurveyPreviewStep
