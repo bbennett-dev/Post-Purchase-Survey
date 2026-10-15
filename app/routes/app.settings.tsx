@@ -11,7 +11,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return null;
 };
 
-/** Placeholder settings page. Preference controls come in a later pass. */
+/** Shop preferences, placement guidance, and privacy summary for App Store review. */
 export default function SettingsPage() {
   return (
     <Page title="Settings">
@@ -21,23 +21,26 @@ export default function SettingsPage() {
             <Card>
               <BlockStack gap="200">
                 <Text as="h2" variant="headingMd">
-                  Thank You page
+                  Thank you & Order status
                 </Text>
                 <Text as="p" tone="subdued">
-                  Placement of the survey block on the order status page will be
-                  configured here, along with the default question and whether
-                  the survey is shown.
+                  Add the Post Purchase Survey block in the checkout editor on
+                  the Thank you page and Order status page. Only surveys marked
+                  live in Surveys are published to checkout.
                 </Text>
               </BlockStack>
             </Card>
             <Card>
               <BlockStack gap="200">
                 <Text as="h2" variant="headingMd">
-                  Account
+                  Data & privacy
                 </Text>
                 <Text as="p" tone="subdued">
-                  Shop-level preferences such as timezone and export defaults
-                  will live in this section once we design them.
+                  This app stores survey answers linked to an order ID, optional
+                  free-text when “Other” is selected, and the survey name. When
+                  you uninstall the app, shop survey documents and responses are
+                  removed from our database. Shopify mandatory privacy webhooks
+                  are supported for customer and shop data requests.
                 </Text>
               </BlockStack>
             </Card>

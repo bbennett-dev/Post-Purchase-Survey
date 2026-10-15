@@ -1,6 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Link, useLoaderData } from "react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  ActionFunctionArgs,
+  HeadersFunction,
+  LoaderFunctionArgs,
+} from "react-router";
+import { Link, useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import {
   ActionList,
@@ -23,10 +27,22 @@ import {
 } from "@shopify/polaris";
 import { FilterIcon } from "@shopify/polaris-icons";
 import { useOpenEditor } from "../lib/editor-modal";
+import { CHANNEL_LABELS } from "../lib/survey/channels";
+import { enabledChannelLabels } from "../lib/survey/runtime-channels";
+import type { SurveyDocument } from "../lib/survey/types";
+import {
+  createDefaultSurveyForShop,
+  deleteSurveyForShop,
+  duplicateSurveyForShop,
+  listSurveyRowsForShop,
+  responseCountsForSurveys,
+  setSurveyStatusForShop,
+  syncShopifyFromDatabase,
+  type SurveyStatus,
+} from "../lib/survey/survey-store.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
-type SurveyStatus = "live" | "paused";
 type StatusView = "all" | SurveyStatus;
 
 interface SurveyRow {
@@ -34,80 +50,119 @@ interface SurveyRow {
   name: string;
   question: string;
   status: SurveyStatus;
-  surface: "Thank you" | "Order status";
+  channelsLabel: string;
   responses: number;
   createdAt: string;
 }
 
 const PAGE_SIZE = 4;
 
+function formatSurveyDate(iso: Date): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(iso);
+}
+
+function questionFromDocument(document: SurveyDocument): string {
+  return document.questions?.[0]?.heading?.trim() || "—";
+}
+
 /**
- * Surveys index loader.
- * Mock rows stand in for persistence so merchants can filter, page, and try row actions.
+ * Surveys index loader — shop-scoped rows from Prisma.
  */
 export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<{ surveys: SurveyRow[] }> => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
+  const rows = await listSurveyRowsForShop(session.shop);
+  const counts = await responseCountsForSurveys(
+    session.shop,
+    rows.map((row) => row.id),
+  );
 
-  return {
-    surveys: [
-      {
-        id: "surv_hdyhau",
-        name: "Post-purchase attribution",
-        question: "How did you hear about us?",
-        status: "live",
-        surface: "Thank you",
-        responses: 248,
-        createdAt: "Aug 23, 2026",
-      },
-      {
-        id: "surv_repeat",
-        name: "Repeat buyer check",
-        question: "What brought you back?",
-        status: "live",
-        surface: "Order status",
-        responses: 86,
-        createdAt: "Sep 2, 2026",
-      },
-      {
-        id: "surv_wholesale",
-        name: "Wholesale source",
-        question: "How did your team find us?",
-        status: "paused",
-        surface: "Thank you",
-        responses: 12,
-        createdAt: "Jul 14, 2026",
-      },
-      {
-        id: "surv_holiday",
-        name: "Holiday campaign",
-        question: "Which campaign sent you here?",
-        status: "live",
-        surface: "Thank you",
-        responses: 40,
-        createdAt: "Nov 18, 2025",
-      },
-      {
-        id: "surv_sms",
-        name: "SMS follow-up",
-        question: "Did a text message lead you to order?",
-        status: "paused",
-        surface: "Order status",
-        responses: 0,
-        createdAt: "Jun 9, 2026",
-      },
-      {
-        id: "surv_gift",
-        name: "Gift buyer",
-        question: "Who recommended this gift?",
-        status: "live",
-        surface: "Thank you",
-        responses: 19,
-        createdAt: "May 1, 2026",
-      },
-    ],
-  };
+  const surveys: SurveyRow[] = rows.map((row) => {
+    const document = row.document as unknown as SurveyDocument;
+    return {
+      id: row.id,
+      name: row.name,
+      question: questionFromDocument(document),
+      status: row.status as SurveyStatus,
+      channelsLabel:
+        enabledChannelLabels(document, CHANNEL_LABELS).join(", ") || "—",
+      responses: counts.get(row.id) ?? 0,
+      createdAt: formatSurveyDate(row.createdAt),
+    };
+  });
+
+  return { surveys };
+};
+
+interface SurveyActionData {
+  ok: boolean;
+  error?: string;
+  surveyId?: string;
+}
+
+/**
+ * Row actions: duplicate, toggle live/paused (re-publishes checkout metafields), delete.
+ */
+export const action = async ({
+  request,
+}: ActionFunctionArgs): Promise<SurveyActionData> => {
+  const { admin, session } = await authenticate.admin(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  const surveyId = formData.get("surveyId");
+
+  try {
+    if (intent === "create") {
+      const createdId = await createDefaultSurveyForShop(session.shop);
+      return { ok: true, surveyId: createdId };
+    }
+
+    if (typeof surveyId !== "string" || surveyId.trim().length === 0) {
+      return { ok: false, error: "Missing survey" };
+    }
+
+    if (intent === "duplicate") {
+      const created = await duplicateSurveyForShop(session.shop, surveyId);
+      if (!created) {
+        return { ok: false, error: "Survey not found" };
+      }
+      return { ok: true };
+    }
+
+    if (intent === "delete") {
+      const removed = await deleteSurveyForShop(session.shop, surveyId);
+      if (!removed) {
+        return { ok: false, error: "Survey not found" };
+      }
+      await syncShopifyFromDatabase(admin, session.shop);
+      return { ok: true };
+    }
+
+    if (intent === "toggle-status") {
+      const prisma = (await import("../db.server")).default;
+      const current = await prisma.survey.findFirst({
+        where: { shop: session.shop, id: surveyId },
+      });
+      if (!current) {
+        return { ok: false, error: "Survey not found" };
+      }
+      const nextStatus: SurveyStatus =
+        current.status === "live" ? "paused" : "live";
+      await setSurveyStatusForShop(session.shop, surveyId, nextStatus);
+      await syncShopifyFromDatabase(admin, session.shop);
+      return { ok: true };
+    }
+
+    return { ok: false, error: "Unknown action" };
+  } catch (error) {
+    console.error("surveys index action", error);
+    return { ok: false, error: "Action failed" };
+  }
 };
 
 function statusTone(status: SurveyStatus): "success" | "warning" {
@@ -121,8 +176,13 @@ function statusTone(status: SurveyStatus): "success" | "warning" {
 export default function SurveysPage() {
   const data = useLoaderData<typeof loader>();
   const shopify = useAppBridge();
+  const shopifyRef = useRef(shopify);
+  shopifyRef.current = shopify;
   const openEditor = useOpenEditor();
-  const [surveys, setSurveys] = useState<SurveyRow[]>(data.surveys);
+  const fetcher = useFetcher<SurveyActionData>();
+  /** Prevents re-running toasts/revalidate when App Bridge returns a new object each render. */
+  const handledFetcherData = useRef<SurveyActionData | null>(null);
+  const surveys = data.surveys;
   const [query, setQuery] = useState("");
   const [statusView, setStatusView] = useState<StatusView[]>(["all"]);
   const [page, setPage] = useState(0);
@@ -131,6 +191,7 @@ export default function SurveysPage() {
 
   // Per-row action popover state: surveyId → open
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const createThenOpenEditor = useRef(false);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -160,44 +221,55 @@ export default function SurveysPage() {
     [],
   );
 
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) {
+      return;
+    }
+    if (handledFetcherData.current === fetcher.data) {
+      return;
+    }
+    handledFetcherData.current = fetcher.data;
+
+    if (fetcher.data.ok) {
+      if (createThenOpenEditor.current && fetcher.data.surveyId) {
+        createThenOpenEditor.current = false;
+        openEditor({ surveyId: fetcher.data.surveyId });
+        return;
+      }
+      shopifyRef.current.toast.show("Survey updated");
+      setOpenMenuId(null);
+      return;
+    }
+    if (fetcher.data.error) {
+      shopifyRef.current.toast.show(fetcher.data.error, { isError: true });
+    }
+  }, [fetcher.state, fetcher.data, openEditor]);
+
+  function createSurveyAndOpenEditor() {
+    createThenOpenEditor.current = true;
+    const formData = new FormData();
+    formData.set("intent", "create");
+    fetcher.submit(formData, { method: "POST" });
+  }
+
+  function submitSurveyAction(intent: string, surveyId: string) {
+    const formData = new FormData();
+    formData.set("intent", intent);
+    formData.set("surveyId", surveyId);
+    fetcher.submit(formData, { method: "POST" });
+  }
+
   const duplicateSurvey = (survey: SurveyRow) => {
-    setSurveys((current) => [
-      {
-        ...survey,
-        id: `${survey.id}-copy-${Date.now()}`,
-        name: `${survey.name} copy`,
-        status: "paused",
-        responses: 0,
-        createdAt: "Today",
-      },
-      ...current,
-    ]);
+    submitSurveyAction("duplicate", survey.id);
     setPage(0);
-    shopify.toast.show("Survey duplicated");
-    setOpenMenuId(null);
   };
 
   const toggleStatus = (survey: SurveyRow) => {
-    setSurveys((current) =>
-      current.map((row) =>
-        row.id === survey.id
-          ? {
-              ...row,
-              status: row.status === "live" ? "paused" : "live",
-            }
-          : row,
-      ),
-    );
-    shopify.toast.show(
-      survey.status === "live" ? "Survey paused" : "Survey is live",
-    );
-    setOpenMenuId(null);
+    submitSurveyAction("toggle-status", survey.id);
   };
 
   const deleteSurvey = (survey: SurveyRow) => {
-    setSurveys((current) => current.filter((row) => row.id !== survey.id));
-    shopify.toast.show("Survey removed");
-    setOpenMenuId(null);
+    submitSurveyAction("delete", survey.id);
   };
 
   const rowMarkup = visible.map((survey, index) => (
@@ -236,7 +308,9 @@ export default function SurveysPage() {
       </IndexTable.Cell>
       <IndexTable.Cell>{survey.createdAt}</IndexTable.Cell>
       <IndexTable.Cell>
-        <Badge tone="info">{survey.surface}</Badge>
+        <Text as="span" variant="bodySm">
+          {survey.channelsLabel}
+        </Text>
       </IndexTable.Cell>
       <IndexTable.Cell>
         <Link to="/app/responses">{survey.responses}</Link>
@@ -306,7 +380,8 @@ export default function SurveysPage() {
               <path d="M11 9h4a1 1 0 1 1 0 2h-4v4a1 1 0 1 1-2 0v-4H5a1 1 0 1 1 0-2h4V5a1 1 0 1 1 2 0v4Z" />
             </svg>
           }
-          onClick={() => openEditor()}
+          onClick={createSurveyAndOpenEditor}
+          loading={createThenOpenEditor.current && fetcher.state !== "idle"}
         >
           Create survey
         </Button>
@@ -322,7 +397,7 @@ export default function SurveysPage() {
                   image="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
                   action={{
                     content: "Create survey",
-                    onAction: () => openEditor(),
+                    onAction: createSurveyAndOpenEditor,
                   }}
                   secondaryAction={{
                     content: "Choose a template",
@@ -398,7 +473,7 @@ export default function SurveysPage() {
                       { title: "Survey" },
                       { title: "Status" },
                       { title: "Created" },
-                      { title: "Shown on" },
+                      { title: "Channels" },
                       { title: "Responses" },
                       { title: "Actions", hidden: true },
                     ]}

@@ -1,16 +1,10 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import {
-  Link,
-  Outlet,
-  useLoaderData,
-  useLocation,
-  useRouteError,
-} from "react-router";
+import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
-import { NavMenu } from "@shopify/app-bridge-react";
 import en from "@shopify/polaris/locales/en.json";
+import { AppHydrationShell } from "../components/AppHydrationShell";
 import { EditorModalProvider } from "../lib/editor-modal";
 import { authenticate } from "../shopify.server";
 
@@ -30,24 +24,23 @@ export default function App() {
     <ShopifyAppProvider embedded apiKey={apiKey}>
       <PolarisAppProvider i18n={en}>
         {isSurveyEditor ? null : (
-          <NavMenu>
-            <Link to="/app" rel="home">
-              Dashboard
-            </Link>
-            <Link to="/app/surveys">Surveys</Link>
-            <Link to="/app/responses">Responses</Link>
-            <Link to="/app/analytics">Analytics</Link>
-            <Link to="/app/integrations">Integrations</Link>
-            <Link to="/app/settings">Settings</Link>
-          </NavMenu>
+          // App Home WC: platform nav matches Shopify RR template; App Bridge handles in-app routing.
+          <s-app-nav>
+            <s-link href="/app">Dashboard</s-link>
+            <s-link href="/app/surveys">Surveys</s-link>
+            <s-link href="/app/responses">Responses</s-link>
+            <s-link href="/app/settings">Settings</s-link>
+          </s-app-nav>
         )}
-        {isSurveyEditor ? (
-          <Outlet />
-        ) : (
-          <EditorModalProvider>
+        <AppHydrationShell>
+          {isSurveyEditor ? (
             <Outlet />
-          </EditorModalProvider>
-        )}
+          ) : (
+            <EditorModalProvider>
+              <Outlet />
+            </EditorModalProvider>
+          )}
+        </AppHydrationShell>
       </PolarisAppProvider>
     </ShopifyAppProvider>
   );

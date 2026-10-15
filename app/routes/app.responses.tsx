@@ -1,8 +1,8 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
 import {
   Badge,
+  BlockStack,
   Button,
   Card,
   DataTable,
@@ -11,6 +11,14 @@ import {
   Page,
   Text,
 } from "@shopify/polaris";
+import {
+  formatQuestionsSummary,
+  mapSurveyResponseToListItem,
+} from "../lib/survey/response-api.mapper";
+import {
+  countSurveyResponsesForShop,
+  listSurveyResponsesForShop,
+} from "../lib/survey/survey-response.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -18,95 +26,109 @@ interface ResponseRow {
   id: string;
   orderName: string;
   surveyName: string;
-  selectedChannel: string;
-  customText?: string;
+  questionCount: number;
+  answerSummary: string;
   submittedAt: string;
 }
 
+function formatSubmittedAt(iso: Date): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(iso);
+}
+
+function orderLabel(orderId: string, orderName: string | null): string {
+  if (orderName?.trim()) {
+    return orderName;
+  }
+  const match = orderId.match(/(\d+)\s*$/);
+  if (match) {
+    return `#${match[1]}`;
+  }
+  const tail = orderId.split("/").pop();
+  return tail ? `#${tail}` : orderId;
+}
+
 /**
- * Responses index loader. Mock submissions stand in until response persistence exists.
+ * Responses index loader — shop-scoped submissions (questions JSON + meta).
  */
 export const loader = async ({
   request,
-}: LoaderFunctionArgs): Promise<{ responses: ResponseRow[] }> => {
-  await authenticate.admin(request);
+}: LoaderFunctionArgs): Promise<{ responses: ResponseRow[]; total: number }> => {
+  const { session } = await authenticate.admin(request);
+  const [rows, total] = await Promise.all([
+    listSurveyResponsesForShop(session.shop, { take: 100, skip: 0 }),
+    countSurveyResponsesForShop(session.shop),
+  ]);
 
-  return {
-    responses: [
-      {
-        id: "resp_1",
-        orderName: "#1042",
-        surveyName: "Post-purchase HDYHAU",
-        selectedChannel: "Instagram",
-        submittedAt: "Sep 21, 9:14 AM",
-      },
-      {
-        id: "resp_2",
-        orderName: "#1041",
-        surveyName: "Post-purchase HDYHAU",
-        selectedChannel: "TikTok",
-        submittedAt: "Sep 21, 8:02 AM",
-      },
-      {
-        id: "resp_3",
-        orderName: "#1039",
-        surveyName: "Post-purchase HDYHAU",
-        selectedChannel: "Other",
-        customText: "Podcast ad on Marketing School",
-        submittedAt: "Sep 20, 9:45 PM",
-      },
-    ],
-  };
+  const responses: ResponseRow[] = rows.map((row) => {
+    const dto = mapSurveyResponseToListItem(row);
+    return {
+      id: dto.id,
+      orderName: orderLabel(dto.orderId, dto.orderName),
+      surveyName: dto.surveyName,
+      questionCount: dto.questions.length,
+      answerSummary: formatQuestionsSummary(dto.questions),
+      submittedAt: formatSubmittedAt(row.submittedAt),
+    };
+  });
+
+  return { responses, total };
 };
 
-/** Response feed. Filters, export, and order links come in a later pass. */
+/** Response feed for Thank you / Order status submissions. */
 export default function ResponsesPage() {
-  const { responses } = useLoaderData<typeof loader>();
-  const shopify = useAppBridge();
+  const { responses, total } = useLoaderData<typeof loader>();
 
   const rows = responses.map((r) => [
     <Text key={`${r.id}-order`} as="span" fontWeight="semibold">
       {r.orderName}
     </Text>,
     r.surveyName,
-    <Badge key={`${r.id}-channel`}>{r.selectedChannel}</Badge>,
-    r.customText ? (
-      <Text as="span">{r.customText}</Text>
-    ) : (
-      <Text as="span" tone="subdued">
-        —
-      </Text>
-    ),
+    <Badge key={`${r.id}-count`}>{`${r.questionCount} question${r.questionCount === 1 ? "" : "s"}`}</Badge>,
+    <Text key={`${r.id}-summary`} as="span">
+      {r.answerSummary}
+    </Text>,
     r.submittedAt,
   ]);
 
   return (
     <Page
       title="Responses"
+      subtitle={
+        total > 0
+          ? `${total} submission${total === 1 ? "" : "s"}`
+          : "No submissions yet"
+      }
       primaryAction={
-        <Button
-          variant="primary"
-          onClick={() => shopify.toast.show("CSV export comes next")}
-        >
-          Export to CSV
+        <Button url="/app/surveys" variant="primary">
+          Manage surveys
         </Button>
       }
     >
       <Layout>
         <Layout.Section>
-          <Card padding="0">
-            {responses.length === 0 ? (
+          {responses.length === 0 ? (
+            <Card>
               <EmptyState
                 heading="No responses yet"
-                image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+                image="https://cdn.shopify.com/static/images/polaris/patterns/callout.png"
+                action={{
+                  content: "Open surveys",
+                  url: "/app/surveys",
+                }}
               >
                 <Text as="p">
-                  Answers from the Thank You page will show up here, one row
-                  per order.
+                  When customers complete the Thank you or Order status survey,
+                  every question answer is stored and listed here.
                 </Text>
-                <Link to="/app/surveys">Review surveys</Link>
               </EmptyState>
-            ) : (
+            </Card>
+          ) : (
+            <Card padding="0">
               <DataTable
                 columnContentTypes={[
                   "text",
@@ -118,14 +140,24 @@ export default function ResponsesPage() {
                 headings={[
                   "Order",
                   "Survey",
-                  "Channel",
-                  "Custom text",
+                  "Questions",
+                  "Answers",
                   "Submitted",
                 ]}
                 rows={rows}
               />
-            )}
-          </Card>
+            </Card>
+          )}
+          <BlockStack gap="200">
+            <Text as="p" tone="subdued">
+              Each row is one order + survey submission with normalized answer
+              rows for analytics.
+            </Text>
+            <Text as="p" tone="subdued">
+              Test: place an order, answer every step on Thank you, then refresh.{" "}
+              <Link to="/app/surveys">Edit surveys</Link>
+            </Text>
+          </BlockStack>
         </Layout.Section>
       </Layout>
     </Page>

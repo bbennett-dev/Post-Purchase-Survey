@@ -1,25 +1,22 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData } from "react-router";
 import {
-  Badge,
   Banner,
   BlockStack,
   Box,
   Card,
   InlineGrid,
-  InlineStack,
   Layout,
   Page,
   Text,
 } from "@shopify/polaris";
+import { SurveyStatus } from "@prisma/client";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
 interface DashboardLoaderData {
   activeSurveys: number;
   totalResponses: number;
-  responseRate: string;
-  topChannel: string;
 }
 
 /**
@@ -29,14 +26,19 @@ interface DashboardLoaderData {
 export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<DashboardLoaderData> => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
+  const prisma = (await import("../db.server")).default;
 
-  return {
-    activeSurveys: 1,
-    totalResponses: 248,
-    responseRate: "34.2%",
-    topChannel: "Instagram",
-  };
+  const [activeSurveys, totalResponses] = await Promise.all([
+    prisma.survey.count({
+      where: { shop: session.shop, status: SurveyStatus.live },
+    }),
+    prisma.surveyResponse.count({
+      where: { shop: session.shop },
+    }),
+  ]);
+
+  return { activeSurveys, totalResponses };
 };
 
 const NAV_TILES = [
@@ -49,16 +51,6 @@ const NAV_TILES = [
     to: "/app/responses",
     heading: "Responses",
     body: "Review each order's answer, channel, and custom text.",
-  },
-  {
-    to: "/app/analytics",
-    heading: "Analytics",
-    body: "See which channels drive orders and how response rate trends.",
-  },
-  {
-    to: "/app/integrations",
-    heading: "Integrations",
-    body: "Connect attribution answers to the rest of your stack.",
   },
   {
     to: "/app/settings",
@@ -89,13 +81,10 @@ export default function Dashboard() {
                 <Text as="h2" variant="headingMd">
                   Store snapshot
                 </Text>
-                <InlineGrid
-                  columns={{ xs: 1, sm: 3 }}
-                  gap="400"
-                >
+                <InlineGrid columns={{ xs: 1, sm: 2 }} gap="400">
                   <BlockStack gap="100">
                     <Text as="p" tone="subdued">
-                      Active surveys
+                      Live surveys
                     </Text>
                     <Text as="p" variant="headingLg" fontWeight="bold">
                       {data.activeSurveys}
@@ -108,17 +97,6 @@ export default function Dashboard() {
                     <Text as="p" variant="headingLg" fontWeight="bold">
                       {data.totalResponses.toLocaleString()}
                     </Text>
-                  </BlockStack>
-                  <BlockStack gap="100">
-                    <Text as="p" tone="subdued">
-                      Response rate
-                    </Text>
-                    <InlineStack gap="200" blockAlign="center">
-                      <Text as="p" variant="headingLg" fontWeight="bold">
-                        {data.responseRate}
-                      </Text>
-                      <Badge tone="success">{data.topChannel}</Badge>
-                    </InlineStack>
                   </BlockStack>
                 </InlineGrid>
               </BlockStack>
