@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   ActionList,
   Box,
@@ -14,14 +13,14 @@ import {
   ConnectIcon,
   DesktopIcon,
   EditIcon,
-  ExternalIcon,
   MaximizeIcon,
   MobileIcon,
   StoreIcon,
 } from "@shopify/polaris-icons";
+import { useState } from "react";
 import type { CheckoutEditorLinks } from "../../lib/shopify/checkout-editor-url.server";
-import { openShopifyAdminUrl } from "../../lib/open-checkout-editor";
 import type { EditorWorkspace, PreviewDevice } from "../../lib/survey/types";
+import { isV1EditorLimited } from "../../lib/v1-product";
 
 interface EditorToolbarProps {
   workspace: EditorWorkspace;
@@ -48,6 +47,7 @@ export function EditorToolbar({
   const [statusOpen, setStatusOpen] = useState(false);
 
   const statusLabel = isActive ? "Active" : "Inactive";
+  const showAdvancedLogic = !isV1EditorLimited();
 
   return (
     <Box
@@ -58,22 +58,24 @@ export function EditorToolbar({
       borderColor="border"
     >
       <InlineGrid columns="auto 1fr auto" gap="400" alignItems="center">
-        <ButtonGroup variant="segmented">
-          <Button
-            icon={EditIcon}
-            pressed={workspace === "build"}
-            onClick={() => onWorkspace("build")}
-          >
-            Build survey
-          </Button>
-          <Button
-            icon={ConnectIcon}
-            pressed={workspace === "logic"}
-            onClick={() => onWorkspace("logic")}
-          >
-            Advanced logic
-          </Button>
-        </ButtonGroup>
+        {!isV1EditorLimited() && (
+          <ButtonGroup variant="segmented">
+            <Button
+              icon={EditIcon}
+              pressed={workspace === "build"}
+              onClick={() => onWorkspace("build")}
+            >
+              Build survey
+            </Button>
+            <Button
+              icon={ConnectIcon}
+              pressed={workspace === "logic"}
+              onClick={() => onWorkspace("logic")}
+            >
+              Advanced logic
+            </Button>
+          </ButtonGroup>
+        )}
 
         <InlineStack gap="300" blockAlign="center" align="center">
           <InlineStack gap="200" blockAlign="center">
@@ -111,13 +113,6 @@ export function EditorToolbar({
         </InlineStack>
 
         <InlineStack gap="300" blockAlign="center" align="end">
-          <Button
-            icon={ExternalIcon}
-            variant="plain"
-            onClick={() => openShopifyAdminUrl(checkoutEditor.thankYou)}
-          >
-            Preview
-          </Button>
           <Popover
             active={statusOpen}
             activator={

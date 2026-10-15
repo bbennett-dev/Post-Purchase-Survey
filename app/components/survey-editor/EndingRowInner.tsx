@@ -15,7 +15,8 @@ interface EndingRowInnerProps {
   selected?: boolean;
   isMain?: boolean;
   menu?: ReactNode;
-  menuVisible?: boolean;
+  /** Hovered row or open ⋯ menu (non-main rows only). */
+  showMenuChrome?: boolean;
 }
 
 /** Same grid as question rows: icon · title · trailing (Main badge and/or ⋯). */
@@ -24,7 +25,7 @@ export function EndingRowInner({
   selected = false,
   isMain = false,
   menu,
-  menuVisible = false,
+  showMenuChrome = false,
 }: EndingRowInnerProps) {
   const label = truncateText(title, 32);
   const iconTone = selected ? undefined : "subdued";
@@ -82,18 +83,21 @@ export function EndingRowInner({
         }}
       >
         {isMain ? (
-          <Badge tone={selected ? undefined : "info"} size="small">
-            Main
-          </Badge>
+          selected ? (
+            <span className="se-main-badge se-main-badge--on-brand">Main</span>
+          ) : (
+            <Badge tone="info" size="small">
+              Main
+            </Badge>
+          )
         ) : (
           <div
+            className={`se-menu-slot${showMenuChrome ? " se-menu-slot--visible" : ""}`}
             style={{
               width: QUESTION_ROW_MENU_SLOT_WIDTH,
               minWidth: QUESTION_ROW_MENU_SLOT_WIDTH,
               display: "flex",
               justifyContent: "flex-end",
-              opacity: menuVisible ? 1 : 0,
-              pointerEvents: menuVisible ? "auto" : "none",
             }}
           >
             {menu}

@@ -4,7 +4,6 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   DeleteIcon,
-  LayoutColumns2Icon,
 } from "@shopify/polaris-icons";
 import type { SurveyQuestion } from "../../lib/survey/types";
 import { QuestionRowInner } from "./QuestionRowInner";
@@ -13,6 +12,7 @@ import { QuestionRowMenuButton } from "./QuestionRowMenuButton";
 interface QuestionRowProps {
   question: SurveyQuestion;
   selected: boolean;
+  isRowHovered: boolean;
   dragging: boolean;
   reorderActive: boolean;
   isFirst: boolean;
@@ -22,6 +22,8 @@ interface QuestionRowProps {
   onDelete: (id: string) => void;
   onDragStart: (id: string, point: { x: number; y: number }) => void;
   onRowRef: (id: string, element: HTMLElement | null) => void;
+  onRowHover: (id: string) => void;
+  onRowLeave: (id: string) => void;
 }
 
 /**
@@ -30,6 +32,7 @@ interface QuestionRowProps {
 export function QuestionRow({
   question,
   selected,
+  isRowHovered,
   dragging,
   reorderActive,
   isFirst,
@@ -39,13 +42,14 @@ export function QuestionRow({
   onDelete,
   onDragStart,
   onRowRef,
+  onRowHover,
+  onRowLeave,
 }: QuestionRowProps) {
-  const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const interactiveRef = useRef(false);
 
-  const showChrome = hovered || menuOpen;
+  const showChrome = isRowHovered || menuOpen;
   /** Keep handle visible on the faded source row while dragging. */
   const showHandle = showChrome || dragging;
   const heading = question.heading || "Untitled question";
@@ -57,9 +61,6 @@ export function QuestionRow({
     if (!row) {
       return;
     }
-
-    const enter = () => setHovered(true);
-    const leave = () => setHovered(false);
 
     const selectRow = (event: Event) => {
       const target = event.target as HTMLElement | null;
@@ -80,15 +81,11 @@ export function QuestionRow({
       onDragStart(question.id, { x: event.clientX, y: event.clientY });
     };
 
-    row.addEventListener("pointerenter", enter);
-    row.addEventListener("pointerleave", leave);
     row.addEventListener("click", selectRow);
     row.addEventListener("pointerdown", startDrag);
     onRowRef(question.id, row);
 
     return () => {
-      row.removeEventListener("pointerenter", enter);
-      row.removeEventListener("pointerleave", leave);
       row.removeEventListener("click", selectRow);
       row.removeEventListener("pointerdown", startDrag);
       onRowRef(question.id, null);
@@ -96,7 +93,19 @@ export function QuestionRow({
   }, [onDragStart, onRowRef, onSelect, question.id]);
 
   return (
-    <div data-question-id={question.id} ref={rowRef}>
+    <div
+      className={`se-question-row${showChrome ? " se-question-row--chrome" : ""}`}
+      data-question-id={question.id}
+      ref={rowRef}
+      onMouseEnter={() => onRowHover(question.id)}
+      onMouseLeave={(event) => {
+        const related = event.relatedTarget;
+        if (related instanceof Node && rowRef.current?.contains(related)) {
+          return;
+        }
+        onRowLeave(question.id);
+      }}
+    >
       <Box
         paddingInline="200"
         paddingBlock="150"
@@ -118,7 +127,6 @@ export function QuestionRow({
           showHandle={showHandle}
           questionType={question.type}
           selected={selected}
-          menuVisible={showChrome}
           interactive={showChrome}
           dragging={dragging}
           reorderActive={reorderActive}
@@ -132,49 +140,44 @@ export function QuestionRow({
                 activator={
                   <QuestionRowMenuButton
                     selected={selected}
-                    pressed={menuOpen}
+                    open={menuOpen}
                     accessibilityLabel={`Actions for ${heading}`}
                     onClick={() => setMenuOpen((open) => !open)}
                   />
                 }
                 onClose={() => setMenuOpen(false)}
               >
-                  <ActionList
-                    items={[
-                      {
-                        content: "Move up",
-                        icon: ArrowUpIcon,
-                        disabled: isFirst,
-                        onAction: () => {
-                          onMove(question.id, -1);
-                          setMenuOpen(false);
-                        },
+                <ActionList
+                  items={[
+                    {
+                      content: "Move up",
+                      icon: ArrowUpIcon,
+                      disabled: isFirst,
+                      onAction: () => {
+                        onMove(question.id, -1);
+                        setMenuOpen(false);
                       },
-                      {
-                        content: "Move down",
-                        icon: ArrowDownIcon,
-                        disabled: isLast,
-                        onAction: () => {
-                          onMove(question.id, 1);
-                          setMenuOpen(false);
-                        },
+                    },
+                    {
+                      content: "Move down",
+                      icon: ArrowDownIcon,
+                      disabled: isLast,
+                      onAction: () => {
+                        onMove(question.id, 1);
+                        setMenuOpen(false);
                       },
-                      // {
-                      //   content: "Create section with question",
-                      //   icon: LayoutColumns2Icon,
-                      //   disabled: true,
-                      // },
-                      {
-                        content: "Delete question",
-                        icon: DeleteIcon,
-                        destructive: true,
-                        onAction: () => {
-                          onDelete(question.id);
-                          setMenuOpen(false);
-                        },
+                    },
+                    {
+                      content: "Delete question",
+                      icon: DeleteIcon,
+                      destructive: true,
+                      onAction: () => {
+                        onDelete(question.id);
+                        setMenuOpen(false);
                       },
-                    ]}
-                  />
+                    },
+                  ]}
+                />
               </Popover>
             </div>
           }

@@ -10,10 +10,13 @@ interface EndingRowProps {
   card: ThankYouContent;
   index: number;
   selected: boolean;
+  isRowHovered: boolean;
   title: string;
   onSelect: (id: string) => void;
   onSetMain: (id: string) => void;
   onDelete: (id: string) => void;
+  onRowHover: (id: string) => void;
+  onRowLeave: (id: string) => void;
 }
 
 /**
@@ -23,17 +26,19 @@ export function EndingRow({
   card,
   index,
   selected,
+  isRowHovered,
   title,
   onSelect,
   onSetMain,
   onDelete,
+  onRowHover,
+  onRowLeave,
 }: EndingRowProps) {
-  const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const id = card.id ?? `ending-${index}`;
   const isMain = card.isDefault === true;
-  const showChrome = hovered || menuOpen;
+  const showChrome = isRowHovered || menuOpen;
   const heading = title || endingTitle(card, index);
 
   useEffect(() => {
@@ -42,8 +47,6 @@ export function EndingRow({
       return;
     }
 
-    const enter = () => setHovered(true);
-    const leave = () => setHovered(false);
     const selectRow = (event: Event) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest("[data-stop-row-click]")) {
@@ -52,30 +55,47 @@ export function EndingRow({
       onSelect(id);
     };
 
-    row.addEventListener("pointerenter", enter);
-    row.addEventListener("pointerleave", leave);
     row.addEventListener("click", selectRow);
 
     return () => {
-      row.removeEventListener("pointerenter", enter);
-      row.removeEventListener("pointerleave", leave);
       row.removeEventListener("click", selectRow);
     };
   }, [id, onSelect]);
 
+  const rowBackground = selected
+    ? "bg-fill-brand"
+    : showChrome
+      ? "bg-surface-secondary"
+      : undefined;
+
+  const rowClassName = [
+    "se-question-row",
+    showChrome && !isMain ? "se-question-row--chrome" : "",
+    isMain ? "se-ending-row--main" : "",
+    isMain && selected ? "se-ending-row--main-selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div data-ending-id={id} ref={rowRef}>
+    <div
+      className={rowClassName}
+      data-ending-id={id}
+      ref={rowRef}
+      onMouseEnter={() => onRowHover(id)}
+      onMouseLeave={(event) => {
+        const related = event.relatedTarget;
+        if (related instanceof Node && rowRef.current?.contains(related)) {
+          return;
+        }
+        onRowLeave(id);
+      }}
+    >
       <Box
         paddingInline="200"
         paddingBlock="150"
         borderRadius="200"
-        background={
-          selected
-            ? "bg-fill-brand"
-            : showChrome
-              ? "bg-surface-secondary"
-              : undefined
-        }
+        background={rowBackground}
         color={selected ? "text-brand-on-bg-fill" : undefined}
         overflowX="hidden"
         overflowY="hidden"
@@ -84,47 +104,49 @@ export function EndingRow({
           title={heading}
           selected={selected}
           isMain={isMain}
-          menuVisible={showChrome && !isMain}
+          showMenuChrome={showChrome && !isMain}
           menu={
-            <div
-              data-stop-row-click
-              onPointerDown={(event) => event.stopPropagation()}
-            >
-              <Popover
-                active={menuOpen}
-                activator={
-                  <QuestionRowMenuButton
-                    selected={selected}
-                    pressed={menuOpen}
-                    accessibilityLabel={`Actions for ${heading}`}
-                    onClick={() => setMenuOpen((open) => !open)}
-                  />
-                }
-                onClose={() => setMenuOpen(false)}
+            !isMain ? (
+              <div
+                data-stop-row-click
+                onPointerDown={(event) => event.stopPropagation()}
               >
-                <ActionList
-                  items={[
-                    {
-                      content: "Set as main",
-                      icon: StarIcon,
-                      onAction: () => {
-                        onSetMain(id);
-                        setMenuOpen(false);
+                <Popover
+                  active={menuOpen}
+                  activator={
+                    <QuestionRowMenuButton
+                      selected={selected}
+                      open={menuOpen}
+                      accessibilityLabel={`Actions for ${heading}`}
+                      onClick={() => setMenuOpen((open) => !open)}
+                    />
+                  }
+                  onClose={() => setMenuOpen(false)}
+                >
+                  <ActionList
+                    items={[
+                      {
+                        content: "Set as main",
+                        icon: StarIcon,
+                        onAction: () => {
+                          onSetMain(id);
+                          setMenuOpen(false);
+                        },
                       },
-                    },
-                    {
-                      content: "Delete ending",
-                      icon: DeleteIcon,
-                      destructive: true,
-                      onAction: () => {
-                        onDelete(id);
-                        setMenuOpen(false);
+                      {
+                        content: "Delete ending",
+                        icon: DeleteIcon,
+                        destructive: true,
+                        onAction: () => {
+                          onDelete(id);
+                          setMenuOpen(false);
+                        },
                       },
-                    },
-                  ]}
-                />
-              </Popover>
-            </div>
+                    ]}
+                  />
+                </Popover>
+              </div>
+            ) : undefined
           }
         />
       </Box>

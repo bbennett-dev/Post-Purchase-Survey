@@ -20,7 +20,6 @@ interface QuestionRowInnerProps {
   selected?: boolean;
   /** Reserved width for ⋮ so title stays aligned with list rows during drag preview. */
   menu?: ReactNode;
-  menuVisible?: boolean;
   /** Row is hovered (draggable chrome visible). */
   interactive?: boolean;
   /** This row is the active drag source. */
@@ -38,7 +37,6 @@ export function QuestionRowInner({
   questionType,
   selected = false,
   menu,
-  menuVisible = false,
   interactive = false,
   dragging = false,
   reorderActive = false,
@@ -115,6 +113,7 @@ export function QuestionRowInner({
         </Text>
       </div>
       <div
+        className="se-menu-slot"
         style={{
           width: QUESTION_ROW_MENU_SLOT_WIDTH,
           minWidth: QUESTION_ROW_MENU_SLOT_WIDTH,
@@ -123,8 +122,6 @@ export function QuestionRowInner({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          opacity: menuVisible ? 1 : 0,
-          pointerEvents: menuVisible ? "auto" : "none",
         }}
       >
         {menu}

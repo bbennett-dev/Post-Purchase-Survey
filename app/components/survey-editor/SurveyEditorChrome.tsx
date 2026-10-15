@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { defaultEditorChannelKey } from "../../lib/survey/channels";
+import { isV1EditorLimited } from "../../lib/v1-product";
 import { BlockStack, Box, Text } from "@shopify/polaris";
 import {
   applyQuestionOrder,
@@ -52,7 +54,7 @@ export function SurveyEditorChrome({
   );
   const [selectedEndingId, setSelectedEndingId] = useState<string | null>(null);
   const [selectedChannelKey, setSelectedChannelKey] = useState<string | null>(
-    "postPurchasePage",
+    () => defaultEditorChannelKey(survey),
   );
   const [selectedDiscountTarget, setSelectedDiscountTarget] =
     useState<DiscountPreviewTarget>("thankYouCard");
@@ -89,11 +91,24 @@ export function SurveyEditorChrome({
   };
 
   const setPanelWithDefaults = (next: EditorPanel) => {
+    if (isV1EditorLimited() && next === "discount") {
+      setPanel("content");
+      return;
+    }
     setPanel(next);
     if (next === "channel" && !selectedChannelKey) {
-      setSelectedChannelKey("postPurchasePage");
+      setSelectedChannelKey(defaultEditorChannelKey(survey));
     }
   };
+
+  useEffect(() => {
+    if (isV1EditorLimited() && workspace === "logic") {
+      setWorkspace("build");
+    }
+    if (isV1EditorLimited() && panel === "discount") {
+      setPanel("content");
+    }
+  }, [workspace, panel]);
 
   const selectChannel = (channelKey: string) => {
     setSelectedChannelKey(channelKey.length > 0 ? channelKey : null);

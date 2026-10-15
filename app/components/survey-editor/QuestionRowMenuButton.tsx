@@ -1,11 +1,10 @@
-import { Icon } from "@shopify/polaris";
+import { Icon, UnstyledButton } from "@shopify/polaris";
 import { MenuHorizontalIcon } from "@shopify/polaris-icons";
-import styles from "./question-row-menu.module.css";
 
 interface QuestionRowMenuButtonProps {
   selected: boolean;
   /** Popover open — keep hover pill visible. */
-  pressed: boolean;
+  open: boolean;
   accessibilityLabel: string;
   onClick: () => void;
 }
@@ -13,23 +12,21 @@ interface QuestionRowMenuButtonProps {
 /** ⋯ activator sized to the question title line; hover bg works on brand and neutral rows. */
 export function QuestionRowMenuButton({
   selected,
-  pressed,
+  open,
   accessibilityLabel,
   onClick,
 }: QuestionRowMenuButtonProps) {
   return (
-    <button
-      type="button"
-      className={`${styles.menuButton} ${selected ? styles.menuButtonSelected : ""}`}
-      aria-expanded={pressed}
-      aria-haspopup="true"
-      aria-label={accessibilityLabel}
+    <UnstyledButton
+      className={`se-menu-button${selected ? " se-menu-button--selected" : ""}`}
+      ariaExpanded={open}
+      accessibilityLabel={accessibilityLabel}
       onClick={onClick}
     >
       <Icon
         source={MenuHorizontalIcon}
         tone={selected ? undefined : "subdued"}
       />
-    </button>
+    </UnstyledButton>
   );
 }

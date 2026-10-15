@@ -1,0 +1,145 @@
+/**
+ * Editor list chrome (Add content, question ⋯). Plain CSS + ?url link on the editor
+ * route — Vite cannot link `.module.css` via ?url, and module injection is unreliable
+ * in App Bridge max-modal iframes.
+ */
+.se-add-button {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.se-add-button:focus-visible {
+  outline: 2px solid var(--p-color-border-focus, #005bd3);
+  outline-offset: 2px;
+  border-radius: var(--p-border-radius-200);
+}
+
+.se-add-row-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--p-space-200);
+  width: 100%;
+  min-width: 0;
+}
+
+.se-add-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.se-add-label {
+  min-width: 0;
+  flex: 1 1 auto;
+  color: var(--p-color-text-interactive, #005bd3);
+  font-family: var(--p-font-family-sans, inherit);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.se-add-menu-spacer {
+  width: 28px;
+  min-width: 28px;
+  flex-shrink: 0;
+}
+
+.se-menu-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  border-radius: var(--p-border-radius-150);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+  -webkit-tap-highlight-color: transparent;
+  font: inherit;
+}
+
+.se-menu-button:not(.se-menu-button--selected):hover,
+.se-menu-button:not(.se-menu-button--selected)[aria-expanded="true"] {
+  background: color-mix(
+    in srgb,
+    var(--p-color-text) 11%,
+    var(--p-color-bg-surface-secondary)
+  );
+}
+
+.se-menu-button--selected:hover,
+.se-menu-button--selected[aria-expanded="true"] {
+  background: color-mix(
+    in srgb,
+    var(--p-color-text-brand-on-bg-fill) 18%,
+    transparent
+  );
+}
+
+.se-menu-button:focus-visible {
+  outline: var(--p-border-width-050) solid var(--p-color-border-focus);
+  outline-offset: var(--p-space-050);
+}
+
+/** Only the hovered row (or row with open menu) shows ⋯ — avoids “all menus lit” glitches. */
+.se-question-row .se-menu-slot {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.se-question-row.se-question-row--chrome .se-menu-slot,
+.se-menu-slot.se-menu-slot--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/** Main ending: blue info badge when idle; on brand-selected row, light chip for contrast. */
+.se-main-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--p-space-150);
+  min-height: 20px;
+  border-radius: var(--p-border-radius-200);
+  font-size: var(--p-font-size-275);
+  font-weight: var(--p-font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.se-main-badge--on-brand {
+  background: color-mix(
+    in srgb,
+    var(--p-color-text-brand-on-bg-fill) 22%,
+    transparent
+  );
+  color: var(--p-color-text-brand-on-bg-fill);
+  box-shadow: inset 0 0 0 var(--p-border-width-025)
+    color-mix(
+      in srgb,
+      var(--p-color-text-brand-on-bg-fill) 35%,
+      transparent
+    );
+}

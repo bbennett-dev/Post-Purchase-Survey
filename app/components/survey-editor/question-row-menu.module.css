@@ -11,12 +11,14 @@
   padding: 0;
   margin: 0;
   border: none;
+  box-shadow: none;
   border-radius: var(--p-border-radius-150);
   background: transparent;
   color: inherit;
   cursor: pointer;
   flex-shrink: 0;
   vertical-align: middle;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /**
