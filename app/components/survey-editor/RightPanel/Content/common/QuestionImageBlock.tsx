@@ -14,10 +14,8 @@ import {
   Thumbnail,
 } from "@shopify/polaris";
 import { ChevronDownIcon } from "@shopify/polaris-icons";
-import {
-  ACCEPTED_IMAGE_EXTENSIONS,
-  readImageAsDataUrl,
-} from "../../../../../lib/images/read-image-as-data-url";
+import { useShopifyImageUpload } from "../../../../../hooks/useShopifyImageUpload";
+import { ACCEPTED_IMAGE_EXTENSIONS } from "../../../../../lib/images/read-image-as-data-url";
 import type { ImageAlignment, SurveyImage } from "../../../../../lib/survey/types";
 
 const ALIGNMENTS: { id: ImageAlignment; label: string }[] = [
@@ -54,6 +52,7 @@ export function QuestionImageBlock({
 }: QuestionImageBlockProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { uploadImage, uploading } = useShopifyImageUpload();
   const url = image.url?.trim() ?? "";
   const sizePercent = parseSizePercent(image.sizePercentage);
 
@@ -66,6 +65,15 @@ export function QuestionImageBlock({
     setMenuOpen(false);
   };
 
+  const applyUploadedFile = async (file: File) => {
+    try {
+      const cdnUrl = await uploadImage(file);
+      patch({ url: cdnUrl });
+    } catch {
+      // Upload failed — toast can be added later.
+    }
+  };
+
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
@@ -73,12 +81,7 @@ export function QuestionImageBlock({
     if (!file) {
       return;
     }
-    try {
-      const dataUrl = await readImageAsDataUrl(file);
-      patch({ url: dataUrl });
-    } catch {
-      // Unsupported type — toast can be added later.
-    }
+    await applyUploadedFile(file);
   };
 
   const onDrop = async (_dropFiles: File[], acceptedFiles: File[]) => {
@@ -86,12 +89,7 @@ export function QuestionImageBlock({
     if (!file) {
       return;
     }
-    try {
-      const dataUrl = await readImageAsDataUrl(file);
-      patch({ url: dataUrl });
-    } catch {
-      // Unsupported type.
-    }
+    await applyUploadedFile(file);
   };
 
   return (
@@ -197,7 +195,7 @@ export function QuestionImageBlock({
           ) : null}
         </BlockStack>
       ) : (
-        <DropZone accept="image/*" onDrop={onDrop}>
+        <DropZone accept="image/*" disabled={uploading} onDrop={onDrop}>
           <DropZone.FileUpload
             actionTitle="Add image"
             actionHint="Accepts .svg, .jpg, .jpeg, and .png"

@@ -16,10 +16,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from "@shopify/polaris-icons";
-import {
-  ACCEPTED_IMAGE_EXTENSIONS,
-  readImageAsDataUrl,
-} from "../../../../lib/images/read-image-as-data-url";
+import { useShopifyImageUpload } from "../../../../hooks/useShopifyImageUpload";
+import { ACCEPTED_IMAGE_EXTENSIONS } from "../../../../lib/images/read-image-as-data-url";
 import type { PostPurchasePageChannel } from "../../../../lib/survey/types";
 interface SideLogoSectionProps {
   channel: PostPurchasePageChannel;
@@ -39,6 +37,7 @@ export function SideLogoSection({
 }: SideLogoSectionProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { uploadImage, uploading } = useShopifyImageUpload();
   const enabledSideLogo = channel.enabledSideLogo === true;
   const sideLogoUrl = channel.sideLogo?.url ?? "";
 
@@ -57,6 +56,14 @@ export function SideLogoSection({
     setMenuOpen(false);
   }, []);
 
+  const applyFile = async (file: File) => {
+    try {
+      patchUrl(await uploadImage(file));
+    } catch {
+      // Upload failed.
+    }
+  };
+
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
@@ -64,12 +71,7 @@ export function SideLogoSection({
     if (!file) {
       return;
     }
-    try {
-      const dataUrl = await readImageAsDataUrl(file);
-      patchUrl(dataUrl);
-    } catch {
-      // Invalid type — ignore until we add toast feedback.
-    }
+    await applyFile(file);
   };
 
   return (
@@ -153,16 +155,13 @@ export function SideLogoSection({
               ) : (
                 <DropZone
                   accept="image/*"
+                  disabled={uploading}
                   onDrop={async (_files, accepted) => {
                     const file = accepted[0];
                     if (!file) {
                       return;
                     }
-                    try {
-                      patchUrl(await readImageAsDataUrl(file));
-                    } catch {
-                      // Invalid type.
-                    }
+                    await applyFile(file);
                   }}
                 >
                   <DropZone.FileUpload

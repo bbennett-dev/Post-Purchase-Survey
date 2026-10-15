@@ -11,10 +11,8 @@ import {
   Thumbnail,
 } from "@shopify/polaris";
 import { ChevronDownIcon } from "@shopify/polaris-icons";
-import {
-  ACCEPTED_IMAGE_EXTENSIONS,
-  readImageAsDataUrl,
-} from "../../../../../lib/images/read-image-as-data-url";
+import { useShopifyImageUpload } from "../../../../../hooks/useShopifyImageUpload";
+import { ACCEPTED_IMAGE_EXTENSIONS } from "../../../../../lib/images/read-image-as-data-url";
 import { ChannelCollapsibleSection } from "./ChannelCollapsibleSection";
 
 export interface ChannelLogoUploadBlockProps {
@@ -41,22 +39,27 @@ export function ChannelLogoUploadBlock({
 }: ChannelLogoUploadBlockProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { uploadImage, uploading } = useShopifyImageUpload();
 
   const pickImage = useCallback(() => {
     inputRef.current?.click();
     setMenuOpen(false);
   }, []);
 
+  const applyFile = async (file: File) => {
+    try {
+      onImageUrlChange(await uploadImage(file));
+    } catch {
+      // Upload failed.
+    }
+  };
+
   const onFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
     input.value = "";
     if (!file) return;
-    try {
-      onImageUrlChange(await readImageAsDataUrl(file));
-    } catch {
-      // Invalid type — ignore until toast feedback exists.
-    }
+    await applyFile(file);
   };
 
   return (
@@ -118,14 +121,11 @@ export function ChannelLogoUploadBlock({
       ) : (
         <DropZone
           accept="image/*"
+          disabled={uploading}
           onDrop={async (_files, accepted) => {
             const file = accepted[0];
             if (!file) return;
-            try {
-              onImageUrlChange(await readImageAsDataUrl(file));
-            } catch {
-              // Invalid type.
-            }
+            await applyFile(file);
           }}
         >
           <DropZone.FileUpload
