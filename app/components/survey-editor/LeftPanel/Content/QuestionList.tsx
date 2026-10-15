@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActionList, BlockStack, Text } from "@shopify/polaris";
-import { QUESTION_TYPES } from "../../../../lib/survey/questions";
+import { questionTypesForEditor } from "../../../../lib/survey/questions";
 import type { QuestionType, SurveyQuestion } from "../../../../lib/survey/types";
 import { questionTypeIconSource } from "../../questionTypeIcons";
 import { QuestionDragPreview } from "../../QuestionDragPreview";
@@ -38,6 +38,9 @@ export function QuestionList({
   onReorderQuestion,
   onAddQuestion,
 }: QuestionListProps) {
+  const [hoveredQuestionId, setHoveredQuestionId] = useState<string | null>(
+    null,
+  );
   const [pending, setPending] = useState<{
     id: string;
     x: number;
@@ -171,7 +174,7 @@ export function QuestionList({
       label="Add content"
       menu={({ close }) => (
         <ActionList
-          items={QUESTION_TYPES.map((item) => ({
+          items={questionTypesForEditor().map((item) => ({
             content: item.label,
             icon: questionTypeIconSource(item.type),
             onAction: () => {
@@ -213,6 +216,7 @@ export function QuestionList({
               key={question.id}
               question={question}
               selected={question.id === selectedQuestionId}
+              isRowHovered={hoveredQuestionId === question.id}
               dragging={drag?.id === question.id}
               reorderActive={sessionActive}
               isFirst={index === 0}
@@ -224,6 +228,12 @@ export function QuestionList({
                 setPending({ id, ...point });
               }}
               onRowRef={registerRow}
+              onRowHover={setHoveredQuestionId}
+              onRowLeave={(id) =>
+                setHoveredQuestionId((current) =>
+                  current === id ? null : current,
+                )
+              }
             />
           );
 

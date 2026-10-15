@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BlockStack } from "@shopify/polaris";
 import { endingTitle } from "../../../../lib/survey/questions";
 import type { ThankYouContent } from "../../../../lib/survey/types";
@@ -24,6 +25,8 @@ export function EndingsList({
   onSetMain,
   onDeleteEnding,
 }: EndingsListProps) {
+  const [hoveredEndingId, setHoveredEndingId] = useState<string | null>(null);
+
   return (
     <BlockStack gap="050">
       {cards.map((card, index) => {
@@ -34,10 +37,17 @@ export function EndingsList({
             card={card}
             index={index}
             selected={id === selectedEndingId}
+            isRowHovered={hoveredEndingId === id}
             title={endingTitle(card, index)}
             onSelect={onSelectEnding}
             onSetMain={onSetMain}
             onDelete={onDeleteEnding}
+            onRowHover={setHoveredEndingId}
+            onRowLeave={(endingId) =>
+              setHoveredEndingId((current) =>
+                current === endingId ? null : current,
+              )
+            }
           />
         );
       })}

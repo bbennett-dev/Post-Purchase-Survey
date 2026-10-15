@@ -1,5 +1,9 @@
 import { Banner, BlockStack, Box, Divider, Text } from "@shopify/polaris";
-import type { QuestionType, SurveyDocument } from "../../../../lib/survey/types";
+import { isV1EditorLimited } from "app/lib/v1-product";
+import type {
+  QuestionType,
+  SurveyDocument,
+} from "../../../../lib/survey/types";
 import { SectionLabel } from "../SectionLabel";
 import { BestPracticeTip } from "./BestPracticeTip";
 import { EndingsList } from "./EndingsList";
@@ -69,7 +73,7 @@ export function ContentPanel({
         onDeleteEnding={onDeleteEnding}
       />
 
-      {showTranslationTip ? (
+      {showTranslationTip && !isV1EditorLimited() ? (
         <Box paddingBlockStart="400">
           <Banner
             title="Surveys work better in the customer's language"
