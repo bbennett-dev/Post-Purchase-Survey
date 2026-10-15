@@ -30,41 +30,58 @@ model Session {
   refreshTokenExpires DateTime?
 }
 
-/// Per-shop survey configuration. One config row per shop (multi-tenancy).
-model SurveyConfig {
-  id         String         @id @default(cuid())
-  shop       String         @unique
-  question   String         @default("How did you hear about us?")
-  isActive   Boolean        @default(true)
-  allowOther Boolean        @default(true)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  options    SurveyOption[]
+enum SurveyStatus {
+  live
+  paused
 }
 
-/// Answer choices belonging to a shop's SurveyConfig.
-model SurveyOption {
-  id         String       @id @default(cuid())
-  configId   String
-  label      String
-  orderIndex Int
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  config     SurveyConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+/// Merchant survey definition: editor document JSON + list/publish scalars.
+model Survey {
+  id              String         @id @default(cuid())
+  shop            String
+  name            String
+  status          SurveyStatus   @default(paused)
+  surveyType      String         @default("survey")
+  templateType    String         @default("blank")
+  isActive        Boolean        @default(false)
+  document        Json
+  documentVersion Int            @default(1)
+  responseCount   Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  responses       SurveyResponse[]
 
-  @@index([configId])
+  @@index([shop, status])
+  @@index([shop, updatedAt])
+  @@index([shop, name])
 }
 
-/// Immutable customer survey submission, scoped by shop + order.
+/// One submission per shop + order + survey; questions + Shopify context as JSON.
 model SurveyResponse {
-  id             String   @id @default(cuid())
-  shop           String
-  orderId        String
-  selectedOption String
-  customText     String?
-  customerId     String?
-  createdAt      DateTime @default(now())
+  id           String    @id @default(cuid())
+  shop         String
+  surveyId     String
+  surveyName   String
+  surveyType   String    @default("survey")
+  orderId      String
+  customerId   String?
+  pageType     String?
+  channelType  String?
+  questions    Json
+  meta         Json?
+  payload      Json?
+  shopSequence Int?
+  isArchived   Boolean   @default(false)
+  archivedAt   DateTime?
+  submittedAt  DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  @@unique([shop, orderId])
-  @@index([shop, createdAt])
+  survey Survey @relation(fields: [surveyId], references: [id], onDelete: Restrict)
+
+  @@unique([shop, orderId, surveyId])
+  @@index([shop, submittedAt])
+  @@index([shop, surveyId, submittedAt])
+  @@index([shop, orderId])
+  @@index([shop, customerId])
 }
