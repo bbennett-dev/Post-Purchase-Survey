@@ -1,5 +1,12 @@
 {
   "surveyHeading": "Sondage rapide",
   "emptySurvey": "Ce sondage n'a pas encore de questions.",
-  "orderRef": "Commande : {{orderId}}"
+  "orderRef": "Commande : {{orderId}}",
+  "pickAnswer": "Veuillez répondre à cette question.",
+  "next": "Suivant",
+  "back": "Retour",
+  "submit": "Envoyer",
+  "thankYouSubmit": "Merci — vos réponses ont été enregistrées.",
+  "otherLabel": "Précisez",
+  "submitUnavailable": "L'envoi du sondage n'est pas configuré pour cette boutique."
 }

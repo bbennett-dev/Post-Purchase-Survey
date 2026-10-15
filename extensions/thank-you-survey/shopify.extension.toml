@@ -19,8 +19,7 @@ target = "customer-account.order-status.block.render"
 
 [extensions.capabilities]
 api_access = true
-# Enable when the submit API is wired (Phase 5 follow-up).
-# network_access = true
+network_access = true
 
 [[extensions.metafields]]
 namespace = "$app"

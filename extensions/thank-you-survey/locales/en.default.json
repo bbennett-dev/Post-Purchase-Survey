@@ -1,5 +1,12 @@
 {
   "surveyHeading": "Quick survey",
   "emptySurvey": "This survey has no questions yet.",
-  "orderRef": "Order: {{orderId}}"
+  "orderRef": "Order: {{orderId}}",
+  "pickAnswer": "Answer this question first.",
+  "next": "Next",
+  "back": "Back",
+  "submit": "Submit",
+  "thankYouSubmit": "Thanks — your answers were recorded.",
+  "otherLabel": "Tell us more",
+  "submitUnavailable": "Survey submit is not configured for this store."
 }
