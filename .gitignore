@@ -6,6 +6,7 @@ node_modules
 /.cache
 /build
 /app/build
+/public/polaris-react.css
 /public/build/
 /public/_dev
 /app/public/build
