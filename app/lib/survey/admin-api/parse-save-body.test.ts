@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import type { SurveyDocument } from "../types.ts";
 import {
   parseSurveySaveRequestBody,
   SurveySaveBodyError,
-} from "./save-survey-document-parse.server.ts";
-import type { SurveyDocument } from "./types.ts";
+} from "./parse-save-body.server.ts";
 
 function minimalSurvey(overrides: Partial<SurveyDocument> = {}): SurveyDocument {
   return {

@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
-import { createSurveyForShop } from "../lib/survey/survey-admin-mutations.server";
+import { createSurveyForShop } from "../lib/survey/admin-api/mutations.server";
 import { ADMIN_SURVEY_MUTATION_LIMIT } from "../lib/security/rate-limit-config.server";
 import { checkRateLimit } from "../lib/security/rate-limit.server";
 import { rateLimitExceededResponse } from "../lib/security/rate-limit-response.server";

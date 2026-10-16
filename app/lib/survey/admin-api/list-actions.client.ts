@@ -1,4 +1,4 @@
-import { adminApiFetch } from "../shopify/admin-api-fetch.client";
+import { adminApiFetch } from "../../admin-api/fetch.client";
 
 export type SurveyMutationIntent = "duplicate" | "toggle-status";
 

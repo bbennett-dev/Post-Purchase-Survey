@@ -1,11 +1,11 @@
-import { emojiForNumberScaleValue } from "./number-scale-ui";
-import { choiceAnswersForQuestion } from "./preview-survey-flow";
-import { emojiForStarRatingValue } from "./star-rating-ui";
+import { emojiForNumberScaleValue } from "../number-scale-ui";
+import { choiceAnswersForQuestion } from "../preview-survey-flow";
+import { emojiForStarRatingValue } from "../star-rating-ui";
 import type {
   SurveyResponseAnswerInput,
   SurveyResponseQuestionDto,
 } from "./survey-response.types";
-import type { SurveyDocument, SurveyQuestion } from "./types";
+import type { SurveyDocument, SurveyQuestion } from "../types";
 
 const SCALE_TYPES = new Set(["number_scale", "star_rating", "satisfaction"]);
 

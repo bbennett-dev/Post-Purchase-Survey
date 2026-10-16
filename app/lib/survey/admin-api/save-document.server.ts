@@ -1,11 +1,11 @@
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
-import type { ShopRecord } from "../shop/shop.server";
+import type { ShopRecord } from "../../shop/shop.server";
+import { persistSurveyAndMaybePublishShopify } from "../survey-store.server";
+import type { SurveyDocument } from "../types";
 import {
   parseSurveySaveRequestBody,
   SurveySaveBodyError,
-} from "./save-survey-document-parse.server";
-import { persistSurveyAndMaybePublishShopify } from "./survey-store.server";
-import type { SurveyDocument } from "./types";
+} from "./parse-save-body.server";
 
 export { parseSurveySaveRequestBody, SurveySaveBodyError };
 

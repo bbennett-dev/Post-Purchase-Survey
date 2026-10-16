@@ -30,7 +30,7 @@ import {
   createSurveyViaApi,
   deleteSurveyViaApi,
   surveyMutationViaApi,
-} from "../lib/survey/survey-admin-api.client";
+} from "../lib/survey/admin-api/list-actions.client";
 import {
   listSurveyRowsForShop,
   responseCountsForSurveys,

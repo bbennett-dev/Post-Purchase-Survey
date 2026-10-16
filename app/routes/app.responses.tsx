@@ -14,11 +14,11 @@ import {
 import {
   formatQuestionsSummary,
   mapSurveyResponseToListItem,
-} from "../lib/survey/response-api.mapper";
+} from "../lib/survey/response/response-api.mapper";
 import {
   countSurveyResponsesForShop,
   listSurveyResponsesForShop,
-} from "../lib/survey/survey-response.server";
+} from "../lib/survey/response/survey-response.server";
 import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";

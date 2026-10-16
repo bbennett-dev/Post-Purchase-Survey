@@ -1,5 +1,5 @@
-import { adminApiFetch } from "../shopify/admin-api-fetch.client";
-import type { SurveyDocument } from "./types";
+import { adminApiFetch } from "../../admin-api/fetch.client";
+import type { SurveyDocument } from "../types";
 
 export interface SaveSurveyDocumentResult {
   ok: boolean;

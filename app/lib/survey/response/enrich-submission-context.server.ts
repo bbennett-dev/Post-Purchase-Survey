@@ -1,4 +1,4 @@
-import { unauthenticated } from "../../shopify.server";
+import { unauthenticated } from "../../../shopify.server";
 import {
   adminEnrichmentNeeded,
   isShopifyOrderGid,

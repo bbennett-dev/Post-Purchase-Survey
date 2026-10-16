@@ -8,8 +8,9 @@ This is the **backend source of truth** for v1: how survey documents are stored,
 |-------|----------|
 | Prisma schema | `prisma/schema.prisma` |
 | Survey CRUD + publish | `app/lib/survey/survey-store.server.ts` |
-| Response write/read | `app/lib/survey/survey-response.server.ts` |
-| Competitor-shaped list DTO | `app/lib/survey/response-api.mapper.ts` |
+| Response write/read | `app/lib/survey/response/survey-response.server.ts` |
+| Competitor-shaped list DTO | `app/lib/survey/response/response-api.mapper.ts` |
+| Admin save / list API | `app/lib/survey/admin-api/` |
 | Checkout submit HTTP | `app/routes/api.survey-response.tsx` |
 | Editor save | `app/routes/app.surveys.editor.tsx` action |
 | Surveys list CRUD | `app/routes/app.surveys._index.tsx` loader/action |

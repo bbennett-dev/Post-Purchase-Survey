@@ -1,4 +1,4 @@
-import type { SurveyDocument } from "./types";
+import type { SurveyDocument } from "../types";
 
 /** Invalid survey save payload (maps to 400). */
 export class SurveySaveBodyError extends Error {

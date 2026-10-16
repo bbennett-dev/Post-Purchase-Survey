@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
-import prisma from "../../db.server";
-import type { ShopRecord } from "../shop/shop.server";
+import prisma from "../../../db.server";
+import type { ShopRecord } from "../../shop/shop.server";
 import { enrichSubmissionContext } from "./enrich-submission-context.server";
 import { normalizeSurveyResponseQuestions } from "./response-question-normalizer";
 import type {

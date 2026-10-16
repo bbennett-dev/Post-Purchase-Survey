@@ -5,12 +5,12 @@ import {
   parseSurveyMutationIntent,
   runSurveyMutationForShop,
   SurveyMutationError,
-} from "../lib/survey/survey-admin-mutations.server";
+} from "../lib/survey/admin-api/mutations.server";
 import {
   parseSurveySaveRequestBody,
   saveSurveyDocumentForShop,
   SurveySaveBodyError,
-} from "../lib/survey/save-survey-document.server";
+} from "../lib/survey/admin-api/save-document.server";
 import {
   ADMIN_SURVEY_MUTATION_LIMIT,
   ADMIN_SURVEY_MUTATION_MAX_BODY_BYTES,

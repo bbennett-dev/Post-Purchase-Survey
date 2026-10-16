@@ -1,9 +1,9 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { recordSurveyResponseFromBody } from "../lib/survey/survey-response.server";
+import { recordSurveyResponseFromBody } from "../lib/survey/response/survey-response.server";
 import {
   submitBodyToContext,
   type SurveyResponseSubmitBody,
-} from "../lib/survey/submit-body-to-context";
+} from "../lib/survey/response/submit-body-to-context";
 import { getOrCreateShopByDomain } from "../lib/shop/shop.server";
 import {
   SURVEY_RESPONSE_MAX_BODY_BYTES,

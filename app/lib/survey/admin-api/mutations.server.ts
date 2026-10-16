@@ -1,14 +1,14 @@
 import { SurveyStatus } from "@prisma/client";
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
-import prisma from "../../db.server";
-import type { ShopRecord } from "../shop/shop.server";
+import prisma from "../../../db.server";
+import type { ShopRecord } from "../../shop/shop.server";
 import {
   createDefaultSurveyForShop,
   deleteSurveyForShop,
   duplicateSurveyForShop,
   setSurveyStatusForShop,
   syncShopifyFromDatabase,
-} from "./survey-store.server";
+} from "../survey-store.server";
 
 export type SurveyMutationIntent = "duplicate" | "toggle-status";
 

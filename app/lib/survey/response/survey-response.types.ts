@@ -1,4 +1,4 @@
-import type { QuestionType } from "./types";
+import type { QuestionType } from "../types";
 
 /** Payload answer item from checkout extension POST. */
 export interface SurveyResponseAnswerInput {

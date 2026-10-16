@@ -24,7 +24,7 @@ import { EDITOR_MODAL_ID } from "../lib/editor-modal";
 import { createBlankSurveyDocument } from "../lib/survey/questions";
 import "../components/survey-editor/RightPanel/Content/date/survey-date-picker.module.css";
 import "../components/survey-editor/RightPanel/Content/date/date-input-clear-button.module.css";
-import { saveSurveyDocument } from "../lib/survey/save-survey-document.client";
+import { saveSurveyDocument } from "../lib/survey/admin-api/save-document.client";
 import { getSurveyDocumentForShop } from "../lib/survey/survey-store.server";
 import type { CheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
 import { fetchCheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
