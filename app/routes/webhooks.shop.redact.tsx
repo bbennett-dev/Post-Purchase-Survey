@@ -9,10 +9,15 @@ import db from "../db.server";
  */
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { topic, shop } = await authenticate.webhook(request);
-  console.log(`Received ${topic} webhook for ${shop}`);
 
-  await deleteAllShopSurveyData(shop);
-  await db.session.deleteMany({ where: { shop } });
+  try {
+    await deleteAllShopSurveyData(shop);
+    await db.session.deleteMany({ where: { shop } });
+    console.info(`GDPR ${topic}`, { shop });
+  } catch (error) {
+    console.error(`GDPR ${topic} failed`, { shop, error });
+    return new Response(null, { status: 500 });
+  }
 
   return new Response();
 };

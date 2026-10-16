@@ -1,4 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
+import { shopifyCustomerIdMatchValues } from "../lib/gdpr/customer-id.server";
+import { customerFromCompliancePayload } from "../lib/gdpr/webhook-payload.server";
 import { getOrCreateShopByDomain } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
@@ -10,21 +12,34 @@ import db from "../db.server";
  */
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { topic, shop, payload } = await authenticate.webhook(request);
-  console.log(`Received ${topic} webhook for ${shop}`);
 
-  const customerId =
-    typeof payload === "object" &&
-    payload !== null &&
-    "customer" in payload &&
-    typeof (payload as { customer?: { id?: string } }).customer?.id === "string"
-      ? (payload as { customer: { id: string } }).customer.id
-      : null;
+  try {
+    const { id, email } = customerFromCompliancePayload(payload);
+    const idValues = shopifyCustomerIdMatchValues(id);
+    const orFilters: { customerId?: { in: string[] }; email?: string }[] = [];
+    if (idValues.length) {
+      orFilters.push({ customerId: { in: idValues } });
+    }
+    if (email) {
+      orFilters.push({ email });
+    }
 
-  if (customerId) {
-    const tenant = await getOrCreateShopByDomain(shop);
-    await db.surveyResponse.deleteMany({
-      where: { shopId: tenant.shopId, customerId },
-    });
+    if (orFilters.length) {
+      const tenant = await getOrCreateShopByDomain(shop);
+      const result = await db.surveyResponse.deleteMany({
+        where: { shopId: tenant.shopId, OR: orFilters },
+      });
+      console.info(`GDPR ${topic}`, {
+        shop,
+        customerId: id,
+        deletedCount: result.count,
+      });
+    } else {
+      console.info(`GDPR ${topic}`, { shop, customerId: id, deletedCount: 0 });
+    }
+  } catch (error) {
+    console.error(`GDPR ${topic} failed`, { shop, error });
+    return new Response(null, { status: 500 });
   }
 
   return new Response();

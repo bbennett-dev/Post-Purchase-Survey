@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { BlockStack, Card, Layout, Page, Text } from "@shopify/polaris";
+import { BlockStack, Card, Layout, Link, Page, Text } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -36,11 +36,19 @@ export default function SettingsPage() {
                   Data & privacy
                 </Text>
                 <Text as="p" tone="subdued">
-                  This app stores survey answers linked to an order ID, optional
-                  free-text when “Other” is selected, and the survey name. When
-                  you uninstall the app, shop survey documents and responses are
-                  removed from our database. Shopify mandatory privacy webhooks
-                  are supported for customer and shop data requests.
+                  We store survey answers with order context (order id/name,
+                  optional email and customer fields when permitted), product
+                  and channel metadata, and completion metrics. Uninstall and
+                  Shopify shop/redact remove shop data from our database.
+                  Customer redact and data request webhooks are supported.
+                </Text>
+                <Text as="p" tone="subdued">
+                  Full policy for App Store and buyers:{" "}
+                  <Link url="/privacy" target="_blank">
+                    Privacy policy
+                  </Link>
+                  . Replace placeholders in the policy with your legal entity
+                  and support email before production.
                 </Text>
               </BlockStack>
             </Card>
