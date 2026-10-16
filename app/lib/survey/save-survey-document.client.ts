@@ -1,3 +1,4 @@
+import { adminApiFetch } from "../shopify/admin-api-fetch.client";
 import type { SurveyDocument } from "./types";
 
 export interface SaveSurveyDocumentResult {
@@ -24,17 +25,11 @@ export async function saveSurveyDocument(
     return { ok: false, error: "Survey id is required" };
   }
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${sessionToken}`,
-  };
-
-  const response = await fetch(`/api/surveys/${encodeURIComponent(id)}`, {
-    method: "PUT",
-    headers,
-    body: JSON.stringify({ data: survey }),
-    credentials: "include",
-  });
+  const response = await adminApiFetch(
+    `/api/surveys/${encodeURIComponent(id)}`,
+    sessionToken,
+    { method: "PUT", body: { data: survey } },
+  );
 
   const payload = (await response.json().catch(() => ({}))) as SaveResponseBody;
   if (!response.ok || !payload.ok) {

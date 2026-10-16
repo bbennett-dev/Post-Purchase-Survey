@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type {
-  ActionFunctionArgs,
-  HeadersFunction,
-  LoaderFunctionArgs,
-} from "react-router";
-import { Link, useFetcher, useLoaderData } from "react-router";
+import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
+import { Link, useLoaderData, useRevalidator } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import {
   ActionList,
@@ -31,13 +27,13 @@ import { CHANNEL_LABELS } from "../lib/survey/channels";
 import { enabledChannelLabels } from "../lib/survey/runtime-channels";
 import type { SurveyDocument } from "../lib/survey/types";
 import {
-  createDefaultSurveyForShop,
-  deleteSurveyForShop,
-  duplicateSurveyForShop,
+  createSurveyViaApi,
+  deleteSurveyViaApi,
+  surveyMutationViaApi,
+} from "../lib/survey/survey-admin-api.client";
+import {
   listSurveyRowsForShop,
   responseCountsForSurveys,
-  setSurveyStatusForShop,
-  syncShopifyFromDatabase,
   type SurveyStatus,
 } from "../lib/survey/survey-store.server";
 import { shopFromAdminSession } from "../lib/shop/shop.server";
@@ -101,73 +97,6 @@ export const loader = async ({
   return { surveys };
 };
 
-interface SurveyActionData {
-  ok: boolean;
-  error?: string;
-  surveyId?: string;
-}
-
-/**
- * Row actions: duplicate, toggle live/paused (re-publishes checkout metafields), delete.
- */
-export const action = async ({
-  request,
-}: ActionFunctionArgs): Promise<SurveyActionData> => {
-  const { admin, session } = await authenticate.admin(request);
-  const shop = await shopFromAdminSession(session);
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-  const surveyId = formData.get("surveyId");
-
-  try {
-    if (intent === "create") {
-      const createdId = await createDefaultSurveyForShop(shop);
-      return { ok: true, surveyId: createdId };
-    }
-
-    if (typeof surveyId !== "string" || surveyId.trim().length === 0) {
-      return { ok: false, error: "Missing survey" };
-    }
-
-    if (intent === "duplicate") {
-      const created = await duplicateSurveyForShop(shop, surveyId);
-      if (!created) {
-        return { ok: false, error: "Survey not found" };
-      }
-      return { ok: true };
-    }
-
-    if (intent === "delete") {
-      const removed = await deleteSurveyForShop(shop, surveyId);
-      if (!removed) {
-        return { ok: false, error: "Survey not found" };
-      }
-      await syncShopifyFromDatabase(admin, shop);
-      return { ok: true };
-    }
-
-    if (intent === "toggle-status") {
-      const prisma = (await import("../db.server")).default;
-      const current = await prisma.survey.findFirst({
-        where: { shopId: shop.shopId, surveyUuid: surveyId },
-      });
-      if (!current) {
-        return { ok: false, error: "Survey not found" };
-      }
-      const nextStatus: SurveyStatus =
-        current.status === "live" ? "paused" : "live";
-      await setSurveyStatusForShop(shop, surveyId, nextStatus);
-      await syncShopifyFromDatabase(admin, shop);
-      return { ok: true };
-    }
-
-    return { ok: false, error: "Unknown action" };
-  } catch (error) {
-    console.error("surveys index action", error);
-    return { ok: false, error: "Action failed" };
-  }
-};
-
 function statusTone(status: SurveyStatus): "success" | "warning" {
   return status === "live" ? "success" : "warning";
 }
@@ -182,9 +111,8 @@ export default function SurveysPage() {
   const shopifyRef = useRef(shopify);
   shopifyRef.current = shopify;
   const openEditor = useOpenEditor();
-  const fetcher = useFetcher<SurveyActionData>();
-  /** Prevents re-running toasts/revalidate when App Bridge returns a new object each render. */
-  const handledFetcherData = useRef<SurveyActionData | null>(null);
+  const revalidator = useRevalidator();
+  const [mutationPending, setMutationPending] = useState(false);
   const surveys = data.surveys;
   const [query, setQuery] = useState("");
   const [statusView, setStatusView] = useState<StatusView[]>(["all"]);
@@ -224,55 +152,59 @@ export default function SurveysPage() {
     [],
   );
 
-  useEffect(() => {
-    if (fetcher.state !== "idle" || !fetcher.data) {
-      return;
-    }
-    if (handledFetcherData.current === fetcher.data) {
-      return;
-    }
-    handledFetcherData.current = fetcher.data;
-
-    if (fetcher.data.ok) {
-      if (createThenOpenEditor.current && fetcher.data.surveyId) {
-        createThenOpenEditor.current = false;
-        openEditor({ surveyId: fetcher.data.surveyId });
+  async function runListMutation(
+    run: (token: string) => Promise<{ ok: boolean; error?: string; surveyId?: string }>,
+    options?: { openEditorOnCreate?: boolean },
+  ): Promise<void> {
+    setMutationPending(true);
+    try {
+      const token = await shopifyRef.current.idToken();
+      const result = await run(token);
+      if (result.ok) {
+        if (options?.openEditorOnCreate && result.surveyId) {
+          createThenOpenEditor.current = false;
+          openEditor({ surveyId: result.surveyId });
+        } else {
+          shopifyRef.current.toast.show("Survey updated");
+          setOpenMenuId(null);
+        }
+        revalidator.revalidate();
         return;
       }
-      shopifyRef.current.toast.show("Survey updated");
-      setOpenMenuId(null);
-      return;
+      shopifyRef.current.toast.show(
+        result.error ?? "Action failed",
+        { isError: true },
+      );
+    } catch (error) {
+      console.error("survey list mutation", error);
+      shopifyRef.current.toast.show("Action failed", { isError: true });
+    } finally {
+      setMutationPending(false);
     }
-    if (fetcher.data.error) {
-      shopifyRef.current.toast.show(fetcher.data.error, { isError: true });
-    }
-  }, [fetcher.state, fetcher.data, openEditor]);
+  }
 
   function createSurveyAndOpenEditor() {
     createThenOpenEditor.current = true;
-    const formData = new FormData();
-    formData.set("intent", "create");
-    fetcher.submit(formData, { method: "POST" });
-  }
-
-  function submitSurveyAction(intent: string, surveyId: string) {
-    const formData = new FormData();
-    formData.set("intent", intent);
-    formData.set("surveyId", surveyId);
-    fetcher.submit(formData, { method: "POST" });
+    void runListMutation((token) => createSurveyViaApi(token), {
+      openEditorOnCreate: true,
+    });
   }
 
   const duplicateSurvey = (survey: SurveyRow) => {
-    submitSurveyAction("duplicate", survey.id);
+    void runListMutation((token) =>
+      surveyMutationViaApi(survey.id, "duplicate", token),
+    );
     setPage(0);
   };
 
   const toggleStatus = (survey: SurveyRow) => {
-    submitSurveyAction("toggle-status", survey.id);
+    void runListMutation((token) =>
+      surveyMutationViaApi(survey.id, "toggle-status", token),
+    );
   };
 
   const deleteSurvey = (survey: SurveyRow) => {
-    submitSurveyAction("delete", survey.id);
+    void runListMutation((token) => deleteSurveyViaApi(survey.id, token));
   };
 
   const rowMarkup = visible.map((survey, index) => (
@@ -384,7 +316,7 @@ export default function SurveysPage() {
             </svg>
           }
           onClick={createSurveyAndOpenEditor}
-          loading={createThenOpenEditor.current && fetcher.state !== "idle"}
+          loading={mutationPending}
         >
           Create survey
         </Button>

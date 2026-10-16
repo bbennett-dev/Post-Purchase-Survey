@@ -32,3 +32,11 @@ export const ADMIN_SURVEY_SAVE_LIMIT = {
 
 /** Max JSON body for admin survey save (~large editor documents). */
 export const ADMIN_SURVEY_SAVE_MAX_BODY_BYTES = 5 * 1024 * 1024;
+
+/** List row actions (create, duplicate, delete, toggle): per shop. */
+export const ADMIN_SURVEY_MUTATION_LIMIT = {
+  max: 60,
+  windowMs: 60_000,
+} as const;
+
+export const ADMIN_SURVEY_MUTATION_MAX_BODY_BYTES = 16 * 1024;

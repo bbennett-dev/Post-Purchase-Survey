@@ -1,11 +1,19 @@
 import type { ActionFunctionArgs } from "react-router";
 import { PublishSurveyError } from "../lib/survey/publish-shopify.server";
 import {
+  deleteSurveyMutationForShop,
+  parseSurveyMutationIntent,
+  runSurveyMutationForShop,
+  SurveyMutationError,
+} from "../lib/survey/survey-admin-mutations.server";
+import {
   parseSurveySaveRequestBody,
   saveSurveyDocumentForShop,
   SurveySaveBodyError,
 } from "../lib/survey/save-survey-document.server";
 import {
+  ADMIN_SURVEY_MUTATION_LIMIT,
+  ADMIN_SURVEY_MUTATION_MAX_BODY_BYTES,
   ADMIN_SURVEY_SAVE_LIMIT,
   ADMIN_SURVEY_SAVE_MAX_BODY_BYTES,
 } from "../lib/security/rate-limit-config.server";
@@ -18,10 +26,16 @@ import {
 import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 
+function mutationRateLimit(shop: string) {
+  return checkRateLimit(
+    `admin-survey-mutation:${shop}`,
+    ADMIN_SURVEY_MUTATION_LIMIT,
+  );
+}
+
 /**
- * Admin survey persist (embedded editor). JSON body `{ data: SurveyDocument }`;
- * session via `authenticate.admin` (cookie + optional Authorization Bearer).
- * Avoids posting saves to `editor.data` with embed query params on the URL.
+ * Admin survey by id: `PUT` save document, `POST` duplicate/toggle, `DELETE` remove.
+ * Session via `authenticate.admin` (cookie + optional Authorization Bearer).
  */
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -32,7 +46,65 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     return Response.json({ ok: false, error: "Missing survey id" }, { status: 400 });
   }
 
-  if (request.method !== "PUT") {
+  const method = request.method;
+
+  if (method === "DELETE") {
+    const limit = mutationRateLimit(session.shop);
+    if (!limit.allowed) {
+      return rateLimitExceededResponse(limit);
+    }
+    try {
+      await deleteSurveyMutationForShop(admin, shop, surveyUuid);
+      return Response.json({ ok: true });
+    } catch (error) {
+      if (error instanceof SurveyMutationError) {
+        return Response.json({ ok: false, error: error.message }, { status: 400 });
+      }
+      console.error("deleteSurveyMutationForShop", error);
+      return Response.json(
+        { ok: false, error: "Could not delete survey" },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (method === "POST") {
+    const limit = mutationRateLimit(session.shop);
+    if (!limit.allowed) {
+      return rateLimitExceededResponse(limit);
+    }
+    let raw: unknown;
+    try {
+      raw = await readJsonBodyWithLimit<unknown>(
+        request,
+        ADMIN_SURVEY_MUTATION_MAX_BODY_BYTES,
+      );
+    } catch (error) {
+      if (error instanceof RequestBodyTooLargeError) {
+        return Response.json(
+          { ok: false, error: "Payload too large" },
+          { status: 413 },
+        );
+      }
+      return Response.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+    }
+    try {
+      const intent = parseSurveyMutationIntent(raw);
+      await runSurveyMutationForShop(admin, shop, surveyUuid, intent);
+      return Response.json({ ok: true });
+    } catch (error) {
+      if (error instanceof SurveyMutationError) {
+        return Response.json({ ok: false, error: error.message }, { status: 400 });
+      }
+      console.error("runSurveyMutationForShop", error);
+      return Response.json(
+        { ok: false, error: "Action failed" },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (method !== "PUT") {
     return Response.json(
       { ok: false, error: "Method not allowed" },
       { status: 405 },
