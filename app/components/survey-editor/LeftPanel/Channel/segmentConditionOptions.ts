@@ -22,5 +22,5 @@ export const SEGMENT_TAG_SUGGESTIONS = [
   "Newsletter",
   "Wholesale",
   "Returning",
-  "First-time buyer",
+  "New customer",
 ];
