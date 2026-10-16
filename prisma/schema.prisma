@@ -10,6 +10,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Installed store tenant (one row per myshopify domain).
+model Shop {
+  id              BigInt   @id @default(autoincrement())
+  shopUuid        String   @unique @default(dbgenerated("uuidv7()")) @db.Uuid
+  myshopifyDomain String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  surveys   Survey[]
+  responses SurveyResponse[]
+}
+
+/// Shopify OAuth session storage (required shape for PrismaSessionStorage).
 model Session {
   id                  String    @id
   shop                String
@@ -37,8 +50,9 @@ enum SurveyStatus {
 
 /// Merchant survey definition: editor document JSON + list/publish scalars.
 model Survey {
-  id              String         @id @default(cuid())
-  shop            String
+  id              BigInt         @id @default(autoincrement())
+  surveyUuid      String         @unique @default(dbgenerated("uuidv7()")) @db.Uuid
+  shopId          BigInt
   name            String
   status          SurveyStatus   @default(paused)
   surveyType      String         @default("survey")
@@ -49,18 +63,21 @@ model Survey {
   responseCount   Int            @default(0)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-  responses       SurveyResponse[]
 
-  @@index([shop, status])
-  @@index([shop, updatedAt])
-  @@index([shop, name])
+  shop      Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+
+  @@index([shopId, status])
+  @@index([shopId, updatedAt])
+  @@index([shopId, name])
 }
 
 /// One submission per shop + order + survey; questions + Shopify context as JSON.
 model SurveyResponse {
-  id           String    @id @default(cuid())
-  shop         String
-  surveyId     String
+  id           BigInt    @id @default(autoincrement())
+  responseUuid String    @unique @default(dbgenerated("uuidv7()")) @db.Uuid
+  shopId       BigInt
+  surveyId     BigInt
   surveyName   String
   surveyType   String    @default("survey")
   orderId      String
@@ -78,12 +95,13 @@ model SurveyResponse {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
   survey Survey @relation(fields: [surveyId], references: [id], onDelete: Restrict)
 
-  @@unique([shop, orderId, surveyId])
-  @@index([shop, submittedAt])
-  @@index([shop, surveyId, submittedAt])
-  @@index([shop, orderId])
-  @@index([shop, customerId])
-  @@index([shop, email])
+  @@unique([shopId, orderId, surveyId])
+  @@index([shopId, submittedAt])
+  @@index([shopId, surveyId, submittedAt])
+  @@index([shopId, orderId])
+  @@index([shopId, customerId])
+  @@index([shopId, email])
 }
