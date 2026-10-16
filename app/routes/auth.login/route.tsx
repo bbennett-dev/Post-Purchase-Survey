@@ -13,15 +13,42 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, useActionData, useLoaderData } from "react-router";
 import en from "@shopify/polaris/locales/en.json";
 
+import { AUTH_LOGIN_LIMIT } from "../../lib/security/rate-limit-config.server";
+import {
+  checkRateLimit,
+  clientIpFromRequest,
+} from "../../lib/security/rate-limit.server";
 import { login } from "../../shopify.server";
 import { loginErrorMessage } from "./error.server";
 
+function enforceLoginRateLimit(request: Request): Response | null {
+  const result = checkRateLimit(
+    `auth-login:${clientIpFromRequest(request)}`,
+    AUTH_LOGIN_LIMIT,
+  );
+  if (!result.allowed) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": String(result.retryAfterSeconds) },
+    });
+  }
+  return null;
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const limited = enforceLoginRateLimit(request);
+  if (limited) {
+    return limited;
+  }
   const errors = loginErrorMessage(await login(request));
   return { errors };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  const limited = enforceLoginRateLimit(request);
+  if (limited) {
+    return limited;
+  }
   const errors = loginErrorMessage(await login(request));
   return { errors };
 };

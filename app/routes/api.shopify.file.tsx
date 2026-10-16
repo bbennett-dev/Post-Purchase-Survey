@@ -4,6 +4,11 @@ import {
   ACCEPTED_IMAGE_TYPES,
   resolveImageMimeType,
 } from "../lib/images/image-file-types";
+import { SHOPIFY_FILE_UPLOAD_LIMIT } from "../lib/security/rate-limit-config.server";
+import {
+  checkRateLimit,
+} from "../lib/security/rate-limit.server";
+import { rateLimitExceededResponse } from "../lib/security/rate-limit-response.server";
 import { authenticate } from "../shopify.server";
 
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -13,7 +18,15 @@ const MAX_BYTES = 20 * 1024 * 1024;
  * Competitor-shaped: `POST /api/shopify/file?fileName=…&mimeType=jpeg` + multipart `file`.
  */
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
+
+  const uploadLimit = checkRateLimit(
+    `shopify-file:${session.shop}`,
+    SHOPIFY_FILE_UPLOAD_LIMIT,
+  );
+  if (!uploadLimit.allowed) {
+    return rateLimitExceededResponse(uploadLimit);
+  }
 
   if (request.method !== "POST") {
     return Response.json(

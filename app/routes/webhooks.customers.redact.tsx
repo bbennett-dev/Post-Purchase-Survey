@@ -5,6 +5,7 @@ import db from "../db.server";
 
 /**
  * Mandatory GDPR webhook: customer redact.
+ * HMAC verified by `authenticate.webhook` (Shopify app library) before this runs.
  * Removes survey responses tied to the shop when Shopify requests erasure.
  */
 export const action = async ({ request }: ActionFunctionArgs) => {

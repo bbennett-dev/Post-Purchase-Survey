@@ -5,6 +5,20 @@ import {
   type SurveyResponseSubmitBody,
 } from "../lib/survey/submit-body-to-context";
 import { getOrCreateShopByDomain } from "../lib/shop/shop.server";
+import {
+  SURVEY_RESPONSE_MAX_BODY_BYTES,
+  SURVEY_RESPONSE_POST_LIMIT,
+  SURVEY_RESPONSE_PREFLIGHT_LIMIT,
+} from "../lib/security/rate-limit-config.server";
+import {
+  checkRateLimit,
+  clientIpFromRequest,
+} from "../lib/security/rate-limit.server";
+import { rateLimitExceededResponse } from "../lib/security/rate-limit-response.server";
+import {
+  readJsonBodyWithLimit,
+  RequestBodyTooLargeError,
+} from "../lib/security/request-body.server";
 import { authenticate } from "../shopify.server";
 
 function shopFromSessionDest(dest: unknown): string | null {
@@ -24,6 +38,15 @@ function shopFromSessionDest(dest: unknown): string | null {
  * CORS preflight for checkout UI extension submit requests.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const preflightKey = `survey-preflight:${clientIpFromRequest(request)}`;
+  const preflightLimit = checkRateLimit(
+    preflightKey,
+    SURVEY_RESPONSE_PREFLIGHT_LIMIT,
+  );
+  if (!preflightLimit.allowed) {
+    return rateLimitExceededResponse(preflightLimit);
+  }
+
   const { cors } = await authenticate.public.checkout(request);
   return cors(new Response(null, { status: 204 }));
 };
@@ -46,12 +69,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       Response.json({ ok: false, error: "Invalid session" }, { status: 401 }),
     );
   }
+
+  const postLimit = checkRateLimit(
+    `survey-post:${domain}`,
+    SURVEY_RESPONSE_POST_LIMIT,
+  );
+  if (!postLimit.allowed) {
+    return cors(rateLimitExceededResponse(postLimit));
+  }
+
   const shop = await getOrCreateShopByDomain(domain);
 
   let body: SurveyResponseSubmitBody;
   try {
-    body = (await request.json()) as SurveyResponseSubmitBody;
-  } catch {
+    body = await readJsonBodyWithLimit<SurveyResponseSubmitBody>(
+      request,
+      SURVEY_RESPONSE_MAX_BODY_BYTES,
+    );
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return cors(
+        Response.json({ ok: false, error: "Payload too large" }, { status: 413 }),
+      );
+    }
     return cors(
       Response.json({ ok: false, error: "Invalid JSON" }, { status: 400 }),
     );
