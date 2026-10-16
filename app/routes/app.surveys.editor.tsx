@@ -1,13 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import type {
-  ActionFunctionArgs,
-  HeadersFunction,
-  LoaderFunctionArgs,
-} from "react-router";
+import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import {
-  useFetcher,
   useLoaderData,
   useSearchParams,
   type LinksFunction,
@@ -29,11 +24,8 @@ import { EDITOR_MODAL_ID } from "../lib/editor-modal";
 import { createBlankSurveyDocument } from "../lib/survey/questions";
 import "../components/survey-editor/RightPanel/Content/date/survey-date-picker.module.css";
 import "../components/survey-editor/RightPanel/Content/date/date-input-clear-button.module.css";
-import { PublishSurveyError } from "../lib/survey/publish-shopify.server";
-import {
-  getSurveyDocumentForShop,
-  persistSurveyAndMaybePublishShopify,
-} from "../lib/survey/survey-store.server";
+import { saveSurveyDocument } from "../lib/survey/save-survey-document.client";
+import { getSurveyDocumentForShop } from "../lib/survey/survey-store.server";
 import type { CheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
 import { fetchCheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
 import type { SurveyDocument } from "../lib/survey/types";
@@ -116,60 +108,6 @@ export const loader = async ({
   };
 };
 
-interface SaveActionData {
-  ok: boolean;
-  error?: string;
-  publishedToShopify?: boolean;
-}
-
-/**
- * Saves to Postgres first (including live/paused from Active/Inactive), then publishes to Shopify
- * only when the survey is active and has at least one enabled channel.
- */
-export const action = async ({
-  request,
-}: ActionFunctionArgs): Promise<SaveActionData> => {
-  const { admin, session } = await authenticate.admin(request);
-  const shop = await shopFromAdminSession(session);
-
-  if (request.method !== "POST") {
-    return { ok: false, error: "Method not allowed" };
-  }
-
-  let survey: SurveyDocument;
-  try {
-    const formData = await request.formData();
-    const raw = formData.get("survey");
-    if (typeof raw !== "string" || raw.trim().length === 0) {
-      return { ok: false, error: "Missing survey payload" };
-    }
-    survey = JSON.parse(raw) as SurveyDocument;
-  } catch {
-    return { ok: false, error: "Invalid survey JSON" };
-  }
-
-  if (!survey.name?.trim()) {
-    return { ok: false, error: "Survey name is required" };
-  }
-
-  try {
-    const { publishedToShopify } = await persistSurveyAndMaybePublishShopify(
-      admin,
-      shop,
-      survey,
-    );
-    return { ok: true, publishedToShopify };
-  } catch (error) {
-    if (error instanceof PublishSurveyError) {
-      return { ok: false, error: error.message };
-    }
-    console.error("persistSurveyAndMaybePublishShopify", error);
-    const message =
-      error instanceof Error ? error.message : "Could not save survey";
-    return { ok: false, error: message };
-  }
-};
-
 /**
  * Survey editor body (max-modal `src` iframe). Modal chrome (`TitleBar`, `SaveBar`)
  * lives on the parent route in `EditorModalProvider`.
@@ -179,8 +117,6 @@ export default function SurveyEditorPage() {
   const shopify = useAppBridge();
   const shopifyRef = useRef(shopify);
   shopifyRef.current = shopify;
-  const saveFetcher = useFetcher<SaveActionData>();
-  const handledSaveData = useRef<SaveActionData | null>(null);
   const [survey, setSurvey] = useState<SurveyDocument>(() => {
     if (data.initialSurvey) {
       return data.initialSurvey;
@@ -194,9 +130,7 @@ export default function SurveyEditorPage() {
 
   const [discardOpen, setDiscardOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
-
-  const isSaving =
-    saveFetcher.state === "submitting" || saveFetcher.state === "loading";
+  const [isSaving, setIsSaving] = useState(false);
 
   const editorBodyRef = useRef<HTMLDivElement>(null);
   const surveyRef = useRef(survey);
@@ -204,6 +138,32 @@ export default function SurveyEditorPage() {
 
   useEditorViewportLock();
   useFillRemainingViewportHeight(editorBodyRef);
+
+  const performSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const token = await shopifyRef.current.idToken();
+      const result = await saveSurveyDocument(surveyRef.current, token);
+      if (result.ok) {
+        setDirty(false);
+        shopifyRef.current.toast.show(
+          result.publishedToShopify
+            ? "Survey saved and published to Shopify"
+            : "Survey saved",
+        );
+        return;
+      }
+      shopifyRef.current.toast.show(
+        result.error ?? "Could not save survey",
+        { isError: true },
+      );
+    } catch (error) {
+      console.error("saveSurveyDocument", error);
+      shopifyRef.current.toast.show("Could not save survey", { isError: true });
+    } finally {
+      setIsSaving(false);
+    }
+  }, []);
 
   useEffect(() => {
     publishEditorChromeState({
@@ -218,9 +178,7 @@ export default function SurveyEditorPage() {
     channel.onmessage = (event: MessageEvent<EditorBridgeMessage>) => {
       const message = event.data;
       if (message?.type === "save") {
-        const formData = new FormData();
-        formData.set("survey", JSON.stringify(surveyRef.current));
-        saveFetcher.submit(formData, { method: "POST" });
+        void performSave();
       }
       if (message?.type === "discard") {
         setDiscardOpen(true);
@@ -228,37 +186,7 @@ export default function SurveyEditorPage() {
     };
 
     return () => channel.close();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- stable command listener
-  }, []);
-
-  useEffect(() => {
-    if (saveFetcher.state !== "idle" || !saveFetcher.data) {
-      return;
-    }
-    if (handledSaveData.current === saveFetcher.data) {
-      return;
-    }
-    handledSaveData.current = saveFetcher.data;
-
-    if (saveFetcher.data.ok) {
-      setDirty(false);
-      shopifyRef.current.toast.show(
-        saveFetcher.data.publishedToShopify
-          ? "Survey saved and published to Shopify"
-          : "Survey saved",
-      );
-      return;
-    }
-    if (saveFetcher.data.error) {
-      shopifyRef.current.toast.show(saveFetcher.data.error, { isError: true });
-    }
-  }, [saveFetcher.state, saveFetcher.data]);
-
-  function saveSurvey(): void {
-    const formData = new FormData();
-    formData.set("survey", JSON.stringify(survey));
-    saveFetcher.submit(formData, { method: "POST" });
-  }
+  }, [performSave]);
 
   async function closeEditor(): Promise<void> {
     if (shopify.modal?.hide) {
@@ -283,7 +211,7 @@ export default function SurveyEditorPage() {
                 variant="primary"
                 disabled={isSaving}
                 loading={isSaving}
-                onClick={saveSurvey}
+                onClick={() => void performSave()}
               >
                 Save
               </s-button>

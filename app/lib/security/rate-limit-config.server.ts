@@ -23,3 +23,12 @@ export const SHOPIFY_FILE_UPLOAD_LIMIT = {
 } as const;
 
 export const SURVEY_RESPONSE_MAX_BODY_BYTES = 1024 * 1024;
+
+/** Admin survey document save (PUT /api/surveys/:uuid): per shop after authenticate.admin. */
+export const ADMIN_SURVEY_SAVE_LIMIT = {
+  max: 30,
+  windowMs: 60_000,
+} as const;
+
+/** Max JSON body for admin survey save (~large editor documents). */
+export const ADMIN_SURVEY_SAVE_MAX_BODY_BYTES = 5 * 1024 * 1024;

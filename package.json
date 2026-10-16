@@ -21,7 +21,7 @@
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "test": "node --experimental-strip-types --test app/lib/survey/submission-context-merge.test.ts app/lib/security/rate-limit.server.test.ts app/lib/gdpr/customer-id.server.test.ts"
+    "test": "node --experimental-strip-types --test app/lib/survey/submission-context-merge.test.ts app/lib/survey/save-survey-document.server.test.ts app/lib/security/rate-limit.server.test.ts app/lib/gdpr/customer-id.server.test.ts"
   },
   "type": "module",
   "engines": {
