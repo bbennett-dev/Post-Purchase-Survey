@@ -38,6 +38,51 @@ function detectDeviceType() {
   return undefined;
 }
 
+function readCountryCode(localization, shippingAddress) {
+  const loc = readSignal(localization);
+  const countrySignal = loc?.country;
+  const country = readSignal(countrySignal);
+  const fromLoc =
+    country?.isoCode ?? loc?.country?.isoCode ?? loc?.isoCode ?? undefined;
+  if (fromLoc) {
+    return fromLoc;
+  }
+  const address = readSignal(shippingAddress);
+  return address?.countryCode ?? undefined;
+}
+
+function applyLineItemsToContext(ctx, lineItems) {
+  if (!lineItems?.length) {
+    return;
+  }
+  ctx.lineItems = lineItems;
+  ctx.variantIds = lineItems
+    .map((item) => {
+      const vid = item.variantId ?? "";
+      return vid.includes("/") ? vid.split("/").pop() : vid;
+    })
+    .filter(Boolean);
+  const first = lineItems[0];
+  if (first?.productId) {
+    const pid = String(first.productId);
+    setIfDefined(
+      ctx,
+      "productId",
+      pid.includes("/") ? pid.split("/").pop() : pid,
+    );
+  }
+  setIfDefined(ctx, "productName", first?.productTitle);
+}
+
+/** Lifecycle tags for first vs repeat purchase (not Shopify Admin merchant tags). */
+function applyCustomerLifecycleTags(ctx, isFirstOrder) {
+  if (isFirstOrder === true) {
+    ctx.customerTags = ["New customer"];
+  } else if (isFirstOrder === false) {
+    ctx.customerTags = ["Return customer"];
+  }
+}
+
 function lineItemsFromCartLines(lines) {
   if (!Array.isArray(lines) || lines.length === 0) {
     return undefined;
@@ -90,9 +135,10 @@ export function buildSubmissionContext(options) {
   const deviceType = detectDeviceType();
   setIfDefined(ctx, "deviceType", deviceType);
 
-  const localization = readSignal(shopify.localization);
-  const country =
-    localization?.country?.isoCode ?? localization?.isoCode ?? undefined;
+  const country = readCountryCode(
+    shopify.localization,
+    shopify.shippingAddress,
+  );
   setIfDefined(ctx, "country", country);
 
   if (surface === "thank-you") {
@@ -100,11 +146,7 @@ export function buildSubmissionContext(options) {
     if (confirmation?.number) {
       setIfDefined(ctx, "orderName", `#${confirmation.number}`);
     }
-    if (confirmation?.isFirstOrder === true) {
-      ctx.customerTags = ["First-time customer"];
-    } else if (confirmation?.isFirstOrder === false) {
-      ctx.customerTags = ["Return customer"];
-    }
+    applyCustomerLifecycleTags(ctx, confirmation?.isFirstOrder);
 
     const buyer = shopify.buyerIdentity;
     const email = readSignal(buyer?.email);
@@ -124,26 +166,7 @@ export function buildSubmissionContext(options) {
     setIfDefined(ctx, "customerName", displayName);
 
     const lines = readSignal(shopify.lines);
-    const lineItems = lineItemsFromCartLines(lines);
-    if (lineItems) {
-      ctx.lineItems = lineItems;
-      ctx.variantIds = lineItems
-        .map((item) => {
-          const vid = item.variantId ?? "";
-          return vid.includes("/") ? vid.split("/").pop() : vid;
-        })
-        .filter(Boolean);
-      const first = lineItems[0];
-      if (first?.productId) {
-        const pid = String(first.productId);
-        setIfDefined(
-          ctx,
-          "productId",
-          pid.includes("/") ? pid.split("/").pop() : pid,
-        );
-      }
-      setIfDefined(ctx, "productName", first?.productTitle);
-    }
+    applyLineItemsToContext(ctx, lineItemsFromCartLines(lines));
   }
 
   if (surface === "order-status") {
@@ -164,52 +187,17 @@ export function buildSubmissionContext(options) {
       );
     }
     const displayName =
+      customer?.fullName ??
       customer?.displayName ??
       [customer?.firstName, customer?.lastName].filter(Boolean).join(" ");
     setIfDefined(ctx, "customerName", displayName);
 
-    const lineNodes = order?.lineItems?.nodes ?? order?.lineItems;
-    const rawLines = Array.isArray(lineNodes)
-      ? lineNodes
-      : lineNodes?.edges?.map((edge) => edge.node) ?? [];
-    if (rawLines.length) {
-      const lineItems = rawLines
-        .map((line) => {
-          const variant = line?.variant ?? line?.merchandise;
-          if (!variant?.id) {
-            return null;
-          }
-          return {
-            variantId: variant.id,
-            variantTitle: variant.title ?? null,
-            productId: variant.product?.id ?? null,
-            productTitle: variant.product?.title ?? line?.title ?? null,
-            featuredImageUrl:
-              variant.image?.url ?? variant.product?.featuredImage?.url ?? null,
-            quantity: line.quantity ?? 1,
-          };
-        })
-        .filter(Boolean);
-      if (lineItems.length) {
-        ctx.lineItems = lineItems;
-        ctx.variantIds = lineItems
-          .map((item) => {
-            const vid = item.variantId ?? "";
-            return vid.includes("/") ? vid.split("/").pop() : vid;
-          })
-          .filter(Boolean);
-        const first = lineItems[0];
-        if (first?.productId) {
-          const pid = String(first.productId);
-          setIfDefined(
-            ctx,
-            "productId",
-            pid.includes("/") ? pid.split("/").pop() : pid,
-          );
-        }
-        setIfDefined(ctx, "productName", first?.productTitle);
-      }
-    }
+    // No orderConfirmation / isFirstOrder on order-status — lifecycle tags filled on server.
+    const lines = readSignal(shopify.lines);
+    applyLineItemsToContext(ctx, lineItemsFromCartLines(lines));
+
+    const checkoutToken = readSignal(shopify.checkoutToken);
+    setIfDefined(ctx, "checkoutToken", checkoutToken);
   }
 
   if (orderId) {
