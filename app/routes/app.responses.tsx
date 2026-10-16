@@ -11,14 +11,7 @@ import {
   Page,
   Text,
 } from "@shopify/polaris";
-import {
-  formatQuestionsSummary,
-  mapSurveyResponseToListItem,
-} from "../lib/survey/response/response-api.mapper";
-import {
-  countSurveyResponsesForShop,
-  listSurveyResponsesForShop,
-} from "../lib/survey/response/survey-response.server";
+import { listResponsesForAdminApi } from "../lib/survey/response/response-list-api.server";
 import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -34,39 +27,6 @@ interface ResponseRow {
   submittedAt: string;
 }
 
-function formatSubmittedAt(iso: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(iso);
-}
-
-function orderLabel(orderId: string, orderName: string | null): string {
-  if (orderName?.trim()) {
-    return orderName;
-  }
-  const match = orderId.match(/(\d+)\s*$/);
-  if (match) {
-    return `#${match[1]}`;
-  }
-  const tail = orderId.split("/").pop();
-  return tail ? `#${tail}` : orderId;
-}
-
-function displayOrDash(value: string | null | undefined): string {
-  return value?.trim() ? value.trim() : "—";
-}
-
-function customerLabel(
-  name: string | null,
-  email: string | null,
-): string {
-  const parts = [name?.trim(), email?.trim()].filter(Boolean);
-  return parts.length ? parts.join(" · ") : "—";
-}
-
 /**
  * Responses index loader — shop-scoped submissions (questions JSON + meta).
  */
@@ -75,24 +35,18 @@ export const loader = async ({
 }: LoaderFunctionArgs): Promise<{ responses: ResponseRow[]; total: number }> => {
   const { session } = await authenticate.admin(request);
   const shop = await shopFromAdminSession(session);
-  const [rows, total] = await Promise.all([
-    listSurveyResponsesForShop(shop, { take: 100, skip: 0 }),
-    countSurveyResponsesForShop(shop),
-  ]);
+  const { items, total } = await listResponsesForAdminApi(shop, 0, 100);
 
-  const responses: ResponseRow[] = rows.map((row) => {
-    const dto = mapSurveyResponseToListItem(row);
-    return {
-      id: dto.id,
-      orderName: orderLabel(dto.orderId, dto.orderName),
-      customer: customerLabel(dto.customerName, dto.email),
-      product: displayOrDash(dto.productName),
-      surveyName: dto.surveyName,
-      questionCount: dto.questions.length,
-      answerSummary: formatQuestionsSummary(dto.questions),
-      submittedAt: formatSubmittedAt(row.submittedAt),
-    };
-  });
+  const responses: ResponseRow[] = items.map((item) => ({
+    id: item.id,
+    orderName: item.orderName,
+    customer: item.customer,
+    product: item.product,
+    surveyName: item.surveyName,
+    questionCount: item.questionCount,
+    answerSummary: item.answerSummary,
+    submittedAt: item.submittedAt,
+  }));
 
   return { responses, total };
 };

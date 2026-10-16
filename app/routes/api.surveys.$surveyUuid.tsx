@@ -1,4 +1,6 @@
-import type { ActionFunctionArgs } from "react-router";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import { adminApiReadContext } from "../lib/survey/admin-api/admin-read-auth.server";
+import { getSurveyDocumentForShop } from "../lib/survey/survey-store.server";
 import { PublishSurveyError } from "../lib/survey/publish-shopify.server";
 import {
   deleteSurveyMutationForShop,
@@ -34,9 +36,34 @@ function mutationRateLimit(shop: string) {
 }
 
 /**
- * Admin survey by id: `PUT` save document, `POST` duplicate/toggle, `DELETE` remove.
- * Session via `authenticate.admin` (cookie + optional Authorization Bearer).
+ * Admin survey by id: `GET` document, `PUT` save, `POST` duplicate/toggle, `DELETE` remove.
  */
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+  if (request.method !== "GET") {
+    return Response.json(
+      { ok: false, error: "Method not allowed" },
+      { status: 405 },
+    );
+  }
+
+  const surveyUuid = params.surveyUuid?.trim();
+  if (!surveyUuid) {
+    return Response.json({ ok: false, error: "Missing survey id" }, { status: 400 });
+  }
+
+  const ctx = await adminApiReadContext(request);
+  if (ctx instanceof Response) {
+    return ctx;
+  }
+
+  const document = await getSurveyDocumentForShop(ctx.shop, surveyUuid);
+  if (!document) {
+    return Response.json({ ok: false, error: "Survey not found" }, { status: 404 });
+  }
+
+  return Response.json({ ok: true, data: document });
+};
+
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const shop = await shopFromAdminSession(session);

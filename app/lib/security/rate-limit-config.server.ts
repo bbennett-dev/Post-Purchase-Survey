@@ -40,3 +40,9 @@ export const ADMIN_SURVEY_MUTATION_LIMIT = {
 } as const;
 
 export const ADMIN_SURVEY_MUTATION_MAX_BODY_BYTES = 16 * 1024;
+
+/** Admin JSON read APIs (`GET /api/surveys`, `/api/responses`, etc.): per shop. */
+export const ADMIN_API_READ_LIMIT = {
+  max: 120,
+  windowMs: 60_000,
+} as const;

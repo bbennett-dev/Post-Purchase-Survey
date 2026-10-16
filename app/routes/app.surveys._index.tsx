@@ -23,48 +23,24 @@ import {
 } from "@shopify/polaris";
 import { FilterIcon } from "@shopify/polaris-icons";
 import { useOpenEditor } from "../lib/editor-modal";
-import { CHANNEL_LABELS } from "../lib/survey/channels";
-import { enabledChannelLabels } from "../lib/survey/runtime-channels";
-import type { SurveyDocument } from "../lib/survey/types";
 import {
   createSurveyViaApi,
   deleteSurveyViaApi,
   surveyMutationViaApi,
 } from "../lib/survey/admin-api/list-actions.client";
-import {
-  listSurveyRowsForShop,
-  responseCountsForSurveys,
-  type SurveyStatus,
-} from "../lib/survey/survey-store.server";
+import { listSurveyListItemsForShop } from "../lib/survey/admin-api/survey-list.server";
+import type { SurveyStatus } from "../lib/survey/survey-store.server";
 import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
 type StatusView = "all" | SurveyStatus;
 
-interface SurveyRow {
-  id: string;
-  name: string;
-  question: string;
-  status: SurveyStatus;
-  channelsLabel: string;
-  responses: number;
-  createdAt: string;
-}
+type SurveyRow = Awaited<
+  ReturnType<typeof listSurveyListItemsForShop>
+>[number];
 
 const PAGE_SIZE = 4;
-
-function formatSurveyDate(iso: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(iso);
-}
-
-function questionFromDocument(document: SurveyDocument): string {
-  return document.questions?.[0]?.heading?.trim() || "—";
-}
 
 /**
  * Surveys index loader — shop-scoped rows from Prisma.
@@ -74,26 +50,7 @@ export const loader = async ({
 }: LoaderFunctionArgs): Promise<{ surveys: SurveyRow[] }> => {
   const { session } = await authenticate.admin(request);
   const shop = await shopFromAdminSession(session);
-  const rows = await listSurveyRowsForShop(shop);
-  const counts = await responseCountsForSurveys(
-    shop,
-    rows.map((row) => row.surveyUuid),
-  );
-
-  const surveys: SurveyRow[] = rows.map((row) => {
-    const document = row.document as unknown as SurveyDocument;
-    return {
-      id: row.surveyUuid,
-      name: row.name,
-      question: questionFromDocument(document),
-      status: row.status as SurveyStatus,
-      channelsLabel:
-        enabledChannelLabels(document, CHANNEL_LABELS).join(", ") || "—",
-      responses: counts.get(row.surveyUuid) ?? 0,
-      createdAt: formatSurveyDate(row.createdAt),
-    };
-  });
-
+  const surveys = await listSurveyListItemsForShop(shop);
   return { surveys };
 };
 
