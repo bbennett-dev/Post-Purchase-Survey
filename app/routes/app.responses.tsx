@@ -19,6 +19,7 @@ import {
   countSurveyResponsesForShop,
   listSurveyResponsesForShop,
 } from "../lib/survey/survey-response.server";
+import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -73,9 +74,10 @@ export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<{ responses: ResponseRow[]; total: number }> => {
   const { session } = await authenticate.admin(request);
+  const shop = await shopFromAdminSession(session);
   const [rows, total] = await Promise.all([
-    listSurveyResponsesForShop(session.shop, { take: 100, skip: 0 }),
-    countSurveyResponsesForShop(session.shop),
+    listSurveyResponsesForShop(shop, { take: 100, skip: 0 }),
+    countSurveyResponsesForShop(shop),
   ]);
 
   const responses: ResponseRow[] = rows.map((row) => {

@@ -40,6 +40,7 @@ import {
   syncShopifyFromDatabase,
   type SurveyStatus,
 } from "../lib/survey/survey-store.server";
+import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -76,22 +77,23 @@ export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<{ surveys: SurveyRow[] }> => {
   const { session } = await authenticate.admin(request);
-  const rows = await listSurveyRowsForShop(session.shop);
+  const shop = await shopFromAdminSession(session);
+  const rows = await listSurveyRowsForShop(shop);
   const counts = await responseCountsForSurveys(
-    session.shop,
-    rows.map((row) => row.id),
+    shop,
+    rows.map((row) => row.surveyUuid),
   );
 
   const surveys: SurveyRow[] = rows.map((row) => {
     const document = row.document as unknown as SurveyDocument;
     return {
-      id: row.id,
+      id: row.surveyUuid,
       name: row.name,
       question: questionFromDocument(document),
       status: row.status as SurveyStatus,
       channelsLabel:
         enabledChannelLabels(document, CHANNEL_LABELS).join(", ") || "—",
-      responses: counts.get(row.id) ?? 0,
+      responses: counts.get(row.surveyUuid) ?? 0,
       createdAt: formatSurveyDate(row.createdAt),
     };
   });
@@ -112,13 +114,14 @@ export const action = async ({
   request,
 }: ActionFunctionArgs): Promise<SurveyActionData> => {
   const { admin, session } = await authenticate.admin(request);
+  const shop = await shopFromAdminSession(session);
   const formData = await request.formData();
   const intent = formData.get("intent");
   const surveyId = formData.get("surveyId");
 
   try {
     if (intent === "create") {
-      const createdId = await createDefaultSurveyForShop(session.shop);
+      const createdId = await createDefaultSurveyForShop(shop);
       return { ok: true, surveyId: createdId };
     }
 
@@ -127,7 +130,7 @@ export const action = async ({
     }
 
     if (intent === "duplicate") {
-      const created = await duplicateSurveyForShop(session.shop, surveyId);
+      const created = await duplicateSurveyForShop(shop, surveyId);
       if (!created) {
         return { ok: false, error: "Survey not found" };
       }
@@ -135,26 +138,26 @@ export const action = async ({
     }
 
     if (intent === "delete") {
-      const removed = await deleteSurveyForShop(session.shop, surveyId);
+      const removed = await deleteSurveyForShop(shop, surveyId);
       if (!removed) {
         return { ok: false, error: "Survey not found" };
       }
-      await syncShopifyFromDatabase(admin, session.shop);
+      await syncShopifyFromDatabase(admin, shop);
       return { ok: true };
     }
 
     if (intent === "toggle-status") {
       const prisma = (await import("../db.server")).default;
       const current = await prisma.survey.findFirst({
-        where: { shop: session.shop, id: surveyId },
+        where: { shopId: shop.shopId, surveyUuid: surveyId },
       });
       if (!current) {
         return { ok: false, error: "Survey not found" };
       }
       const nextStatus: SurveyStatus =
         current.status === "live" ? "paused" : "live";
-      await setSurveyStatusForShop(session.shop, surveyId, nextStatus);
-      await syncShopifyFromDatabase(admin, session.shop);
+      await setSurveyStatusForShop(shop, surveyId, nextStatus);
+      await syncShopifyFromDatabase(admin, shop);
       return { ok: true };
     }
 

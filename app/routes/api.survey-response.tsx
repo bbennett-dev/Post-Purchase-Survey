@@ -4,6 +4,7 @@ import {
   submitBodyToContext,
   type SurveyResponseSubmitBody,
 } from "../lib/survey/submit-body-to-context";
+import { getOrCreateShopByDomain } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 
 function shopFromSessionDest(dest: unknown): string | null {
@@ -39,12 +40,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     );
   }
 
-  const shop = shopFromSessionDest(sessionToken.dest);
-  if (!shop) {
+  const domain = shopFromSessionDest(sessionToken.dest);
+  if (!domain) {
     return cors(
       Response.json({ ok: false, error: "Invalid session" }, { status: 401 }),
     );
   }
+  const shop = await getOrCreateShopByDomain(domain);
 
   let body: SurveyResponseSubmitBody;
   try {
@@ -56,10 +58,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const orderId = body.orderId?.trim();
-  const surveyId = body.surveyId?.trim();
+  const surveyUuid = body.surveyId?.trim();
   const surveyName = body.surveyName?.trim() ?? "Survey";
 
-  if (!orderId || !surveyId) {
+  if (!orderId || !surveyUuid) {
     return cors(
       Response.json(
         { ok: false, error: "Missing order or survey" },
@@ -75,7 +77,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await recordSurveyResponseFromBody({
       shop,
       orderId,
-      surveyId,
+      surveyUuid,
       surveyName,
       customerId,
       answers: body.answers,

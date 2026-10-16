@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
-import { deleteAllShopSurveyData } from "../lib/survey/survey-store.server";
+import { getOrCreateShopByDomain } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
@@ -20,8 +20,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       : null;
 
   if (customerId) {
+    const tenant = await getOrCreateShopByDomain(shop);
     await db.surveyResponse.deleteMany({
-      where: { shop, customerId },
+      where: { shopId: tenant.shopId, customerId },
     });
   }
 

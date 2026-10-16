@@ -37,6 +37,7 @@ import {
 import type { CheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
 import { fetchCheckoutEditorLinks } from "../lib/shopify/checkout-editor-url.server";
 import type { SurveyDocument } from "../lib/survey/types";
+import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 
 /** Plain CSS (not `.module.css`) so Vite can emit a stable `<link>` in the editor iframe. */
@@ -75,6 +76,7 @@ export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<EditorLoaderData> => {
   const { admin, session } = await authenticate.admin(request);
+  const shop = await shopFromAdminSession(session);
   const checkoutEditor = await fetchCheckoutEditorLinks(admin, session.shop);
 
   const url = new URL(request.url);
@@ -82,7 +84,7 @@ export const loader = async ({
   const surveyId = url.searchParams.get("survey");
 
   if (surveyId) {
-    const initialSurvey = await getSurveyDocumentForShop(session.shop, surveyId);
+    const initialSurvey = await getSurveyDocumentForShop(shop, surveyId);
     if (!initialSurvey) {
       throw new Response("Survey not found", { status: 404 });
     }
@@ -128,6 +130,7 @@ export const action = async ({
   request,
 }: ActionFunctionArgs): Promise<SaveActionData> => {
   const { admin, session } = await authenticate.admin(request);
+  const shop = await shopFromAdminSession(session);
 
   if (request.method !== "POST") {
     return { ok: false, error: "Method not allowed" };
@@ -152,7 +155,7 @@ export const action = async ({
   try {
     const { publishedToShopify } = await persistSurveyAndMaybePublishShopify(
       admin,
-      session.shop,
+      shop,
       survey,
     );
     return { ok: true, publishedToShopify };

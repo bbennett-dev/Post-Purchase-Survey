@@ -11,6 +11,7 @@ import {
   Text,
 } from "@shopify/polaris";
 import { SurveyStatus } from "@prisma/client";
+import { shopFromAdminSession } from "../lib/shop/shop.server";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 
@@ -27,14 +28,15 @@ export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<DashboardLoaderData> => {
   const { session } = await authenticate.admin(request);
+  const shop = await shopFromAdminSession(session);
   const prisma = (await import("../db.server")).default;
 
   const [activeSurveys, totalResponses] = await Promise.all([
     prisma.survey.count({
-      where: { shop: session.shop, status: SurveyStatus.live },
+      where: { shopId: shop.shopId, status: SurveyStatus.live },
     }),
     prisma.surveyResponse.count({
-      where: { shop: session.shop },
+      where: { shopId: shop.shopId },
     }),
   ]);
 
