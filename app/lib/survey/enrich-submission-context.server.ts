@@ -13,6 +13,21 @@ import type {
   SurveySubmissionLineItem,
 } from "./survey-response.types";
 
+const LIFECYCLE_TAG_FIRST = "New customer";
+const LIFECYCLE_TAG_RETURN = "Return customer";
+
+function lifecycleTagsFromOrderCount(
+  numberOfOrders: number | undefined | null,
+): string[] | undefined {
+  if (numberOfOrders == null || Number.isNaN(numberOfOrders)) {
+    return undefined;
+  }
+  if (numberOfOrders <= 1) {
+    return [LIFECYCLE_TAG_FIRST];
+  }
+  return [LIFECYCLE_TAG_RETURN];
+}
+
 function stripGidNumeric(gid: string | null | undefined): string | null {
   if (!gid || typeof gid !== "string") {
     return null;
@@ -68,6 +83,7 @@ const ORDER_ENRICHMENT_QUERY = `#graphql
         displayName
         email
         tags
+        numberOfOrders
       }
       shippingLine {
         title
@@ -169,6 +185,7 @@ async function enrichFromOrder(
           displayName: string;
           email: string;
           tags: string[];
+          numberOfOrders?: number;
         } | null;
         shippingLine?: { title: string } | null;
         lineItems: {
@@ -209,8 +226,17 @@ async function enrichFromOrder(
     patch.customerId = stripGidNumeric(order.customer.id);
     patch.customerName = order.customer.displayName ?? null;
     patch.customerEmail = order.customer.email ?? null;
-    if (order.customer.tags?.length) {
-      patch.customerTags = order.customer.tags;
+    if (!ctx.customerTags?.length) {
+      if (order.customer.tags?.length) {
+        patch.customerTags = order.customer.tags;
+      } else {
+        const lifecycle = lifecycleTagsFromOrderCount(
+          order.customer.numberOfOrders,
+        );
+        if (lifecycle) {
+          patch.customerTags = lifecycle;
+        }
+      }
     }
   }
   const items = lineItemsFromOrderNode(order.lineItems);

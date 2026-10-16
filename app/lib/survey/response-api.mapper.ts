@@ -1,16 +1,24 @@
-import type { SurveyResponse } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type {
   SurveyResponseMeta,
-  SurveyResponseMetaCustomer,
   SurveyResponseQuestionDto,
 } from "./survey-response.types";
+
+/** Row shape from listSurveyResponsesForShop include. */
+export type SurveyResponseListRow = Prisma.SurveyResponseGetPayload<{
+  include: {
+    survey: { select: { surveyUuid: true } };
+    shop: { select: { myshopifyDomain: true; shopUuid: true } };
+  };
+}>;
 
 /** Competitor-style list item for admin / future public API. */
 export interface SurveyResponseListItemDto {
   id: string;
   shopSequence: number | null;
-  shop: string;
-  surveyId: string;
+  shopUuid: string;
+  myshopifyDomain: string;
+  surveyUuid: string;
   surveyName: string;
   surveyType: string;
   questions: SurveyResponseQuestionDto[];
@@ -25,7 +33,7 @@ export interface SurveyResponseListItemDto {
   email: string | null;
   customerName: string | null;
   customerTags: string[];
-  customer: SurveyResponseMetaCustomer | null;
+  customer: SurveyResponseMeta["customer"] | null;
   productId: string | null;
   productName: string | null;
   country: string | null;
@@ -58,17 +66,18 @@ function parseQuestions(value: unknown): SurveyResponseQuestionDto[] {
 }
 
 export function mapSurveyResponseToListItem(
-  row: SurveyResponse,
+  row: SurveyResponseListRow,
 ): SurveyResponseListItemDto {
   const meta = parseMeta(row.meta);
   const questions = parseQuestions(row.questions);
   const email = row.email ?? meta.customerEmail ?? null;
 
   return {
-    id: row.id,
+    id: row.responseUuid,
     shopSequence: row.shopSequence,
-    shop: row.shop,
-    surveyId: row.surveyId,
+    shopUuid: row.shop.shopUuid,
+    myshopifyDomain: row.shop.myshopifyDomain,
+    surveyUuid: row.survey.surveyUuid,
     surveyName: row.surveyName,
     surveyType: row.surveyType,
     questions,

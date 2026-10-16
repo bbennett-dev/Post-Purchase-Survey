@@ -120,9 +120,11 @@ export interface SurveySubmissionLineItem {
 }
 
 export interface RecordSurveySubmissionInput {
-  shop: string;
+  shopId: bigint;
+  myshopifyDomain: string;
   orderId: string;
-  surveyId: string;
+  /** Public survey id from checkout POST (`surveyUuid`). */
+  surveyUuid: string;
   surveyName: string;
   answers: SurveyResponseAnswerInput[];
   customerId?: string | null;

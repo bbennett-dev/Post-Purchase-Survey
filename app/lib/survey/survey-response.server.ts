@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import prisma from "../../db.server";
+import type { ShopRecord } from "../shop/shop.server";
 import { enrichSubmissionContext } from "./enrich-submission-context.server";
 import { normalizeSurveyResponseQuestions } from "./response-question-normalizer";
 import type {
@@ -167,9 +168,10 @@ export async function recordSurveySubmission(
   input: RecordSurveySubmissionInput,
 ): Promise<void> {
   const {
-    shop,
+    shopId,
+    myshopifyDomain,
     orderId,
-    surveyId,
+    surveyUuid,
     surveyName,
     answers,
     customerId: inputCustomerId,
@@ -178,14 +180,14 @@ export async function recordSurveySubmission(
   } = input;
 
   const survey = await prisma.survey.findFirst({
-    where: { shop, id: surveyId },
+    where: { shopId, surveyUuid },
   });
   if (!survey) {
     throw new Error("Survey not found");
   }
 
   const enrichedContext = await enrichSubmissionContext(
-    shop,
+    myshopifyDomain,
     orderId,
     clientContext,
   );
@@ -208,8 +210,8 @@ export async function recordSurveySubmission(
     null;
 
   const rowData = {
-    shop,
-    surveyId,
+    shopId,
+    surveyId: survey.id,
     surveyName,
     surveyType,
     orderId,
@@ -226,7 +228,11 @@ export async function recordSurveySubmission(
   await prisma.$transaction(async (tx) => {
     const existing = await tx.surveyResponse.findUnique({
       where: {
-        shop_orderId_surveyId: { shop, orderId, surveyId },
+        shopId_orderId_surveyId: {
+          shopId,
+          orderId,
+          surveyId: survey.id,
+        },
       },
     });
 
@@ -239,7 +245,7 @@ export async function recordSurveySubmission(
     }
 
     const agg = await tx.surveyResponse.aggregate({
-      where: { shop },
+      where: { shopId },
       _max: { shopSequence: true },
     });
     const shopSequence = (agg._max.shopSequence ?? 0) + 1;
@@ -250,7 +256,7 @@ export async function recordSurveySubmission(
       },
     });
     await tx.survey.update({
-      where: { id: surveyId },
+      where: { id: survey.id },
       data: { responseCount: { increment: 1 } },
     });
   });
@@ -258,9 +264,9 @@ export async function recordSurveySubmission(
 
 /** Legacy single-answer + multi-answer POST body. */
 export async function recordSurveyResponseFromBody(input: {
-  shop: string;
+  shop: ShopRecord;
   orderId: string;
-  surveyId: string;
+  surveyUuid: string;
   surveyName: string;
   customerId?: string | null;
   answers?: unknown;
@@ -287,9 +293,10 @@ export async function recordSurveyResponseFromBody(input: {
   }
 
   return recordSurveySubmission({
-    shop: input.shop,
+    shopId: input.shop.shopId,
+    myshopifyDomain: input.shop.myshopifyDomain,
     orderId: input.orderId,
-    surveyId: input.surveyId,
+    surveyUuid: input.surveyUuid,
     surveyName: input.surveyName,
     answers,
     customerId: input.customerId,
@@ -300,20 +307,26 @@ export async function recordSurveyResponseFromBody(input: {
 
 /** Paginated responses for admin / API mapper. */
 export async function listSurveyResponsesForShop(
-  shop: string,
+  shop: ShopRecord,
   options: { take: number; skip: number },
 ) {
   return prisma.surveyResponse.findMany({
-    where: { shop, isArchived: false },
+    where: { shopId: shop.shopId, isArchived: false },
     orderBy: { submittedAt: "desc" },
     take: options.take,
     skip: options.skip,
+    include: {
+      survey: { select: { surveyUuid: true } },
+      shop: { select: { myshopifyDomain: true, shopUuid: true } },
+    },
   });
 }
 
-export async function countSurveyResponsesForShop(shop: string): Promise<number> {
+export async function countSurveyResponsesForShop(
+  shop: ShopRecord,
+): Promise<number> {
   return prisma.surveyResponse.count({
-    where: { shop, isArchived: false },
+    where: { shopId: shop.shopId, isArchived: false },
   });
 }
 

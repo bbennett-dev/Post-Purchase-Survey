@@ -1,6 +1,7 @@
 import { SurveyStatus } from "@prisma/client";
 import prisma from "../../db.server";
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
+import type { ShopRecord } from "../shop/shop.server";
 import { createBlankSurveyDocument } from "./questions";
 import { surveyHasAnyEnabledChannel } from "./runtime-channels";
 import { publishSurveysToShop } from "./publish-shopify.server";
@@ -25,30 +26,32 @@ function surveyDocumentScalars(document: SurveyDocument) {
 }
 
 /**
- * Persists the editor document and list status (`live` / `paused` from `document.isActive`).
+ * Persists the editor document; `document.id` must be the public `surveyUuid`.
  */
 export async function saveSurveyDocument(
-  shop: string,
+  shop: ShopRecord,
   document: SurveyDocument,
 ): Promise<void> {
-  if (!document.id?.trim()) {
+  const surveyUuid = document.id?.trim();
+  if (!surveyUuid) {
     throw new Error("Survey id is required");
   }
 
   const status = surveyStatusFromActive(document.isActive === true);
   const documentWithStatus: SurveyDocument = {
     ...document,
+    id: surveyUuid,
     isActive: status === SurveyStatus.live,
   };
   const scalars = surveyDocumentScalars(documentWithStatus);
 
   const existing = await prisma.survey.findFirst({
-    where: { id: document.id, shop },
+    where: { shopId: shop.shopId, surveyUuid },
   });
 
   if (existing) {
     await prisma.survey.update({
-      where: { id: document.id },
+      where: { id: existing.id },
       data: {
         ...scalars,
         status,
@@ -57,37 +60,43 @@ export async function saveSurveyDocument(
     return;
   }
 
-  await prisma.survey.create({
+  const created = await prisma.survey.create({
     data: {
-      id: document.id,
-      shop,
+      shopId: shop.shopId,
       status,
       ...scalars,
     },
+  });
+  const documentWithUuid: SurveyDocument = {
+    ...documentWithStatus,
+    id: created.surveyUuid,
+  };
+  await prisma.survey.update({
+    where: { id: created.id },
+    data: { document: documentWithUuid as object },
   });
 }
 
 /**
  * Rebuilds Shopify metafields/metaobjects from all **live** surveys that have ≥1 enabled channel.
- * Passes an empty list when none qualify (clears checkout payload).
  */
 export async function syncShopifyFromDatabase(
   admin: AdminApiContext,
-  shop: string,
+  shop: ShopRecord,
 ): Promise<{ handles: string[] }> {
   const rows = await prisma.survey.findMany({
-    where: { shop, status: SurveyStatus.live },
+    where: { shopId: shop.shopId, status: SurveyStatus.live },
   });
   const documents = rows
-    .map((row) => row.document as unknown as SurveyDocument)
+    .map((row) => {
+      const doc = row.document as unknown as SurveyDocument;
+      doc.id = row.surveyUuid;
+      return doc;
+    })
     .filter((doc) => surveyHasAnyEnabledChannel(doc));
   return publishSurveysToShop(admin, documents);
 }
 
-/**
- * Save path: Postgres first, then Shopify only when this survey is **live** and has ≥1 enabled channel.
- * When publishing, all live + channel-enabled surveys for the shop are written (shared checkout metafield).
- */
 function wasOnShopifyCheckout(
   row: { status: SurveyStatus; document: unknown } | null,
 ): boolean {
@@ -99,12 +108,13 @@ function wasOnShopifyCheckout(
 
 export async function persistSurveyAndMaybePublishShopify(
   admin: AdminApiContext,
-  shop: string,
+  shop: ShopRecord,
   document: SurveyDocument,
 ): Promise<{ publishedToShopify: boolean }> {
-  const existing = document.id
+  const surveyUuid = document.id?.trim();
+  const existing = surveyUuid
     ? await prisma.survey.findFirst({
-        where: { id: document.id, shop },
+        where: { shopId: shop.shopId, surveyUuid },
       })
     : null;
   const wasPublished = wasOnShopifyCheckout(existing);
@@ -122,76 +132,93 @@ export async function persistSurveyAndMaybePublishShopify(
 }
 
 /** Creates a paused survey with one default question and main ending. */
-export async function createDefaultSurveyForShop(shop: string): Promise<string> {
+export async function createDefaultSurveyForShop(
+  shop: ShopRecord,
+): Promise<string> {
   const document = createBlankSurveyDocument();
-  const id = crypto.randomUUID();
-  document.id = id;
   document.isActive = false;
   document.name = "Untitled survey";
 
-  await prisma.survey.create({
+  const created = await prisma.survey.create({
     data: {
-      id,
-      shop,
+      shopId: shop.shopId,
       status: SurveyStatus.paused,
       ...surveyDocumentScalars(document),
     },
   });
+  document.id = created.surveyUuid;
+  await prisma.survey.update({
+    where: { id: created.id },
+    data: { document: document as object },
+  });
 
-  return id;
+  return created.surveyUuid;
 }
 
-/** Loads a survey document when it belongs to the authenticated shop. */
+/** Loads a survey document when it belongs to the shop (`surveyUuid`). */
 export async function getSurveyDocumentForShop(
-  shop: string,
-  surveyId: string,
+  shop: ShopRecord,
+  surveyUuid: string,
 ): Promise<SurveyDocument | null> {
   const row = await prisma.survey.findFirst({
-    where: { shop, id: surveyId },
+    where: { shopId: shop.shopId, surveyUuid },
   });
   if (!row) {
     return null;
   }
   const document = row.document as unknown as SurveyDocument;
+  document.id = row.surveyUuid;
   document.isActive = row.status === SurveyStatus.live;
   return document;
 }
 
 /** Lists surveys for the shop index, newest activity first. */
-export async function listSurveyRowsForShop(shop: string) {
+export async function listSurveyRowsForShop(shop: ShopRecord) {
   return prisma.survey.findMany({
-    where: { shop },
+    where: { shopId: shop.shopId },
     orderBy: { updatedAt: "desc" },
   });
 }
 
-/** Response counts keyed by survey id. */
+/** Response counts keyed by surveyUuid. */
 export async function responseCountsForSurveys(
-  shop: string,
-  surveyIds: string[],
+  shop: ShopRecord,
+  surveyUuids: string[],
 ): Promise<Map<string, number>> {
-  if (surveyIds.length === 0) {
+  if (surveyUuids.length === 0) {
     return new Map();
   }
 
+  const surveys = await prisma.survey.findMany({
+    where: { shopId: shop.shopId, surveyUuid: { in: surveyUuids } },
+    select: { id: true, surveyUuid: true },
+  });
+  const idToUuid = new Map(surveys.map((s) => [s.id, s.surveyUuid]));
+
   const grouped = await prisma.surveyResponse.groupBy({
     by: ["surveyId"],
-    where: { shop, surveyId: { in: surveyIds } },
+    where: {
+      shopId: shop.shopId,
+      surveyId: { in: surveys.map((s) => s.id) },
+    },
     _count: { _all: true },
   });
 
   return new Map(
-    grouped.map((row) => [row.surveyId ?? "", row._count._all]),
+    grouped.map((row) => [
+      idToUuid.get(row.surveyId) ?? "",
+      row._count._all,
+    ]),
   );
 }
 
-/** Clones a survey as paused. */
+/** Clones a survey as paused; returns new `surveyUuid`. */
 export async function duplicateSurveyForShop(
-  shop: string,
-  sourceId: string,
+  shop: ShopRecord,
+  sourceSurveyUuid: string,
 ): Promise<string | null> {
   const source = await prisma.survey.findFirst({
-    where: { shop, id: sourceId },
+    where: { shopId: shop.shopId, surveyUuid: sourceSurveyUuid },
   });
   if (!source) {
     return null;
@@ -205,39 +232,39 @@ export async function duplicateSurveyForShop(
 
   const created = await prisma.survey.create({
     data: {
-      shop,
+      shopId: shop.shopId,
       ...surveyDocumentScalars(document),
       status: SurveyStatus.paused,
     },
   });
-
-  document.id = created.id;
+  document.id = created.surveyUuid;
   await prisma.survey.update({
     where: { id: created.id },
     data: { document: document as object },
   });
 
-  return created.id;
+  return created.surveyUuid;
 }
 
 /** Sets live/paused and keeps `document.isActive` in sync. */
 export async function setSurveyStatusForShop(
-  shop: string,
-  surveyId: string,
+  shop: ShopRecord,
+  surveyUuid: string,
   status: SurveyStatus,
 ): Promise<boolean> {
   const row = await prisma.survey.findFirst({
-    where: { shop, id: surveyId },
+    where: { shopId: shop.shopId, surveyUuid },
   });
   if (!row) {
     return false;
   }
 
   const document = structuredClone(row.document) as unknown as SurveyDocument;
+  document.id = row.surveyUuid;
   document.isActive = status === SurveyStatus.live;
 
   await prisma.survey.update({
-    where: { id: surveyId },
+    where: { id: row.id },
     data: {
       status,
       isActive: document.isActive,
@@ -250,19 +277,21 @@ export async function setSurveyStatusForShop(
 
 /** Removes a survey row for the shop. */
 export async function deleteSurveyForShop(
-  shop: string,
-  surveyId: string,
+  shop: ShopRecord,
+  surveyUuid: string,
 ): Promise<boolean> {
   const row = await prisma.survey.findFirst({
-    where: { shop, id: surveyId },
+    where: { shopId: shop.shopId, surveyUuid },
   });
   if (!row) {
     return false;
   }
 
   await prisma.$transaction([
-    prisma.surveyResponse.deleteMany({ where: { shop, surveyId } }),
-    prisma.survey.delete({ where: { id: surveyId } }),
+    prisma.surveyResponse.deleteMany({
+      where: { shopId: shop.shopId, surveyId: row.id },
+    }),
+    prisma.survey.delete({ where: { id: row.id } }),
   ]);
   return true;
 }
@@ -270,15 +299,24 @@ export async function deleteSurveyForShop(
 /** @deprecated use syncShopifyFromDatabase */
 export async function publishLiveSurveysForShop(
   admin: AdminApiContext,
-  shop: string,
+  shop: ShopRecord,
 ): Promise<{ handles: string[] }> {
   return syncShopifyFromDatabase(admin, shop);
 }
 
 /** Deletes all shop-owned survey data (uninstall / redact). */
-export async function deleteAllShopSurveyData(shop: string): Promise<void> {
+export async function deleteAllShopSurveyData(
+  myshopifyDomain: string,
+): Promise<void> {
+  const shop = await prisma.shop.findUnique({
+    where: { myshopifyDomain: myshopifyDomain.trim().toLowerCase() },
+  });
+  if (!shop) {
+    return;
+  }
   await prisma.$transaction([
-    prisma.surveyResponse.deleteMany({ where: { shop } }),
-    prisma.survey.deleteMany({ where: { shop } }),
+    prisma.surveyResponse.deleteMany({ where: { shopId: shop.id } }),
+    prisma.survey.deleteMany({ where: { shopId: shop.id } }),
+    prisma.shop.delete({ where: { id: shop.id } }),
   ]);
 }
