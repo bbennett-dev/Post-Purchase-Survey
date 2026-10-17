@@ -46,7 +46,7 @@ export function EditorToolbar({
 }: EditorToolbarProps) {
   const [statusOpen, setStatusOpen] = useState(false);
 
-  const statusLabel = isActive ? "Active" : "Inactive";
+  const statusLabel = isActive ? "Live" : "Paused";
   const showAdvancedLogic = !isV1EditorLimited();
 
   return (
@@ -128,7 +128,7 @@ export function EditorToolbar({
             <ActionList
               items={[
                 {
-                  content: "Active",
+                  content: "Set live",
                   active: isActive,
                   onAction: () => {
                     onActive(true);
@@ -136,7 +136,7 @@ export function EditorToolbar({
                   },
                 },
                 {
-                  content: "Inactive",
+                  content: "Pause",
                   active: !isActive,
                   onAction: () => {
                     onActive(false);
