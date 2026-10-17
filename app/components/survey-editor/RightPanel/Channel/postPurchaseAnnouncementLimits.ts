@@ -1,3 +1,5 @@
-/** Character limits for Thank you page announcement bar copy (competitor UI). */
-export const ANNOUNCEMENT_CONTENT_MAX_LENGTH = 100;
-export const ANNOUNCEMENT_BUTTON_TEXT_MAX_LENGTH = 30;
+/** @deprecated import from `app/lib/survey/post-purchase-display` */
+export {
+  ANNOUNCEMENT_BUTTON_TEXT_MAX_LENGTH,
+  ANNOUNCEMENT_CONTENT_MAX_LENGTH,
+} from "../../../../lib/survey/post-purchase-display";

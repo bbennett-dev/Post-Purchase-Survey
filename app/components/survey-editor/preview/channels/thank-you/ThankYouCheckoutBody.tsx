@@ -1,11 +1,17 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { BlockStack, Box, Text } from "@shopify/polaris";
+import {
+  isPostPurchaseAnnouncementBar,
+  resolvePostPurchaseAnnouncementCopy,
+} from "../../../../../lib/survey/post-purchase-display";
 import type { UseInteractiveSurveyPreviewResult } from "../../useInteractiveSurveyPreview";
 import type { EditorPreviewFrameProps } from "../../types";
 import { SurveyPreviewStep } from "../../SurveyPreviewStep";
 import { ThankYouConfirmationHeader } from "./ThankYouConfirmationHeader";
 import { ThankYouOrderSummary } from "./ThankYouOrderSummary";
 import { THANK_YOU_PREVIEW_ORDER } from "./mock-order";
+import { AnnouncementBarPreviewStrip } from "./post-purchase/AnnouncementBarPreviewStrip";
+import { AnnouncementBarSurveyModal } from "./post-purchase/AnnouncementBarSurveyModal";
 
 interface ThankYouCheckoutBodyProps extends EditorPreviewFrameProps {
   layout: "fullscreen" | "desktop" | "mobile";
@@ -19,16 +25,23 @@ export function ThankYouCheckoutBody({
   storeLabel,
   layout,
   surveyFlow,
+  postPurchaseChannel,
 }: ThankYouCheckoutBodyProps) {
   const storeName =
     storeLabel.trim().length > 0 ? storeLabel : "Store name";
   const order = THANK_YOU_PREVIEW_ORDER;
   const twoColumn = layout === "fullscreen" || layout === "desktop";
   const mobileStack = layout === "mobile";
-  /** Checkout confirmation stays visible during questions and survey ending. */
   const showConfirmation = true;
 
-  const surveyBlock = (
+  const announcementMode = isPostPurchaseAnnouncementBar(postPurchaseChannel);
+  const announcementCopy = resolvePostPurchaseAnnouncementCopy(
+    postPurchaseChannel,
+    storeLabel,
+  );
+  const [announcementModalOpen, setAnnouncementModalOpen] = useState(false);
+
+  const surveyBlock = announcementMode ? null : (
     <SurveyPreviewStep
       phase={surveyFlow.phase}
       question={surveyFlow.question}
@@ -45,8 +58,17 @@ export function ThankYouCheckoutBody({
     />
   );
 
+  const announcementBar = announcementMode ? (
+    <AnnouncementBarPreviewStrip
+      copy={announcementCopy}
+      onOpenSurvey={() => setAnnouncementModalOpen(true)}
+    />
+  ) : null;
+
   return (
     <BlockStack gap="0">
+      {announcementBar}
+
       <Box
         padding="400"
         paddingInline={layout === "mobile" ? "400" : "600"}
@@ -95,6 +117,16 @@ export function ThankYouCheckoutBody({
           surveyBlock={surveyBlock}
         />
       )}
+
+      {announcementMode ? (
+        <AnnouncementBarSurveyModal
+          open={announcementModalOpen}
+          onClose={() => setAnnouncementModalOpen(false)}
+          copy={announcementCopy}
+          channel={postPurchaseChannel}
+          surveyFlow={surveyFlow}
+        />
+      ) : null}
     </BlockStack>
   );
 }

@@ -6,7 +6,7 @@ import { PostPurchaseDisplaySettingCard } from "./PostPurchaseDisplaySettingCard
 import {
   ANNOUNCEMENT_BUTTON_TEXT_MAX_LENGTH,
   ANNOUNCEMENT_CONTENT_MAX_LENGTH,
-} from "./postPurchaseAnnouncementLimits";
+} from "../../../../lib/survey/post-purchase-display";
 import { SideLogoSection } from "./SideLogoSection";
 
 interface PostPurchaseAdvancedSettingsProps {
@@ -66,7 +66,10 @@ export function PostPurchaseAdvancedSettings({
         onChange={(next) => onChange({ displayType: next })}
       />
 
-      <PostPurchaseDisplaySettingCard checkoutEditor={checkoutEditor} />
+      <PostPurchaseDisplaySettingCard
+        checkoutEditor={checkoutEditor}
+        displayType={displayType}
+      />
 
       {isAnnouncement ? (
         <BlockStack gap="300">

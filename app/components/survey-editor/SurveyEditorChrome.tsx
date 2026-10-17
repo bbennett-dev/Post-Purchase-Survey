@@ -14,6 +14,7 @@ import type {
   EditorPanel,
   EditorWorkspace,
   PreviewDevice,
+  PostPurchasePageChannel,
   SurveyChannel,
   SurveyDocument,
   SurveyQuestion,
@@ -307,6 +308,9 @@ export function SurveyEditorChrome({
                   setSelectedEndingId(null);
                   setSelectedQuestionId(target.questionId);
                 }}
+                postPurchaseChannel={
+                  survey.channels.postPurchasePage as PostPurchasePageChannel
+                }
               />
             )}
           </EditorGridCell>

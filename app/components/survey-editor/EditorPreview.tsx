@@ -1,5 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import type { PreviewDevice, SurveyQuestion, ThankYouContent } from "../../lib/survey/types";
+import type {
+  PostPurchasePageChannel,
+  PreviewDevice,
+  SurveyQuestion,
+  ThankYouContent,
+} from "../../lib/survey/types";
 import { EditorFillBox } from "./EditorFlexLayout";
 import { EditorChannelPreview } from "./preview/EditorChannelPreview";
 import type { EditorPreviewNavigateTarget, EditorPreviewSelection } from "./preview/types";
@@ -12,6 +17,7 @@ interface EditorPreviewProps {
   shopLabel: string;
   selection: EditorPreviewSelection;
   onPreviewNavigate: (target: EditorPreviewNavigateTarget) => void;
+  postPurchaseChannel?: PostPurchasePageChannel;
 }
 
 /**
@@ -25,6 +31,7 @@ export function EditorPreview({
   shopLabel,
   selection,
   onPreviewNavigate,
+  postPurchaseChannel,
 }: EditorPreviewProps) {
   const [demoGeneration, setDemoGeneration] = useState(0);
   const onRestartDemo = useCallback(() => {
@@ -57,6 +64,7 @@ export function EditorPreview({
           selection={selection}
           onRestartDemo={onRestartDemo}
           onPreviewNavigate={onPreviewNavigate}
+          postPurchaseChannel={postPurchaseChannel}
         />
       </div>
     </EditorFillBox>

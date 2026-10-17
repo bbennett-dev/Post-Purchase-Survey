@@ -1,4 +1,5 @@
 import type {
+  PostPurchasePageChannel,
   PreviewDevice,
   SurveyQuestion,
   ThankYouContent,
@@ -22,4 +23,6 @@ export interface EditorPreviewFrameProps {
   selection: EditorPreviewSelection;
   onRestartDemo: () => void;
   onPreviewNavigate?: (target: EditorPreviewNavigateTarget) => void;
+  /** Post-purchase channel settings (display type, announcement bar, side logo). */
+  postPurchaseChannel?: PostPurchasePageChannel;
 }
