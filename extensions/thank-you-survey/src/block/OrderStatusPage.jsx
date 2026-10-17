@@ -10,6 +10,7 @@ import {
   readCheckoutSurveys,
   SurveyBlock,
 } from "../shared/index.jsx";
+import { PostPurchaseSurveyGate } from "../shared/survey/PostPurchaseSurveyGate.jsx";
 
 /**
  * Order status target (`customer-account.order-status.block.render`).
@@ -39,13 +40,20 @@ function OrderStatusSurvey() {
   });
 
   return (
-    <SurveyBlock
+    <PostPurchaseSurveyGate
       survey={survey}
+      config={config}
+      surface="order-status"
       orderId={orderId}
-      submitUrl={submitUrl}
-      pageType="order-status"
-      channelType={CHECKOUT_CHANNEL_KEY}
-      submissionContext={submissionContext}
-    />
+    >
+      <SurveyBlock
+        survey={survey}
+        orderId={orderId}
+        submitUrl={submitUrl}
+        pageType="order-status"
+        channelType={CHECKOUT_CHANNEL_KEY}
+        submissionContext={submissionContext}
+      />
+    </PostPurchaseSurveyGate>
   );
 }

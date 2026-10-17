@@ -10,6 +10,7 @@ import {
 } from "../shared/survey/checkout-data.js";
 import { shouldRenderPostPurchaseAnnouncement } from "../shared/survey/post-purchase-display.js";
 import { SurveyAnnouncement } from "./SurveyAnnouncement.jsx";
+import { PostPurchaseSurveyGate } from "../shared/survey/PostPurchaseSurveyGate.jsx";
 
 const MODAL_ID = "post-purchase-survey-order-status";
 
@@ -41,14 +42,21 @@ function OrderStatusAnnouncementSurvey() {
   });
 
   return (
-    <SurveyAnnouncement
+    <PostPurchaseSurveyGate
       survey={survey}
+      config={config}
+      surface="order-status"
       orderId={orderId}
-      submitUrl={submitUrl}
-      pageType="order-status"
-      channelType={CHECKOUT_CHANNEL_KEY}
-      submissionContext={submissionContext}
-      modalId={MODAL_ID}
-    />
+    >
+      <SurveyAnnouncement
+        survey={survey}
+        orderId={orderId}
+        submitUrl={submitUrl}
+        pageType="order-status"
+        channelType={CHECKOUT_CHANNEL_KEY}
+        submissionContext={submissionContext}
+        modalId={MODAL_ID}
+      />
+    </PostPurchaseSurveyGate>
   );
 }

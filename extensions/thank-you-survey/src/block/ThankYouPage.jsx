@@ -11,6 +11,7 @@ import {
   readCheckoutSurveys,
   SurveyBlock,
 } from "../shared/index.jsx";
+import { PostPurchaseSurveyGate } from "../shared/survey/PostPurchaseSurveyGate.jsx";
 
 /**
  * Thank you page target (`purchase.thank-you.block.render`).
@@ -40,13 +41,20 @@ function ThankYouSurvey() {
   });
 
   return (
-    <SurveyBlock
+    <PostPurchaseSurveyGate
       survey={survey}
+      config={config}
+      surface="thank-you"
       orderId={orderId}
-      submitUrl={submitUrl}
-      pageType="thank-you"
-      channelType={CHECKOUT_CHANNEL_KEY}
-      submissionContext={submissionContext}
-    />
+    >
+      <SurveyBlock
+        survey={survey}
+        orderId={orderId}
+        submitUrl={submitUrl}
+        pageType="thank-you"
+        channelType={CHECKOUT_CHANNEL_KEY}
+        submissionContext={submissionContext}
+      />
+    </PostPurchaseSurveyGate>
   );
 }
