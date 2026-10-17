@@ -1,6 +1,5 @@
 /**
- * Public entry for Thank you + Order status targets.
- * Implementation lives under `survey/`, `components/`, and `questions/`.
+ * Shared exports for block targets (survey UI + metafield readers).
  */
 
 export { SurveyBlock } from "./survey/SurveyBlock.jsx";

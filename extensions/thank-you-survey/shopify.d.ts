@@ -1,19 +1,79 @@
 import '@shopify/ui-extensions';
 
 //@ts-ignore
-declare module './src/ThankYouPage.jsx' {
+declare module './src/block/ThankYouPage.jsx' {
   const shopify: import('@shopify/ui-extensions/purchase.thank-you.block.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/OrderStatusPage.jsx' {
+declare module './src/block/OrderStatusPage.jsx' {
   const shopify: import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/channel-config.js' {
+declare module './src/announcement/ThankYouAnnouncement.jsx' {
+  const shopify: import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/announcement/OrderStatusAnnouncement.jsx' {
+  const shopify: import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/shared/channel-config.js' {
+  const shopify:
+    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/shared/lib/order-id.js' {
+  const shopify:
+    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/shared/survey/submission-context.js' {
+  const shopify:
+    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/shared/survey/thank-you.js' {
+  const shopify:
+    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/shared/survey/post-purchase-display.js' {
+  const shopify:
+    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
+  const globalThis: { shopify: typeof shopify };
+}
+
+//@ts-ignore
+declare module './src/shared/index.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
     | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
@@ -21,199 +81,219 @@ declare module './src/channel-config.js' {
 }
 
 //@ts-ignore
-declare module './src/lib/order-id.js' {
-  const shopify: import('@shopify/ui-extensions/purchase.thank-you.block.render').Api;
+declare module './src/shared/survey/SurveyBlock.jsx' {
+  const shopify:
+    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/submission-context.js' {
+declare module './src/shared/survey/checkout-data.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/thank-you.js' {
+declare module './src/shared/components/CheckoutSurveyFrame.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/shared.jsx' {
+declare module './src/shared/components/SurveyEnding.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/SurveyBlock.jsx' {
+declare module './src/shared/components/SurveyFormFooter.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/checkout-data.js' {
+declare module './src/shared/questions/QuestionStep.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/components/CheckoutSurveyFrame.jsx' {
+declare module './src/shared/survey/draft.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/components/SurveyEnding.jsx' {
+declare module './src/shared/survey/submit.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/components/SurveyFormFooter.jsx' {
+declare module './src/shared/survey/auto-advance.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/questions/QuestionStep.jsx' {
+declare module './src/shared/survey/validate.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/draft.js' {
+declare module './src/shared/components/QuestionHeader.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/submit.js' {
+declare module './src/shared/survey/question-answers.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/auto-advance.js' {
+declare module './src/shared/questions/choice/ChoiceQuestion.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/validate.js' {
+declare module './src/shared/questions/fields/QuestionFields.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/components/QuestionHeader.jsx' {
+declare module './src/shared/questions/number-scale/NumberScaleQuestion.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/question-answers.js' {
+declare module './src/shared/questions/satisfaction/SatisfactionQuestion.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/questions/choice/ChoiceQuestion.jsx' {
+declare module './src/shared/questions/star-rating/StarRatingQuestion.jsx' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/questions/fields/QuestionFields.jsx' {
+declare module './src/shared/survey/constants.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/questions/number-scale/NumberScaleQuestion.jsx' {
+declare module './src/shared/lib/checkout-events.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/questions/satisfaction/SatisfactionQuestion.jsx' {
+declare module './src/shared/questions/number-scale/number-scale-ui.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/questions/star-rating/StarRatingQuestion.jsx' {
+declare module './src/shared/questions/star-rating/star-rating-ui.js' {
   const shopify:
     | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }
 
 //@ts-ignore
-declare module './src/survey/constants.js' {
+declare module './src/announcement/SurveyAnnouncement.jsx' {
   const shopify:
-    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
-  const globalThis: { shopify: typeof shopify };
-}
-
-//@ts-ignore
-declare module './src/lib/checkout-events.js' {
-  const shopify:
-    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
-  const globalThis: { shopify: typeof shopify };
-}
-
-//@ts-ignore
-declare module './src/questions/number-scale/number-scale-ui.js' {
-  const shopify:
-    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
-  const globalThis: { shopify: typeof shopify };
-}
-
-//@ts-ignore
-declare module './src/questions/star-rating/star-rating-ui.js' {
-  const shopify:
-    | import('@shopify/ui-extensions/purchase.thank-you.block.render').Api
-    | import('@shopify/ui-extensions/customer-account.order-status.block.render').Api;
+    | import('@shopify/ui-extensions/purchase.thank-you.announcement.render').Api
+    | import('@shopify/ui-extensions/customer-account.order-status.announcement.render').Api;
   const globalThis: { shopify: typeof shopify };
 }

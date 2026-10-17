@@ -17,6 +17,7 @@ export function SurveyBlock({
   pageType,
   channelType,
   submissionContext = {},
+  shell = "card",
 }) {
   const startedAtRef = useRef(Date.now());
   const questions = useMemo(() => sortedSurveyQuestions(survey), [survey]);
@@ -151,11 +152,13 @@ export function SurveyBlock({
     );
   }
 
+  const Frame = shell === "plain" ? PlainSurveyShell : CheckoutSurveyFrame;
+
   if (phase === "success") {
     return (
-      <CheckoutSurveyFrame>
+      <Frame>
         <SurveyEnding thankYou={thankYouEnding} surveyName={survey.name} />
-      </CheckoutSurveyFrame>
+      </Frame>
     );
   }
 
@@ -164,7 +167,7 @@ export function SurveyBlock({
     questions.length > 0 ? (stepIndex + 1) / questions.length : 0;
 
   return (
-    <CheckoutSurveyFrame>
+    <Frame>
       <s-form onSubmit={onPrimaryAction}>
         <s-stack gap="base">
           <s-stack gap="small">
@@ -193,6 +196,10 @@ export function SurveyBlock({
           />
         </s-stack>
       </s-form>
-    </CheckoutSurveyFrame>
+    </Frame>
   );
+}
+
+function PlainSurveyShell({ children }) {
+  return <s-box padding="none">{children}</s-box>;
 }

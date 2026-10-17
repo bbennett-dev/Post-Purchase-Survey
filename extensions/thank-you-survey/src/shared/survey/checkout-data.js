@@ -1,5 +1,9 @@
 import { CHECKOUT_CHANNEL_KEY } from "../channel-config.js";
 import { CONFIG_KEY } from "./constants.js";
+import {
+  postPurchaseChannelFromSurvey,
+  postPurchaseDisplayTypeFromSurvey,
+} from "./post-purchase-display.js";
 
 export function readCheckoutSurveys(entries) {
   const entry = (entries ?? []).find(
@@ -57,5 +61,15 @@ export function sortedSurveyQuestions(survey) {
 }
 
 export function channelDisplayType(survey, channelKey) {
+  if (channelKey === CHECKOUT_CHANNEL_KEY) {
+    const channel = postPurchaseChannelFromSurvey(survey);
+    const type = channel?.displayType?.trim();
+    return type || null;
+  }
   return survey?.channels?.[channelKey]?.displayType ?? null;
+}
+
+/** @deprecated use postPurchaseDisplayTypeFromSurvey */
+export function checkoutDisplayType(survey) {
+  return postPurchaseDisplayTypeFromSurvey(survey);
 }
