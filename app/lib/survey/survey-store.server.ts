@@ -9,7 +9,7 @@ import type { SurveyDocument } from "./types";
 
 export type { SurveyStatus };
 
-/** Maps editor Active/Inactive to Prisma status. */
+/** Maps editor live/paused (`document.isActive`) to Prisma `SurveyStatus`. */
 export function surveyStatusFromActive(isActive: boolean): SurveyStatus {
   return isActive ? SurveyStatus.live : SurveyStatus.paused;
 }
@@ -20,7 +20,6 @@ function surveyDocumentScalars(document: SurveyDocument) {
     name: document.name.trim(),
     surveyType: document.surveyType?.trim() || "survey",
     templateType: document.templateType?.trim() || "blank",
-    isActive: document.isActive === true,
     document: document as object,
   };
 }
@@ -267,7 +266,6 @@ export async function setSurveyStatusForShop(
     where: { id: row.id },
     data: {
       status,
-      isActive: document.isActive,
       document: document as object,
     },
   });
