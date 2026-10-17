@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import prisma from "../../../db.server";
 import type { ShopRecord } from "../../shop/shop.server";
+import { recordSurveyCompletionOnCustomer } from "../display-eligibility/completion/survey-completions.server";
 import { enrichSubmissionContext } from "./enrich-submission-context.server";
 import { normalizeSurveyResponseQuestions } from "./response-question-normalizer";
 import type {
@@ -260,6 +261,18 @@ export async function recordSurveySubmission(
       data: { responseCount: { increment: 1 } },
     });
   });
+
+  try {
+    await recordSurveyCompletionOnCustomer({
+      myshopifyDomain,
+      surveyUuid,
+      orderId,
+      customerId: resolvedCustomerId,
+      email,
+    });
+  } catch (error) {
+    console.warn("recordSurveyCompletionOnCustomer failed", error);
+  }
 }
 
 /** Legacy single-answer + multi-answer POST body. */

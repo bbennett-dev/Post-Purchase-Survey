@@ -99,6 +99,23 @@ export interface SurveyChannel {
   [key: string]: unknown;
 }
 
+/** User targeting block shared by channels that gate display on buyer segment. */
+export interface SurveyChannelUserTargeting {
+  type?: "all_users" | "segment";
+  returnCustomer?: boolean;
+  newCustomer?: boolean;
+  customerSegment?: SurveyCustomerSegmentGroup[];
+}
+
+/**
+ * Display eligibility settings reused across channels (rules differ per channel resolver).
+ * Post-purchase uses both fields today; future channels may use subsets or extend the document.
+ */
+export interface SurveyChannelDisplayRules {
+  userTargeting?: SurveyChannelUserTargeting;
+  widgetRecurrence?: string;
+}
+
 export type SegmentConditionField = "user_tag";
 
 export type SegmentConditionOperator = "include" | "exclude";
@@ -170,13 +187,7 @@ export interface PostPurchasePageChannel extends SurveyChannel {
     content?: string;
     buttonText?: string;
   };
-  userTargeting?: {
-    type?: "all_users" | "segment";
-    /** Segment mode: return buyers (locked on in competitor UI). */
-    returnCustomer?: boolean;
-    newCustomer?: boolean;
-    customerSegment?: SurveyCustomerSegmentGroup[];
-  };
+  userTargeting?: SurveyChannelUserTargeting;
   widgetRecurrence?: string;
   enabledSideLogo?: boolean;
   sideLogo?: {

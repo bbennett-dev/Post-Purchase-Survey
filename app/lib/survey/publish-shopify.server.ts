@@ -38,6 +38,7 @@ export async function publishSurveysToShop(
   if (appUrl) {
     (checkoutSurveys as Record<string, unknown>).__config = {
       submitUrl: `${appUrl}/api/survey-response`,
+      eligibilityUrl: `${appUrl}/api/survey-eligibility`,
     };
   }
   const channelIndex = buildChannelIndex(surveys);

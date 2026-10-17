@@ -36,7 +36,8 @@ interface EditorModalProviderProps {
 /**
  * Max modal shell: `TitleBar` + `SaveBar` are **children of `Modal`** on this
  * page so Shopify renders them in the grey modal chrome. The editor route loads
- * in `src` and syncs dirty/name via `BroadcastChannel`.
+ * in `src` and syncs dirty/name via `BroadcastChannel`. Save progress UI is the
+ * iframe overlay (`EditorSaveOverlay`), not SaveBar button loading.
  */
 export function EditorModalProvider({ children }: EditorModalProviderProps) {
   const [editorSrc, setEditorSrc] = useState<string | null>(null);
@@ -88,17 +89,25 @@ export function EditorModalProvider({ children }: EditorModalProviderProps) {
           onHide={handleHide}
         >
           <TitleBar title={editorName} />
-          {/* App Home WC: SaveBar must be a Modal child on the parent document. */}
           <SaveBar open={dirty}>
             <button
               type="button"
               variant="primary"
               disabled={saving}
-              onClick={() => postEditorBridgeCommand({ type: "save" })}
+              onClick={() => {
+                if (!saving) {
+                  postEditorBridgeCommand({ type: "save" });
+                }
+              }}
             />
             <button
               type="button"
-              onClick={() => postEditorBridgeCommand({ type: "discard" })}
+              disabled={saving}
+              onClick={() => {
+                if (!saving) {
+                  postEditorBridgeCommand({ type: "discard" });
+                }
+              }}
             />
           </SaveBar>
         </Modal>

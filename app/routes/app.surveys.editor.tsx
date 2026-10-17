@@ -9,6 +9,7 @@ import {
 } from "react-router";
 import surveyEditorListSurfaces from "../components/survey-editor/survey-editor-list-surfaces.css?url";
 import { EditorDiscardModal } from "../components/survey-editor/EditorDiscardModal";
+import { EditorSaveOverlay } from "../components/survey-editor/EditorSaveOverlay";
 import { SurveyEditorChrome } from "../components/survey-editor/SurveyEditorChrome";
 import { EditorFlexColumn, EditorFlexMain } from "../components/survey-editor/EditorFlexLayout";
 import {
@@ -131,6 +132,7 @@ export default function SurveyEditorPage() {
   const [discardOpen, setDiscardOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = useRef(false);
 
   const editorBodyRef = useRef<HTMLDivElement>(null);
   const surveyRef = useRef(survey);
@@ -140,6 +142,10 @@ export default function SurveyEditorPage() {
   useFillRemainingViewportHeight(editorBodyRef);
 
   const performSave = useCallback(async () => {
+    if (isSavingRef.current) {
+      return;
+    }
+    isSavingRef.current = true;
     setIsSaving(true);
     try {
       const token = await shopifyRef.current.idToken();
@@ -161,6 +167,7 @@ export default function SurveyEditorPage() {
       console.error("saveSurveyDocument", error);
       shopifyRef.current.toast.show("Could not save survey", { isError: true });
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   }, []);
@@ -181,6 +188,9 @@ export default function SurveyEditorPage() {
         void performSave();
       }
       if (message?.type === "discard") {
+        if (isSavingRef.current) {
+          return;
+        }
         setDiscardOpen(true);
       }
     };
@@ -206,11 +216,12 @@ export default function SurveyEditorPage() {
         <TitleBar title={survey.name}>
           {dirty ? (
             <>
-              <s-button onClick={() => setDiscardOpen(true)}>Discard</s-button>
+              <s-button disabled={isSaving} onClick={() => setDiscardOpen(true)}>
+                Discard
+              </s-button>
               <s-button
                 variant="primary"
                 disabled={isSaving}
-                loading={isSaving}
                 onClick={() => void performSave()}
               >
                 Save
@@ -241,6 +252,8 @@ export default function SurveyEditorPage() {
           />
         </div>
       </EditorFlexMain>
+
+      <EditorSaveOverlay active={isSaving} />
 
       <EditorDiscardModal
         open={discardOpen}
