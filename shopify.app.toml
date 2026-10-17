@@ -7,7 +7,7 @@ embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_metaobjects,write_metaobject_definitions,read_checkout_branding_settings,write_files,read_orders,read_customers,read_products"
+scopes = "write_metaobjects,write_metaobject_definitions,read_checkout_branding_settings,write_files,read_orders,read_customers,write_customers,read_products"
 
 # Published survey for theme / branded / embed channels (Liquid + Storefront API).
 # Values are written on Save via metaobjectUpsert; handle = survey id.
@@ -48,6 +48,16 @@ name = "Checkout surveys"
 description = "Published surveys for Thank you and Order status page extensions"
 
   [shop.metafields.app.checkout_surveys.access]
+  admin = "merchant_read"
+  storefront = "none"
+
+# Per-customer completion map for “once per customer” display recurrence (Admin read/write via app).
+[customer.metafields.app.survey_completions]
+type = "json"
+name = "Survey completions"
+description = "Survey UUID keys with completion time and order id for display recurrence"
+
+  [customer.metafields.app.survey_completions.access]
   admin = "merchant_read"
   storefront = "none"
 
