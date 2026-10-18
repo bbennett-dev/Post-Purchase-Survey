@@ -13,17 +13,25 @@ export interface SurveyListItem {
   name: string;
   question: string;
   status: SurveyStatus;
+  /** Enabled channel labels for badge stack in the index table. */
+  channels: string[];
   channelsLabel: string;
   responses: number;
   createdAt: string;
 }
 
 function formatSurveyDate(iso: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+  const datePart = new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(iso);
+  const timePart = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(iso);
+  return `${datePart} at ${timePart}`;
 }
 
 function questionFromDocument(document: SurveyDocument): string {
@@ -42,13 +50,14 @@ export async function listSurveyListItemsForShop(
 
   return rows.map((row) => {
     const document = row.document as unknown as SurveyDocument;
+    const channels = enabledChannelLabels(document, CHANNEL_LABELS);
     return {
       id: row.surveyUuid,
       name: row.name,
       question: questionFromDocument(document),
       status: row.status as SurveyStatus,
-      channelsLabel:
-        enabledChannelLabels(document, CHANNEL_LABELS).join(", ") || "—",
+      channels,
+      channelsLabel: channels.length > 0 ? channels.join(", ") : "—",
       responses: counts.get(row.surveyUuid) ?? 0,
       createdAt: formatSurveyDate(row.createdAt),
     };

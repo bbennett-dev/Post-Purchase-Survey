@@ -32,10 +32,21 @@ interface ResponseRow {
  */
 export const loader = async ({
   request,
-}: LoaderFunctionArgs): Promise<{ responses: ResponseRow[]; total: number }> => {
+}: LoaderFunctionArgs): Promise<{
+  responses: ResponseRow[];
+  total: number;
+  surveyFilter: string | null;
+}> => {
   const { session } = await authenticate.admin(request);
   const shop = await shopFromAdminSession(session);
-  const { items, total } = await listResponsesForAdminApi(shop, 0, 100);
+  const surveyFilter =
+    new URL(request.url).searchParams.get("survey")?.trim() || null;
+  const { items, total } = await listResponsesForAdminApi(
+    shop,
+    0,
+    100,
+    surveyFilter ?? undefined,
+  );
 
   const responses: ResponseRow[] = items.map((item) => ({
     id: item.id,
@@ -48,12 +59,12 @@ export const loader = async ({
     submittedAt: item.submittedAt,
   }));
 
-  return { responses, total };
+  return { responses, total, surveyFilter };
 };
 
 /** Response feed for Thank you / Order status submissions. */
 export default function ResponsesPage() {
-  const { responses, total } = useLoaderData<typeof loader>();
+  const { responses, total, surveyFilter } = useLoaderData<typeof loader>();
 
   const rows = responses.map((r) => [
     <Text key={`${r.id}-order`} as="span" fontWeight="semibold">
@@ -73,9 +84,13 @@ export default function ResponsesPage() {
     <Page
       title="Responses"
       subtitle={
-        total > 0
-          ? `${total} submission${total === 1 ? "" : "s"}`
-          : "No submissions yet"
+        surveyFilter
+          ? total > 0
+            ? `${total} submission${total === 1 ? "" : "s"} for this survey`
+            : "No submissions for this survey"
+          : total > 0
+            ? `${total} submission${total === 1 ? "" : "s"}`
+            : "No submissions yet"
       }
       primaryAction={
         <Button url="/app/surveys" variant="primary">

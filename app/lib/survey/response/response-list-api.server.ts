@@ -88,10 +88,16 @@ export async function listResponsesForAdminApi(
   shop: ShopRecord,
   skip: number,
   take: number,
+  surveyUuid?: string,
 ): Promise<ResponseListApiResult> {
+  const filterSurveyUuid = surveyUuid?.trim() || undefined;
   const [rows, total] = await Promise.all([
-    listSurveyResponsesForShop(shop, { take, skip }),
-    countSurveyResponsesForShop(shop),
+    listSurveyResponsesForShop(shop, {
+      take,
+      skip,
+      surveyUuid: filterSurveyUuid,
+    }),
+    countSurveyResponsesForShop(shop, filterSurveyUuid),
   ]);
 
   const items: ResponseListApiItem[] = rows.map((row) => {

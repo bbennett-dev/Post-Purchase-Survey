@@ -1,0 +1,14 @@
+/* IndexFilters tabs only accept string labels; semibold matches competitor view pills. */
+.indexFiltersTabs :global(.Polaris-Tabs__Tab) {
+  font-weight: var(--p-font-weight-semibold);
+}
+
+/* Primary name link: no underline until hover (competitor list). */
+.surveyNameLink :global(.Polaris-Link) {
+  text-decoration: none;
+}
+
+.surveyNameLink :global(.Polaris-Link:hover),
+.surveyNameLink :global(.Polaris-Link:focus-visible) {
+  text-decoration: underline;
+}

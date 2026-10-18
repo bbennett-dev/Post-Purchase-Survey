@@ -321,10 +321,17 @@ export async function recordSurveyResponseFromBody(input: {
 /** Paginated responses for admin / API mapper. */
 export async function listSurveyResponsesForShop(
   shop: ShopRecord,
-  options: { take: number; skip: number },
+  options: { take: number; skip: number; surveyUuid?: string },
 ) {
+  const surveyUuid = options.surveyUuid?.trim();
   return prisma.surveyResponse.findMany({
-    where: { shopId: shop.shopId, isArchived: false },
+    where: {
+      shopId: shop.shopId,
+      isArchived: false,
+      ...(surveyUuid
+        ? { survey: { surveyUuid } }
+        : {}),
+    },
     orderBy: { submittedAt: "desc" },
     take: options.take,
     skip: options.skip,
@@ -337,9 +344,15 @@ export async function listSurveyResponsesForShop(
 
 export async function countSurveyResponsesForShop(
   shop: ShopRecord,
+  surveyUuid?: string,
 ): Promise<number> {
+  const filterUuid = surveyUuid?.trim();
   return prisma.surveyResponse.count({
-    where: { shopId: shop.shopId, isArchived: false },
+    where: {
+      shopId: shop.shopId,
+      isArchived: false,
+      ...(filterUuid ? { survey: { surveyUuid: filterUuid } } : {}),
+    },
   });
 }
 
