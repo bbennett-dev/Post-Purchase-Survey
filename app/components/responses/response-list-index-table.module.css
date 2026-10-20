@@ -1,0 +1,27 @@
+.indexFiltersTabs :global(.Polaris-Tabs__Tab) {
+  font-weight: var(--p-font-weight-semibold);
+}
+
+.responseIdLink :global(.Polaris-Link) {
+  text-decoration: none;
+}
+
+.responseIdLink :global(.Polaris-Link:hover),
+.responseIdLink :global(.Polaris-Link:focus-visible) {
+  text-decoration: underline;
+}
+
+.responseIdRouterLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.responseIdRouterLink:hover,
+.responseIdRouterLink:focus-visible {
+  text-decoration: underline;
+}
+
+.satisfactionEmoji {
+  font-size: 1.25rem;
+  line-height: 1;
+}
