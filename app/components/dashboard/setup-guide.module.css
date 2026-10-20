@@ -1,0 +1,106 @@
+.completeButton {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #303030;
+}
+
+.itemContent {
+  width: 100%;
+  display: flex;
+  gap: 8rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.itemContentMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemImage {
+  flex-shrink: 0;
+  max-height: 7.75rem;
+  border-radius: var(--p-border-radius-200);
+  object-fit: cover;
+}
+
+@media (min-width: 48em) and (max-width: 61.871875em) {
+  .itemImage {
+    display: none;
+  }
+}
+
+@media (max-width: 45.625em) {
+  .itemImage {
+    display: none;
+  }
+}
+
+.progressSection {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.progressBarWrap {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.progressBarWrap :global(.Polaris-ProgressBar) {
+  width: 100%;
+  margin: 0;
+}
+
+.progressMeta {
+  display: flex;
+  align-items: center;
+  min-height: 1.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.completeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.35rem;
+  border-radius: var(--p-border-radius-full, 999px);
+  background: var(--p-color-bg-surface-success);
+  border: 1px solid var(--p-color-border-success);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.completeBadgeIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 100%;
+  background: var(--p-color-bg-fill-success);
+  color: var(--p-color-text-success-on-bg-fill, #fff);
+  flex-shrink: 0;
+}
+
+.completeBadgeIcon svg {
+  display: block;
+}
+
+.completeBadgeLabel {
+  font-size: var(--p-font-size-300, 0.8125rem);
+  font-weight: var(--p-font-weight-semibold, 600);
+  color: var(--p-color-text-success);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.progressCount {
+  font-size: var(--p-font-size-300, 0.8125rem);
+  color: var(--p-color-text-secondary);
+  line-height: 1.25;
+}
