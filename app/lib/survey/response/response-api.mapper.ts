@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type {
   SurveyResponseMeta,
+  SurveyResponseMetaVariant,
   SurveyResponseQuestionDto,
 } from "./survey-response.types";
 
@@ -42,7 +43,7 @@ export interface SurveyResponseListItemDto {
   deliveryMethodTitle: string | null;
   endingCardId: string | null;
   completionTime: number | null;
-  variants: unknown[];
+  variants: SurveyResponseMetaVariant[];
   isArchived: boolean;
 }
 

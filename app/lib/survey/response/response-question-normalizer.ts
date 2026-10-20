@@ -1,4 +1,3 @@
-import { emojiForNumberScaleValue } from "../number-scale-ui";
 import { choiceAnswersForQuestion } from "../preview-survey-flow";
 import { emojiForStarRatingValue } from "../star-rating-ui";
 import type {
@@ -44,36 +43,21 @@ function formatDateForDisplay(isoOrText: string): string {
   return trimmed;
 }
 
-function scaleStoredAnswer(
+function resolveScaleNumericValue(
   questionType: string,
   answer: SurveyResponseAnswerInput,
   question?: SurveyQuestion,
-): string | number {
+): number | null {
   if (typeof answer.number === "number" && !Number.isNaN(answer.number)) {
-    if (questionType === "number_scale") {
-      const n = answer.number;
-      return `${n} ${emojiForNumberScaleValue(n)}`.trim();
-    }
-    if (questionType === "star_rating" || questionType === "satisfaction") {
-      const n = answer.number;
-      return `${n} ${emojiForStarRatingValue(n)}`.trim();
-    }
     return answer.number;
   }
 
   const label = answer.answerLabels?.[0];
   if (label) {
     const parsed = Number.parseInt(label, 10);
-    if (questionType === "number_scale" && Number.isFinite(parsed)) {
-      return `${parsed} ${emojiForNumberScaleValue(parsed)}`.trim();
+    if (Number.isFinite(parsed)) {
+      return parsed;
     }
-    if (
-      (questionType === "star_rating" || questionType === "satisfaction") &&
-      Number.isFinite(parsed)
-    ) {
-      return `${parsed} ${emojiForStarRatingValue(parsed)}`.trim();
-    }
-    return label;
   }
 
   if (question && SCALE_TYPES.has(questionType)) {
@@ -81,19 +65,34 @@ function scaleStoredAnswer(
     const option = choiceAnswersForQuestion(question).find(
       (a) => a.id === selectedId,
     );
-    const parsed = option ? Number.parseInt(option.content, 10) : NaN;
-    if (questionType === "number_scale" && Number.isFinite(parsed)) {
-      return `${parsed} ${emojiForNumberScaleValue(parsed)}`.trim();
-    }
-    if (Number.isFinite(parsed)) {
-      return `${parsed} ${emojiForStarRatingValue(parsed)}`.trim();
-    }
-    if (option?.content) {
-      return option.content;
+    if (option) {
+      const parsed = Number.parseInt(option.content, 10);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
     }
   }
 
-  return "";
+  return null;
+}
+
+/** Persist scale answers: numbers for star/scale; emoji only for satisfaction. */
+function scaleStoredValue(
+  questionType: string,
+  answer: SurveyResponseAnswerInput,
+  question?: SurveyQuestion,
+): string | number {
+  const numeric = resolveScaleNumericValue(questionType, answer, question);
+  if (numeric == null) {
+    return answer.answerLabels?.[0] ?? "";
+  }
+  if (questionType === "satisfaction") {
+    return emojiForStarRatingValue(numeric);
+  }
+  if (questionType === "number_scale" || questionType === "star_rating") {
+    return numeric;
+  }
+  return numeric;
 }
 
 /**
@@ -147,16 +146,9 @@ export function normalizeSurveyResponseQuestions(
     }
 
     if (SCALE_TYPES.has(questionType)) {
-      const numeric =
-        typeof answer.number === "number"
-          ? answer.number
-          : Number.parseInt(answer.answerLabels?.[0] ?? "", 10);
-      const stored = scaleStoredAnswer(questionType, answer, questionDef);
       return {
         ...base,
-        answer:
-          stored ||
-          (Number.isFinite(numeric) ? numeric : answer.answerLabels?.[0] ?? ""),
+        answer: scaleStoredValue(questionType, answer, questionDef),
       };
     }
 

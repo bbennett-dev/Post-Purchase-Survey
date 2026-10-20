@@ -321,13 +321,20 @@ export async function recordSurveyResponseFromBody(input: {
 /** Paginated responses for admin / API mapper. */
 export async function listSurveyResponsesForShop(
   shop: ShopRecord,
-  options: { take: number; skip: number; surveyUuid?: string },
+  options: {
+    take: number;
+    skip: number;
+    surveyUuid?: string;
+    /** When true, list archived submissions only; default active (not archived). */
+    isArchived?: boolean;
+  },
 ) {
   const surveyUuid = options.surveyUuid?.trim();
+  const isArchived = options.isArchived ?? false;
   return prisma.surveyResponse.findMany({
     where: {
       shopId: shop.shopId,
-      isArchived: false,
+      isArchived,
       ...(surveyUuid
         ? { survey: { surveyUuid } }
         : {}),
@@ -342,15 +349,39 @@ export async function listSurveyResponsesForShop(
   });
 }
 
+/** Move a submission to or from archived (shop-scoped by response UUID). */
+export async function setSurveyResponseArchived(
+  shop: ShopRecord,
+  responseUuid: string,
+  isArchived: boolean,
+): Promise<"updated" | "not_found"> {
+  const id = responseUuid.trim();
+  if (!id) {
+    return "not_found";
+  }
+  const result = await prisma.surveyResponse.updateMany({
+    where: {
+      responseUuid: id,
+      shopId: shop.shopId,
+    },
+    data: {
+      isArchived,
+      archivedAt: isArchived ? new Date() : null,
+    },
+  });
+  return result.count > 0 ? "updated" : "not_found";
+}
+
 export async function countSurveyResponsesForShop(
   shop: ShopRecord,
   surveyUuid?: string,
+  isArchived = false,
 ): Promise<number> {
   const filterUuid = surveyUuid?.trim();
   return prisma.surveyResponse.count({
     where: {
       shopId: shop.shopId,
-      isArchived: false,
+      isArchived,
       ...(filterUuid ? { survey: { surveyUuid: filterUuid } } : {}),
     },
   });

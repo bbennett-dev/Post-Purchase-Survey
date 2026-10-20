@@ -89,6 +89,7 @@ export async function listResponsesForAdminApi(
   skip: number,
   take: number,
   surveyUuid?: string,
+  isArchived = false,
 ): Promise<ResponseListApiResult> {
   const filterSurveyUuid = surveyUuid?.trim() || undefined;
   const [rows, total] = await Promise.all([
@@ -96,8 +97,9 @@ export async function listResponsesForAdminApi(
       take,
       skip,
       surveyUuid: filterSurveyUuid,
+      isArchived,
     }),
-    countSurveyResponsesForShop(shop, filterSurveyUuid),
+    countSurveyResponsesForShop(shop, filterSurveyUuid, isArchived),
   ]);
 
   const items: ResponseListApiItem[] = rows.map((row) => {
