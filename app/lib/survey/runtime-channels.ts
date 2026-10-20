@@ -25,12 +25,33 @@ export function surveyHasCheckoutSurveysChannel(
   );
 }
 
+/**
+ * Whether a channel should appear as enabled in admin lists.
+ * `channels[].enabled` is authoritative; `channelTypes` covers legacy saves.
+ */
+export function isSurveyChannelEnabled(
+  document: SurveyDocument,
+  channelKey: string,
+): boolean {
+  const channel = document.channels?.[channelKey];
+  if (!channel) {
+    return false;
+  }
+  if (channel.enabled === true) {
+    return true;
+  }
+  if (channel.enabled === false) {
+    return false;
+  }
+  return (document.channelTypes ?? []).includes(channelKey);
+}
+
 /** Human-readable labels for enabled channels on a document. */
 export function enabledChannelLabels(
   document: SurveyDocument,
   labelsByKey: Record<string, string>,
 ): string[] {
   return Object.entries(document.channels ?? {})
-    .filter(([, channel]) => channel?.enabled === true)
+    .filter(([key]) => isSurveyChannelEnabled(document, key))
     .map(([key]) => labelsByKey[key] ?? key);
 }

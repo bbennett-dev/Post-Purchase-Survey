@@ -331,14 +331,14 @@ export function SurveyListIndexTable({
         </Text>
       </IndexTable.Cell>
       <IndexTable.Cell>
-        {survey.channels.length === 0 ? (
+        {survey.enabledChannels.length === 0 ? (
           <Text as="span" tone="subdued">
             —
           </Text>
         ) : (
           <BlockStack gap="100" inlineAlign="start">
-            {survey.channels.map((channel) => (
-              <Badge key={`${survey.id}-${channel}`}>{channel}</Badge>
+            {survey.enabledChannels.map((channel) => (
+              <Badge key={`${survey.id}-${channel.key}`}>{channel.label}</Badge>
             ))}
           </BlockStack>
         )}

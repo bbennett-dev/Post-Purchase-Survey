@@ -1,6 +1,5 @@
 import type { SurveyStatus } from "../survey-store.server";
-import { CHANNEL_LABELS } from "../channels";
-import { enabledChannelLabels } from "../runtime-channels";
+import { enabledChannelsForSurveyList } from "../survey-list-channels";
 import {
   listSurveyRowsForShop,
   responseCountsForSurveys,
@@ -13,8 +12,9 @@ export interface SurveyListItem {
   name: string;
   question: string;
   status: SurveyStatus;
-  /** Enabled channel labels for badge stack in the index table. */
-  channels: string[];
+  /** Enabled channels from the survey JSON (`channels` + `channelTypes`). */
+  enabledChannels: { key: string; label: string }[];
+  /** Flat labels for search and accessibility. */
   channelsLabel: string;
   responses: number;
   createdAt: string;
@@ -50,14 +50,16 @@ export async function listSurveyListItemsForShop(
 
   return rows.map((row) => {
     const document = row.document as unknown as SurveyDocument;
-    const channels = enabledChannelLabels(document, CHANNEL_LABELS);
+    const enabledChannels = enabledChannelsForSurveyList(document);
+    const channelLabels = enabledChannels.map((channel) => channel.label);
     return {
       id: row.surveyUuid,
       name: row.name,
       question: questionFromDocument(document),
       status: row.status as SurveyStatus,
-      channels,
-      channelsLabel: channels.length > 0 ? channels.join(", ") : "—",
+      enabledChannels,
+      channelsLabel:
+        channelLabels.length > 0 ? channelLabels.join(", ") : "—",
       responses: counts.get(row.surveyUuid) ?? 0,
       createdAt: formatSurveyDate(row.createdAt),
     };
