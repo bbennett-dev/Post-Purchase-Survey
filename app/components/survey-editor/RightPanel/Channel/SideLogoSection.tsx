@@ -172,7 +172,7 @@ export function SideLogoSection({
               )}
 
               <Text as="p" tone="subdued">
-                Leave empty to show the SEA logo
+                Leave empty to show the IKEO logo
               </Text>
             </BlockStack>
           </Box>

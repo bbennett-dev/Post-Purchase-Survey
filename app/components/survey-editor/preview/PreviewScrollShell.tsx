@@ -22,7 +22,7 @@ interface PreviewScrollShellProps {
 }
 
 /**
- * Preview column: scrollable mock surface + pinned footer (SEA help / demo reset).
+ * Preview column: scrollable mock surface + pinned footer (IKEO help / demo reset).
  * Native overflow avoids Polaris `Scrollable` focus rings on click.
  */
 export function PreviewScrollShell({

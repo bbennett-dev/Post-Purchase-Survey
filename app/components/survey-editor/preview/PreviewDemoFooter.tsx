@@ -9,7 +9,7 @@ export function PreviewDemoFooter({ onRestartDemo }: PreviewDemoFooterProps) {
     <BlockStack gap="200" inlineAlign="center">
       <InlineStack gap="100" blockAlign="center">
         <Text as="span" tone="subdued">
-          Want to hide the SEA logo?
+          Want to hide the IKEO logo?
         </Text>
         <Button variant="plain">Let us help</Button>
       </InlineStack>
