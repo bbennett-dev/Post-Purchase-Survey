@@ -6,6 +6,7 @@ import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-ro
 import { AppProvider as PolarisAppProvider } from "@shopify/polaris";
 import en from "@shopify/polaris/locales/en.json";
 import { AppHydrationShell } from "../components/AppHydrationShell";
+import { PolarisRouterLink } from "../components/PolarisRouterLink";
 import { EditorModalProvider } from "../lib/editor-modal";
 import { authenticate } from "../shopify.server";
 
@@ -26,7 +27,7 @@ export default function App() {
 
   return (
     <ShopifyAppProvider embedded apiKey={apiKey}>
-      <PolarisAppProvider i18n={en}>
+      <PolarisAppProvider i18n={en} linkComponent={PolarisRouterLink}>
         {isSurveyEditor ? null : (
           // App Home WC: platform nav matches Shopify RR template; App Bridge handles in-app routing.
           <s-app-nav>
