@@ -65,4 +65,9 @@ export default defineConfig({
       "@uiw/color-convert",
     ],
   },
+  // Vercel loads the SSR bundle as native Node ESM; external @uiw/color-convert
+  // named imports fail at runtime (CJS/ESM interop). Bundle these for SSR.
+  ssr: {
+    noExternal: ["@uiw/color-convert", "@uiw/react-color-sketch"],
+  },
 }) satisfies UserConfig;
