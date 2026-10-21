@@ -1,0 +1,614 @@
+{
+  "buildManifest": {
+    "serverBundles": {
+      "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0": {
+        "id": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+        "file": "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    },
+    "routeIdToServerBundleId": {
+      "routes/webhooks.customers.data_request": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/webhooks.app.scopes_update": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/webhooks.customers.redact": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/webhooks.app.uninstalled": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.survey-eligibility": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/webhooks.shop.redact": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.survey-response": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.shopify.file": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.responses": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.surveys": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/api.surveys.$surveyUuid": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.login": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/privacy": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/_index": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/auth.$": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.surveys.templates": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.surveys._index": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.surveys.editor": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.integrations": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.analytics": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.responses.$responseId": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.responses._index": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app.settings": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
+      "routes/app._index": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0"
+    },
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "app/root.tsx",
+        "path": "",
+        "config": {}
+      },
+      "routes/webhooks.customers.data_request": {
+        "id": "routes/webhooks.customers.data_request",
+        "parentId": "root",
+        "file": "app/routes/webhooks.customers.data_request.tsx",
+        "path": "webhooks/customers/data_request",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/webhooks.app.scopes_update": {
+        "id": "routes/webhooks.app.scopes_update",
+        "parentId": "root",
+        "file": "app/routes/webhooks.app.scopes_update.tsx",
+        "path": "webhooks/app/scopes_update",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/webhooks.customers.redact": {
+        "id": "routes/webhooks.customers.redact",
+        "parentId": "root",
+        "file": "app/routes/webhooks.customers.redact.tsx",
+        "path": "webhooks/customers/redact",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/webhooks.app.uninstalled": {
+        "id": "routes/webhooks.app.uninstalled",
+        "parentId": "root",
+        "file": "app/routes/webhooks.app.uninstalled.tsx",
+        "path": "webhooks/app/uninstalled",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.survey-eligibility": {
+        "id": "routes/api.survey-eligibility",
+        "parentId": "root",
+        "file": "app/routes/api.survey-eligibility.tsx",
+        "path": "api/survey-eligibility",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/webhooks.shop.redact": {
+        "id": "routes/webhooks.shop.redact",
+        "parentId": "root",
+        "file": "app/routes/webhooks.shop.redact.tsx",
+        "path": "webhooks/shop/redact",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.survey-response": {
+        "id": "routes/api.survey-response",
+        "parentId": "root",
+        "file": "app/routes/api.survey-response.tsx",
+        "path": "api/survey-response",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.shopify.file": {
+        "id": "routes/api.shopify.file",
+        "parentId": "root",
+        "file": "app/routes/api.shopify.file.tsx",
+        "path": "api/shopify/file",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.responses": {
+        "id": "routes/api.responses",
+        "parentId": "root",
+        "file": "app/routes/api.responses.tsx",
+        "path": "api/responses",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.surveys": {
+        "id": "routes/api.surveys",
+        "parentId": "root",
+        "file": "app/routes/api.surveys.tsx",
+        "path": "api/surveys",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/api.surveys.$surveyUuid": {
+        "id": "routes/api.surveys.$surveyUuid",
+        "parentId": "routes/api.surveys",
+        "file": "app/routes/api.surveys.$surveyUuid.tsx",
+        "path": ":surveyUuid",
+        "config": {}
+      },
+      "routes/auth.login": {
+        "id": "routes/auth.login",
+        "parentId": "root",
+        "file": "app/routes/auth.login/route.tsx",
+        "path": "auth/login",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/privacy": {
+        "id": "routes/privacy",
+        "parentId": "root",
+        "file": "app/routes/privacy.tsx",
+        "path": "privacy",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/_index": {
+        "id": "routes/_index",
+        "parentId": "root",
+        "file": "app/routes/_index/route.tsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/auth.$": {
+        "id": "routes/auth.$",
+        "parentId": "root",
+        "file": "app/routes/auth.$.tsx",
+        "path": "auth/*",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app": {
+        "id": "routes/app",
+        "parentId": "root",
+        "file": "app/routes/app.tsx",
+        "path": "app",
+        "config": {}
+      },
+      "routes/app.surveys.templates": {
+        "id": "routes/app.surveys.templates",
+        "parentId": "routes/app",
+        "file": "app/routes/app.surveys.templates.tsx",
+        "path": "surveys/templates",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.surveys._index": {
+        "id": "routes/app.surveys._index",
+        "parentId": "routes/app",
+        "file": "app/routes/app.surveys._index.tsx",
+        "path": "surveys",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.surveys.editor": {
+        "id": "routes/app.surveys.editor",
+        "parentId": "routes/app",
+        "file": "app/routes/app.surveys.editor.tsx",
+        "path": "surveys/editor",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.integrations": {
+        "id": "routes/app.integrations",
+        "parentId": "routes/app",
+        "file": "app/routes/app.integrations.tsx",
+        "path": "integrations",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.analytics": {
+        "id": "routes/app.analytics",
+        "parentId": "routes/app",
+        "file": "app/routes/app.analytics.tsx",
+        "path": "analytics",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.responses": {
+        "id": "routes/app.responses",
+        "parentId": "routes/app",
+        "file": "app/routes/app.responses.tsx",
+        "path": "responses",
+        "config": {}
+      },
+      "routes/app.responses.$responseId": {
+        "id": "routes/app.responses.$responseId",
+        "parentId": "routes/app.responses",
+        "file": "app/routes/app.responses.$responseId.tsx",
+        "path": ":responseId",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.responses._index": {
+        "id": "routes/app.responses._index",
+        "parentId": "routes/app.responses",
+        "file": "app/routes/app.responses._index.tsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app.settings": {
+        "id": "routes/app.settings",
+        "parentId": "routes/app",
+        "file": "app/routes/app.settings.tsx",
+        "path": "settings",
+        "config": {
+          "runtime": "nodejs"
+        }
+      },
+      "routes/app._index": {
+        "id": "routes/app._index",
+        "parentId": "routes/app",
+        "file": "app/routes/app._index.tsx",
+        "index": true,
+        "config": {
+          "runtime": "nodejs"
+        }
+      }
+    }
+  },
+  "reactRouterConfig": {
+    "appDirectory": "/Users/prabhakaranponnusamy/Documents/Projects/Retainful/docker/Post-Purchase-Survey/app",
+    "basename": "/",
+    "buildDirectory": "/Users/prabhakaranponnusamy/Documents/Projects/Retainful/docker/Post-Purchase-Survey/build",
+    "future": {
+      "unstable_optimizeDeps": false,
+      "v8_passThroughRequests": false,
+      "v8_trailingSlashAwareDataRequests": false,
+      "unstable_previewServerPrerendering": false,
+      "v8_middleware": false,
+      "v8_splitRouteModules": false,
+      "v8_viteEnvironmentApi": false
+    },
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "root.tsx",
+        "path": ""
+      },
+      "routes/webhooks.customers.data_request": {
+        "id": "routes/webhooks.customers.data_request",
+        "parentId": "root",
+        "file": "routes/webhooks.customers.data_request.tsx",
+        "path": "webhooks/customers/data_request"
+      },
+      "routes/webhooks.app.scopes_update": {
+        "id": "routes/webhooks.app.scopes_update",
+        "parentId": "root",
+        "file": "routes/webhooks.app.scopes_update.tsx",
+        "path": "webhooks/app/scopes_update"
+      },
+      "routes/webhooks.customers.redact": {
+        "id": "routes/webhooks.customers.redact",
+        "parentId": "root",
+        "file": "routes/webhooks.customers.redact.tsx",
+        "path": "webhooks/customers/redact"
+      },
+      "routes/webhooks.app.uninstalled": {
+        "id": "routes/webhooks.app.uninstalled",
+        "parentId": "root",
+        "file": "routes/webhooks.app.uninstalled.tsx",
+        "path": "webhooks/app/uninstalled"
+      },
+      "routes/api.survey-eligibility": {
+        "id": "routes/api.survey-eligibility",
+        "parentId": "root",
+        "file": "routes/api.survey-eligibility.tsx",
+        "path": "api/survey-eligibility"
+      },
+      "routes/webhooks.shop.redact": {
+        "id": "routes/webhooks.shop.redact",
+        "parentId": "root",
+        "file": "routes/webhooks.shop.redact.tsx",
+        "path": "webhooks/shop/redact"
+      },
+      "routes/api.survey-response": {
+        "id": "routes/api.survey-response",
+        "parentId": "root",
+        "file": "routes/api.survey-response.tsx",
+        "path": "api/survey-response"
+      },
+      "routes/api.shopify.file": {
+        "id": "routes/api.shopify.file",
+        "parentId": "root",
+        "file": "routes/api.shopify.file.tsx",
+        "path": "api/shopify/file"
+      },
+      "routes/api.responses": {
+        "id": "routes/api.responses",
+        "parentId": "root",
+        "file": "routes/api.responses.tsx",
+        "path": "api/responses"
+      },
+      "routes/api.surveys": {
+        "id": "routes/api.surveys",
+        "parentId": "root",
+        "file": "routes/api.surveys.tsx",
+        "path": "api/surveys"
+      },
+      "routes/api.surveys.$surveyUuid": {
+        "id": "routes/api.surveys.$surveyUuid",
+        "parentId": "routes/api.surveys",
+        "file": "routes/api.surveys.$surveyUuid.tsx",
+        "path": ":surveyUuid"
+      },
+      "routes/auth.login": {
+        "id": "routes/auth.login",
+        "parentId": "root",
+        "file": "routes/auth.login/route.tsx",
+        "path": "auth/login"
+      },
+      "routes/privacy": {
+        "id": "routes/privacy",
+        "parentId": "root",
+        "file": "routes/privacy.tsx",
+        "path": "privacy"
+      },
+      "routes/_index": {
+        "id": "routes/_index",
+        "parentId": "root",
+        "file": "routes/_index/route.tsx",
+        "index": true
+      },
+      "routes/auth.$": {
+        "id": "routes/auth.$",
+        "parentId": "root",
+        "file": "routes/auth.$.tsx",
+        "path": "auth/*"
+      },
+      "routes/app": {
+        "id": "routes/app",
+        "parentId": "root",
+        "file": "routes/app.tsx",
+        "path": "app"
+      },
+      "routes/app.surveys.templates": {
+        "id": "routes/app.surveys.templates",
+        "parentId": "routes/app",
+        "file": "routes/app.surveys.templates.tsx",
+        "path": "surveys/templates"
+      },
+      "routes/app.surveys._index": {
+        "id": "routes/app.surveys._index",
+        "parentId": "routes/app",
+        "file": "routes/app.surveys._index.tsx",
+        "path": "surveys",
+        "index": true
+      },
+      "routes/app.surveys.editor": {
+        "id": "routes/app.surveys.editor",
+        "parentId": "routes/app",
+        "file": "routes/app.surveys.editor.tsx",
+        "path": "surveys/editor"
+      },
+      "routes/app.integrations": {
+        "id": "routes/app.integrations",
+        "parentId": "routes/app",
+        "file": "routes/app.integrations.tsx",
+        "path": "integrations"
+      },
+      "routes/app.analytics": {
+        "id": "routes/app.analytics",
+        "parentId": "routes/app",
+        "file": "routes/app.analytics.tsx",
+        "path": "analytics"
+      },
+      "routes/app.responses": {
+        "id": "routes/app.responses",
+        "parentId": "routes/app",
+        "file": "routes/app.responses.tsx",
+        "path": "responses"
+      },
+      "routes/app.responses.$responseId": {
+        "id": "routes/app.responses.$responseId",
+        "parentId": "routes/app.responses",
+        "file": "routes/app.responses.$responseId.tsx",
+        "path": ":responseId"
+      },
+      "routes/app.responses._index": {
+        "id": "routes/app.responses._index",
+        "parentId": "routes/app.responses",
+        "file": "routes/app.responses._index.tsx",
+        "index": true
+      },
+      "routes/app.settings": {
+        "id": "routes/app.settings",
+        "parentId": "routes/app",
+        "file": "routes/app.settings.tsx",
+        "path": "settings"
+      },
+      "routes/app._index": {
+        "id": "routes/app._index",
+        "parentId": "routes/app",
+        "file": "routes/app._index.tsx",
+        "index": true
+      }
+    },
+    "routeDiscovery": {
+      "mode": "lazy",
+      "manifestPath": "/__manifest"
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": true,
+    "subResourceIntegrity": false,
+    "allowedActionOrigins": false,
+    "unstable_routeConfig": [
+      {
+        "id": "root",
+        "path": "",
+        "file": "root.tsx",
+        "children": [
+          {
+            "id": "routes/webhooks.customers.data_request",
+            "file": "routes/webhooks.customers.data_request.tsx",
+            "path": "webhooks/customers/data_request"
+          },
+          {
+            "id": "routes/webhooks.app.scopes_update",
+            "file": "routes/webhooks.app.scopes_update.tsx",
+            "path": "webhooks/app/scopes_update"
+          },
+          {
+            "id": "routes/webhooks.customers.redact",
+            "file": "routes/webhooks.customers.redact.tsx",
+            "path": "webhooks/customers/redact"
+          },
+          {
+            "id": "routes/webhooks.app.uninstalled",
+            "file": "routes/webhooks.app.uninstalled.tsx",
+            "path": "webhooks/app/uninstalled"
+          },
+          {
+            "id": "routes/api.survey-eligibility",
+            "file": "routes/api.survey-eligibility.tsx",
+            "path": "api/survey-eligibility"
+          },
+          {
+            "id": "routes/webhooks.shop.redact",
+            "file": "routes/webhooks.shop.redact.tsx",
+            "path": "webhooks/shop/redact"
+          },
+          {
+            "id": "routes/api.survey-response",
+            "file": "routes/api.survey-response.tsx",
+            "path": "api/survey-response"
+          },
+          {
+            "id": "routes/api.shopify.file",
+            "file": "routes/api.shopify.file.tsx",
+            "path": "api/shopify/file"
+          },
+          {
+            "id": "routes/api.responses",
+            "file": "routes/api.responses.tsx",
+            "path": "api/responses"
+          },
+          {
+            "id": "routes/api.surveys",
+            "file": "routes/api.surveys.tsx",
+            "path": "api/surveys",
+            "children": [
+              {
+                "id": "routes/api.surveys.$surveyUuid",
+                "file": "routes/api.surveys.$surveyUuid.tsx",
+                "path": ":surveyUuid"
+              }
+            ]
+          },
+          {
+            "id": "routes/auth.login",
+            "file": "routes/auth.login/route.tsx",
+            "path": "auth/login"
+          },
+          {
+            "id": "routes/privacy",
+            "file": "routes/privacy.tsx",
+            "path": "privacy"
+          },
+          {
+            "id": "routes/_index",
+            "file": "routes/_index/route.tsx",
+            "index": true
+          },
+          {
+            "id": "routes/auth.$",
+            "file": "routes/auth.$.tsx",
+            "path": "auth/*"
+          },
+          {
+            "id": "routes/app",
+            "file": "routes/app.tsx",
+            "path": "app",
+            "children": [
+              {
+                "id": "routes/app.surveys.templates",
+                "file": "routes/app.surveys.templates.tsx",
+                "path": "surveys/templates"
+              },
+              {
+                "id": "routes/app.surveys._index",
+                "file": "routes/app.surveys._index.tsx",
+                "path": "surveys",
+                "index": true
+              },
+              {
+                "id": "routes/app.surveys.editor",
+                "file": "routes/app.surveys.editor.tsx",
+                "path": "surveys/editor"
+              },
+              {
+                "id": "routes/app.integrations",
+                "file": "routes/app.integrations.tsx",
+                "path": "integrations"
+              },
+              {
+                "id": "routes/app.analytics",
+                "file": "routes/app.analytics.tsx",
+                "path": "analytics"
+              },
+              {
+                "id": "routes/app.responses",
+                "file": "routes/app.responses.tsx",
+                "path": "responses",
+                "children": [
+                  {
+                    "id": "routes/app.responses.$responseId",
+                    "file": "routes/app.responses.$responseId.tsx",
+                    "path": ":responseId"
+                  },
+                  {
+                    "id": "routes/app.responses._index",
+                    "file": "routes/app.responses._index.tsx",
+                    "index": true
+                  }
+                ]
+              },
+              {
+                "id": "routes/app.settings",
+                "file": "routes/app.settings.tsx",
+                "path": "settings"
+              },
+              {
+                "id": "routes/app._index",
+                "file": "routes/app._index.tsx",
+                "index": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}
