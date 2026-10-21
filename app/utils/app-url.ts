@@ -2,20 +2,32 @@
  * Production app URL for OAuth and embedded admin.
  * On Vercel, `SHOPIFY_APP_URL` can be omitted when `VERCEL_PROJECT_PRODUCTION_URL` is set.
  */
+function normalizeOrigin(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
+/** Non-empty env value, or undefined when missing/blank. */
+function envOrUndefined(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value ? value : undefined;
+}
+
 export function getAppUrl(): string {
-  const explicit = process.env.SHOPIFY_APP_URL;
+  const explicit = envOrUndefined("SHOPIFY_APP_URL");
   if (explicit) {
-    return explicit.replace(/\/$/, "");
+    return normalizeOrigin(explicit);
   }
 
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (vercel) {
-    return `https://${vercel}`;
+  const vercelProduction = envOrUndefined("VERCEL_PROJECT_PRODUCTION_URL");
+  if (vercelProduction) {
+    const host = vercelProduction.replace(/^https?:\/\//, "");
+    return `https://${host}`;
   }
 
-  const vercelUrl = process.env.VERCEL_URL;
+  const vercelUrl = envOrUndefined("VERCEL_URL");
   if (vercelUrl) {
-    return `https://${vercelUrl}`;
+    const host = vercelUrl.replace(/^https?:\/\//, "");
+    return `https://${host}`;
   }
 
   return "http://localhost:3000";
