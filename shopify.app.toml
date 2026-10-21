@@ -2,7 +2,7 @@
 
 client_id = "bd4c1b906750205d3e570893697cbdf5"
 name = "Post-Purchase Survey (HDYHAU)"
-application_url = "https://example.com"
+application_url = "https://post-purchase-survey-nine.vercel.app"
 embedded = true
 
 [access_scopes]
@@ -86,8 +86,10 @@ api_version = "2026-10"
   compliance_topics = [ "shop/redact" ]
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+# Must match authPathPrefix `/auth` in app/shopify.server.ts (React Router template).
+redirect_urls = [
+  "https://post-purchase-survey-nine.vercel.app/auth/callback",
+]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
