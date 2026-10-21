@@ -155,8 +155,7 @@ export function SettingsHome({
                     <Link url="/privacy" target="_blank">
                       Privacy policy
                     </Link>
-                    . Replace placeholders with your legal entity and support
-                    email before production.
+                    .
                   </Text>
                 </BlockStack>
               </Card>

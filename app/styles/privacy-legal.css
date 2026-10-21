@@ -1,0 +1,320 @@
+/**
+ * Plain CSS for /privacy — stable SSR + hydration (see survey-editor-list-surfaces.css).
+ * Prefixed with ppl- to avoid clashing with Polaris global styles.
+ */
+
+.ppl-root {
+  --ppl-bg: #fafafa;
+  --ppl-surface: #ffffff;
+  --ppl-text: #141414;
+  --ppl-muted: #5c5c5c;
+  --ppl-border: #e8e8e8;
+  --ppl-accent: #141414;
+  --ppl-max: 42rem;
+  --ppl-nav-width: 11.5rem;
+
+  min-height: 100vh;
+  background: var(--ppl-bg);
+  color: var(--ppl-text);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  letter-spacing: -0.011em;
+}
+
+.ppl-root *,
+.ppl-root *::before,
+.ppl-root *::after {
+  box-sizing: border-box;
+}
+
+.ppl-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--ppl-accent);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 0.5rem;
+}
+
+.ppl-skip:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+.ppl-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--ppl-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--ppl-border);
+}
+
+.ppl-headerInner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ppl-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  letter-spacing: -0.02em;
+}
+
+.ppl-brandMark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--ppl-accent);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ppl-headerCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--ppl-accent);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ppl-headerCta:hover {
+  opacity: 0.88;
+}
+
+.ppl-shell {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+  display: grid;
+  gap: 2.5rem;
+}
+
+@media (min-width: 960px) {
+  .ppl-shell {
+    grid-template-columns: var(--ppl-nav-width) minmax(0, 1fr);
+    padding-top: 3rem;
+    gap: 4rem;
+  }
+}
+
+.ppl-sectionNav {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .ppl-sectionNav {
+    display: block;
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+  }
+}
+
+.ppl-sectionNavLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ppl-muted);
+  margin: 0 0 0.75rem;
+}
+
+.ppl-sectionNavList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ppl-sectionNavLink {
+  display: block;
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ppl-muted);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+.ppl-sectionNavLink:hover {
+  color: var(--ppl-text);
+}
+
+.ppl-sectionNavLink:focus-visible {
+  outline: 2px solid var(--ppl-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.ppl-article {
+  max-width: var(--ppl-max);
+}
+
+.ppl-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ppl-muted);
+  margin: 0 0 0.75rem;
+}
+
+.ppl-title {
+  margin: 0 0 1.25rem;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.ppl-lead {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--ppl-text);
+}
+
+.ppl-metaLine {
+  margin: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  color: var(--ppl-muted);
+}
+
+.ppl-disclaimer {
+  margin: 0 0 2.5rem;
+  padding: 1rem 1.125rem;
+  background: var(--ppl-surface);
+  border: 1px solid var(--ppl-border);
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ppl-muted);
+  line-height: 1.55;
+}
+
+.ppl-section {
+  margin-bottom: 2.5rem;
+  scroll-margin-top: 5.5rem;
+}
+
+.ppl-sectionTitle {
+  margin: 0 0 1rem;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.ppl-paragraph {
+  margin: 0 0 1rem;
+  color: var(--ppl-text);
+}
+
+.ppl-list {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.ppl-list li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.ppl-list li::marker {
+  color: var(--ppl-muted);
+}
+
+.ppl-footer {
+  border-top: 1px solid var(--ppl-border);
+  background: var(--ppl-surface);
+  margin-top: 1rem;
+}
+
+.ppl-footerInner {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 2rem;
+  display: grid;
+  gap: 2rem;
+}
+
+@media (min-width: 640px) {
+  .ppl-footerInner {
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+}
+
+.ppl-footerBrand {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.ppl-footerTagline {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ppl-muted);
+  max-width: 20rem;
+}
+
+.ppl-footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  font-size: 0.875rem;
+}
+
+.ppl-footerLinks a {
+  color: var(--ppl-muted);
+  text-decoration: none;
+}
+
+.ppl-footerLinks a:hover {
+  color: var(--ppl-text);
+}
+
+.ppl-footerLegal {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ppl-border);
+  font-size: 0.8125rem;
+  color: var(--ppl-muted);
+  line-height: 1.5;
+}
