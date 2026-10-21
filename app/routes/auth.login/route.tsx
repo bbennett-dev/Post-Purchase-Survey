@@ -9,8 +9,13 @@ import {
   TextField,
 } from "@shopify/polaris";
 import { useState } from "react";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
+import type {
+  ActionFunctionArgs,
+  LinksFunction,
+  LoaderFunctionArgs,
+} from "react-router";
 import { Form, useActionData, useLoaderData } from "react-router";
+import { polarisDocumentLinks } from "../../lib/styles/document-links";
 import en from "@shopify/polaris/locales/en.json";
 
 import { AUTH_LOGIN_LIMIT } from "../../lib/security/rate-limit-config.server";
@@ -34,6 +39,8 @@ function enforceLoginRateLimit(request: Request): Response | null {
   }
   return null;
 }
+
+export const links: LinksFunction = () => [...polarisDocumentLinks()];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const limited = enforceLoginRateLimit(request);

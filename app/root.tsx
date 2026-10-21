@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { LinksFunction } from "react-router";
 import {
   Links,
   Meta,
@@ -7,33 +7,35 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-/** Stable path — synced from node_modules on dev/build (see scripts/sync-polaris-styles.mjs). */
-const POLARIS_REACT_STYLESHEET = "/polaris-react.css";
+/** Fixed public URLs (synced to public/styles on dev/build). */
+const PUBLIC_STYLESHEETS = [
+  "/styles/app-home.css",
+  "/styles/privacy-legal.css",
+] as const;
 
-export function Layout({ children }: { children: ReactNode }) {
+/**
+ * Route `links()` keeps marketing CSS in React Router's head pipeline so SSR and
+ * client `<Links />` output stay identical (avoids dev hydration head mismatch).
+ */
+export const links: LinksFunction = () => [
+  { rel: "preconnect", href: "https://cdn.shopify.com/" },
+  ...PUBLIC_STYLESHEETS.map((href) => ({ rel: "stylesheet", href })),
+];
+
+export default function App() {
   return (
-    <html lang="en">
-      <head>
+    <html lang="en" suppressHydrationWarning>
+      <head suppressHydrationWarning>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <link rel="preconnect" href="https://cdn.shopify.com/" />
-        <link rel="stylesheet" href={POLARIS_REACT_STYLESHEET} />
-        <link
-          rel="stylesheet"
-          href="https://cdn.shopify.com/static/fonts/inter/v4/styles.css"
-        />
         <Meta />
         <Links />
       </head>
-      <body>
-        {children}
+      <body suppressHydrationWarning>
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
   );
-}
-
-export default function App() {
-  return <Outlet />;
 }

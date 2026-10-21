@@ -1,11 +1,12 @@
-import type { LinksFunction, MetaFunction } from "react-router";
+import type { MetaFunction } from "react-router";
+import { Link } from "react-router";
+import { renderPolicyText } from "../lib/legal/render-policy-text";
 import {
   PRIVACY_POLICY_DISCLAIMER,
   PRIVACY_POLICY_INTRO,
   PRIVACY_POLICY_META,
   PRIVACY_POLICY_SECTIONS,
 } from "../lib/legal/privacy-policy-sections";
-import privacyLegalStyles from "../styles/privacy-legal.css?url";
 
 const BRAND_SHORT = "Post-Purchase Survey";
 const BRAND_INITIALS = "PP";
@@ -17,15 +18,6 @@ export const meta: MetaFunction = () => [
     content: PRIVACY_POLICY_INTRO,
   },
 ];
-
-/** Stable stylesheet URL for SSR + hydration (not CSS modules). */
-export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: privacyLegalStyles },
-];
-
-function appHomeHref(): string {
-  return PRIVACY_POLICY_META.productionAppUrl;
-}
 
 /**
  * Public privacy policy (no Shopify auth). Use this URL in the App Store listing.
@@ -41,16 +33,16 @@ export default function PrivacyPolicyPage() {
 
       <header className="ppl-header">
         <div className="ppl-headerInner">
-          <a className="ppl-brand" href={appHomeHref()}>
+          <Link className="ppl-brand" to="/">
             <span className="ppl-brandMark" aria-hidden>
               {BRAND_INITIALS}
             </span>
             {BRAND_SHORT}
-          </a>
-          <a className="ppl-headerCta" href={appHomeHref()}>
+          </Link>
+          <Link className="ppl-headerCta" to="/#login">
             Open app
             <span aria-hidden>→</span>
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -92,13 +84,15 @@ export default function PrivacyPolicyPage() {
                   className="ppl-paragraph"
                   key={`${section.id}-p-${index}`}
                 >
-                  {paragraph}
+                  {renderPolicyText(paragraph)}
                 </p>
               ))}
               {section.bullets?.length ? (
                 <ul className="ppl-list">
                   {section.bullets.map((item, index) => (
-                    <li key={`${section.id}-b-${index}`}>{item}</li>
+                    <li key={`${section.id}-b-${index}`}>
+                      {renderPolicyText(item)}
+                    </li>
                   ))}
                 </ul>
               ) : null}
@@ -107,7 +101,7 @@ export default function PrivacyPolicyPage() {
                   className="ppl-paragraph"
                   key={`${section.id}-f-${index}`}
                 >
-                  {paragraph}
+                  {renderPolicyText(paragraph)}
                 </p>
               ))}
             </section>
@@ -124,8 +118,8 @@ export default function PrivacyPolicyPage() {
             </p>
           </div>
           <nav className="ppl-footerLinks" aria-label="Footer">
-            <a href="/privacy">Privacy</a>
-            <a href={appHomeHref()}>App home</a>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/">App home</Link>
           </nav>
           <p className="ppl-footerLegal">
             © {year} {PRIVACY_POLICY_META.legalEntity}. Not affiliated with

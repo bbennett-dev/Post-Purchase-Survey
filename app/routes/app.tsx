@@ -1,4 +1,5 @@
-import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
+import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
+import { polarisDocumentLinks } from "../lib/styles/document-links";
 import { Outlet, useLoaderData, useLocation, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider as ShopifyAppProvider } from "@shopify/shopify-app-react-router/react";
@@ -7,6 +8,9 @@ import en from "@shopify/polaris/locales/en.json";
 import { AppHydrationShell } from "../components/AppHydrationShell";
 import { EditorModalProvider } from "../lib/editor-modal";
 import { authenticate } from "../shopify.server";
+
+/** Polaris + Inter only on embedded admin routes (keeps public `/` head stable). */
+export const links: LinksFunction = () => [...polarisDocumentLinks()];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);

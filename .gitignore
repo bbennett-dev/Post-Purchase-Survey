@@ -7,6 +7,7 @@ node_modules
 /build
 /app/build
 /public/polaris-react.css
+/public/styles/
 /public/build/
 /public/_dev
 /app/public/build

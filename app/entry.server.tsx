@@ -1,4 +1,4 @@
-import { PassThrough } from "stream";
+import { PassThrough } from "node:stream";
 import { renderToPipeableStream } from "react-dom/server";
 import { ServerRouter } from "react-router";
 import { createReadableStreamFromReadable } from "@react-router/node";
@@ -8,24 +8,80 @@ import { addDocumentResponseHeaders } from "./shopify.server";
 
 export const streamTimeout = 5000;
 
+/**
+ * In development, buffer the full HTML before sending the response so the browser
+ * receives turbo-stream bootstrap scripts in the same download as the shell.
+ */
+async function renderBufferedDocument(
+  request: Request,
+  responseStatusCode: number,
+  responseHeaders: Headers,
+  reactRouterContext: EntryContext,
+): Promise<Response> {
+  addDocumentResponseHeaders(request, responseHeaders);
+
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const body = new PassThrough();
+
+    body.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    body.on("error", reject);
+
+    body.on("end", () => {
+      responseHeaders.set("Content-Type", "text/html; charset=utf-8");
+      resolve(
+        new Response(Buffer.concat(chunks), {
+          headers: responseHeaders,
+          status: responseStatusCode,
+        }),
+      );
+    });
+
+    const { pipe, abort } = renderToPipeableStream(
+      <ServerRouter context={reactRouterContext} url={request.url} />,
+      {
+        onAllReady() {
+          pipe(body);
+        },
+        onShellError(error) {
+          reject(error);
+        },
+        onError(error) {
+          responseStatusCode = 500;
+          console.error(error);
+        },
+      },
+    );
+
+    setTimeout(abort, streamTimeout + 1000);
+  });
+}
+
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  reactRouterContext: EntryContext
+  reactRouterContext: EntryContext,
 ) {
+  if (process.env.NODE_ENV === "development") {
+    return renderBufferedDocument(
+      request,
+      responseStatusCode,
+      responseHeaders,
+      reactRouterContext,
+    );
+  }
+
   addDocumentResponseHeaders(request, responseHeaders);
   const userAgent = request.headers.get("user-agent");
-  const callbackName = isbot(userAgent ?? '')
-    ? "onAllReady"
-    : "onShellReady";
+  const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
 
   return new Promise((resolve, reject) => {
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter
-        context={reactRouterContext}
-        url={request.url}
-      />,
+      <ServerRouter context={reactRouterContext} url={request.url} />,
       {
         [callbackName]: () => {
           const body = new PassThrough();
@@ -36,7 +92,7 @@ export default async function handleRequest(
             new Response(stream, {
               headers: responseHeaders,
               status: responseStatusCode,
-            })
+            }),
           );
           pipe(body);
         },
@@ -47,11 +103,9 @@ export default async function handleRequest(
           responseStatusCode = 500;
           console.error(error);
         },
-      }
+      },
     );
 
-    // Automatically timeout the React renderer after 6 seconds, which ensures
-    // React has enough time to flush down the rejected boundary contents
     setTimeout(abort, streamTimeout + 1000);
   });
 }
