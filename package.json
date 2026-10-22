@@ -21,7 +21,7 @@
     "graphql-codegen": "graphql-codegen",
     "vite": "vite",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "test": "node --experimental-strip-types --test app/lib/survey/response/submission-context-merge.test.ts app/lib/survey/admin-api/parse-save-body.test.ts app/lib/survey/post-purchase-display.test.ts app/lib/survey/runtime-channels.test.ts app/lib/survey/display-eligibility/rules/display-rules.test.ts app/lib/survey/display-eligibility/completion/survey-completions.test.ts app/lib/security/rate-limit.server.test.ts app/lib/gdpr/customer-id.server.test.ts"
+    "test": "node --experimental-strip-types --test app/lib/survey/response/submission-context-merge.test.ts app/lib/survey/admin-api/parse-save-body.test.ts app/lib/survey/post-purchase-display.test.ts app/lib/survey/runtime-channels.test.ts app/lib/survey/display-eligibility/rules/display-rules.test.ts app/lib/survey/display-eligibility/completion/survey-completions.test.ts app/lib/security/rate-limit.server.test.ts app/lib/gdpr/customer-id.server.test.ts app/lib/db/serverless-database-url.server.test.ts"
   },
   "type": "module",
   "engines": {

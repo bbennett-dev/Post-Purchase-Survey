@@ -15,7 +15,13 @@ const shopify = shopifyApp({
   scopes: process.env.SCOPES?.split(","),
   appUrl: getAppUrl(),
   authPathPrefix: "/auth",
-  sessionStorage: new PrismaSessionStorage(prisma),
+  sessionStorage: new PrismaSessionStorage(prisma, {
+    // Neon’s free compute is asleep after 5 minutes. If the first session
+    // check runs while it is waking, retry a few times instead of treating
+    // that delay as a missing Session table.
+    connectionRetries: 3,
+    connectionRetryIntervalMs: 1000,
+  }),
   distribution: AppDistribution.AppStore,
   future: {
     expiringOfflineAccessTokens: true,
