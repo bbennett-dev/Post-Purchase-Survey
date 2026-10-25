@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "bd4c1b906750205d3e570893697cbdf5"
-name = "IKEO Post-Purchase Survey"
+name = "IKEO Post Purchase Surveys"
 application_url = "https://post-purchase-survey-nine.vercel.app"
 embedded = true
 
