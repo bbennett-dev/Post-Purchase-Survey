@@ -1,13 +1,13 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "bd4c1b906750205d3e570893697cbdf5"
-name = "Post-Purchase Survey (HDYHAU)"
+name = "IKEO Post-Purchase Survey"
 application_url = "https://post-purchase-survey-nine.vercel.app"
 embedded = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_metaobjects,write_metaobject_definitions,read_checkout_branding_settings,write_files,read_orders,read_customers,write_customers,read_products"
+scopes = "write_metaobjects,write_metaobject_definitions,write_files,read_orders,read_customers,write_customers,read_products"
 
 # Published survey for theme / branded / embed channels (Liquid + Storefront API).
 # Values are written on Save via metaobjectUpsert; handle = survey id.

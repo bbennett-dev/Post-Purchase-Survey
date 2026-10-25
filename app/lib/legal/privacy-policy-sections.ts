@@ -4,7 +4,7 @@
 
 export const PRIVACY_POLICY_META = {
   effectiveDate: "2026-10-10",
-  appName: "Post-Purchase Survey (HDYHAU)",
+  appName: "IKEO Post-Purchase Survey",
   legalEntity: "IKEO",
   supportEmail: "ikeoapps@gmail.com",
   /** Public app URL without trailing slash */
@@ -39,7 +39,7 @@ export const PRIVACY_POLICY_SECTIONS: PrivacySection[] = [
     id: "shopify-access",
     title: "What the app reads from Shopify",
     paragraphs: [
-      "At install, the app requests Shopify access scopes needed to run surveys on Thank you and Order status, publish configuration to your shop, and enrich responses when permitted. The current scopes include read access to orders, customers, and products; write access to customers (for display-recurrence metafields when you use those rules), metaobjects and metaobject definitions (to publish survey payloads for supported channels), files (for merchant-uploaded assets such as survey images), and read access to checkout branding settings.",
+      "At install, the app requests Shopify access scopes needed to run surveys on Thank you and Order status, publish configuration to your shop, and enrich responses when permitted. The current scopes include read access to orders, customers, and products; write access to customers (for display-recurrence metafields when you use those rules), metaobjects and metaobject definitions (to publish survey payloads for supported channels), and files (for merchant-uploaded assets such as survey images).",
       "We call the Shopify Admin API only from authenticated merchant sessions or documented app flows (for example enriching a response after checkout submit). We do not use buyer data for advertising and we do not sell it.",
     ],
   },
